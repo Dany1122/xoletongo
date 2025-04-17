@@ -39,22 +39,41 @@
                             <div class="main-menu d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
-                                        <li><a href="{% url 'home' %}" class="active">Home</a></li>
-                                        <li><a href="#">Rooms</a></li>
-                                        <li><a href="#">About</a></li>
-                                        <li><a href="#">Blog <i class="ti-angle-down"></i></a>
+                                        <li><a class="active" href="{% url 'home' %}">Inicio</a></li>
+                                        <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
+                                    
+                                        <li><a href="#">Servicios <i class="ti-angle-down"></i></a>
                                             <ul class="submenu">
-                                                <li><a href="#">Blog</a></li>
-                                                <li><a href="#">Single Blog</a></li>
+                                                <li><a href="{% url 'avistamiento' %}">Avistamiento de luciérnagas</a></li>
+                                                <li><a href="{% url 'agroturismo' %}">Agroturismo</a></li>
+                                                <li><a href="{% url 'destilamiento' %}">Destilamiento artesanal</a></li>
+                                                <li><a href="{% url 'gastroturismo' %}">Gastro turismo</a></li>
+                                                <li><a href="{% url 'talleres' %}">Talleres</a></li>
+                                                <li><a href="{% url 'senderismo' %}">Senderismo</a></li>
+                                                <li><a href="{% url 'regenerativo' %}">Turismo regenerativo</a></li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Pages <i class="ti-angle-down"></i></a>
+                                    
+                                        <li><a href="#">Reservaciones <i class="ti-angle-down"></i></a>
                                             <ul class="submenu">
-                                                <li><a href="#">Elements</a></li>
+                                                <li><a href="{% url 'reservacion_hospedaje' %}">Hospedaje</a></li>
+                                                <li><a href="{% url 'experiencia' %}">Experiencia mágica</a></li>
+                                                <li><a href="#">Temporada de luciérnagas <i class="ti-angle-right"></i></a>
+                                                    <ul class="submenu">
+                                                        <li><a href="{% url 'luciernagas_hospedaje' %}">Hospedaje</a></li>
+                                                        <li><a href="{% url 'luciernagas_transporte' %}">Transporte</a></li>
+                                                        <li><a href="{% url 'luciernagas_comida' %}">Comida</a></li>
+                                                        <li><a href="{% url 'luciernagas_cena' %}">Cena</a></li>
+                                                        <li><a href="{% url 'luciernagas_visita' %}">Visita</a></li>
+                                                    </ul>
+                                                </li>
                                             </ul>
                                         </li>
-                                        <li><a href="#">Contact</a></li>
+                                    
+                                        <li><a href="{% url 'galeria' %}">Galería</a></li>
+                                        <li><a href="{% url 'contacto' %}">Contacto</a></li>
                                     </ul>
+                                    
                                 </nav>
                             </div>
                         </div>
@@ -75,7 +94,7 @@
                                     </ul>
                                 </div>
                                 <div class="book_btn d-none d-lg-block">
-                                    <a class="popup-with-form" href="#test-form">Book A Room</a>
+                                    <a class="popup-with-form" href="#test-form">Reserva Ya!</a>
                                 </div>
                             </div>
                         </div>
