@@ -32,4 +32,8 @@ urlpatterns = [
 
     # Contacto
     path('contacto/', views.contacto, name='contacto'),
+
+    #Login
+    path('login/', views.login_view, name='login')
+
 ]

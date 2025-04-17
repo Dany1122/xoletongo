@@ -1,0 +1,43 @@
+/* static/css/custom.css */
+
+/* Botón Reserva Ya! */
+.btn-reserva {
+    background-color: #8BC34A !important; /* verde similar al sitio original */
+    color: #fff !important;
+    padding: 12px 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 5px;
+    border: none;
+    transition: background-color 0.3s ease;
+    display: inline-block;
+}
+
+.btn-reserva:hover {
+    background-color: #689F38 !important; /* un verde más oscuro al hacer hover */
+    color: #fff !important;
+    border: none !important;
+}
+.btn-reserva:focus,
+.btn-reserva:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+
+/* Enlace de Iniciar Sesión */
+.login-link {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+    font-size: 16px;
+}
+
+.login-link:hover {
+    color: #8BC34A;
+}
+
+.login-link i {
+    margin-right: 5px;
+}

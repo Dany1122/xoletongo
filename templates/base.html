@@ -9,9 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.png' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
 
     <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
@@ -80,21 +81,20 @@
                         <div class="col-xl-2 col-lg-2 text-center">
                             <div class="logo">
                                 <a href="{% url 'home' %}">
-                                    <img src="{% static 'img/logo.png' %}" alt="">
+                                    <img src="{% static 'img/logo.png' %}" style="width: 220px; height: auto;" alt="">
                                 </a>
                             </div>
                         </div>
                         <div class="col-xl-5 col-lg-5 d-none d-lg-block">
                             <div class="book_room">
-                                <div class="socail_links">
-                                    <ul>
-                                        <li><a href="#"><i class="fa fa-facebook-square"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                        <li><a href="#"><i class="fa fa-instagram"></i></a></li>
-                                    </ul>
+                                <div class="user_login">
+                                        <a href="{% url 'login' %}" class="login-link me-3">
+                                            <i class="fa fa-user"></i> Iniciar Sesión
+                                        </a>
                                 </div>
+                                
                                 <div class="book_btn d-none d-lg-block">
-                                    <a class="popup-with-form" href="#test-form">Reserva Ya!</a>
+                                    <a class="btn-reserva" href="#test-form">Reserva Ya!</a>
                                 </div>
                             </div>
                         </div>
@@ -111,71 +111,70 @@
     {% block content %}
     {% endblock %}
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer_top">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-3 col-md-6 col-lg-3">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Address</h3>
-                            <p class="footer_text">200, Green road, Mongla, <br>New York City USA</p>
-                            <a href="#" class="line-button">Get Direction</a>
-                        </div>
-                    </div>
-                    <div class="col-xl-3 col-md-6 col-lg-3">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Reservation</h3>
-                            <p class="footer_text">+10 367 267 2678 <br>reservation@montana.com</p>
-                        </div>
-                    </div>
-                    <div class="col-xl-2 col-md-6 col-lg-2">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Navigation</h3>
-                            <ul>
-                                <li><a href="#">Home</a></li>
-                                <li><a href="#">Rooms</a></li>
-                                <li><a href="#">About</a></li>
-                                <li><a href="#">News</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-md-6 col-lg-4">
-                        <div class="footer_widget">
-                            <h3 class="footer_title">Newsletter</h3>
-                            <form action="#" class="newsletter_form">
-                                <input type="text" placeholder="Enter your mail">
-                                <button type="submit">Sign Up</button>
-                            </form>
-                            <p class="newsletter_text">Subscribe newsletter to get updates</p>
-                        </div>
-                    </div>
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer_top">
+        <div class="container">
+           <!-- Mapa + Galería -->
+<div class="row mt-4">
+    <!-- Columna Izquierda: Mapa -->
+    <div class="col-lg-6">
+        <div class="footer_widget">
+            <h4 class="footer_title text-white">Ubicación</h4>
+            <p class="footer_text text-white">
+                Carretera Miguel Lira Y Ortega <br> Santa Cruz Moxolahua Km 1.5
+            </p>
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3874.3455951249916!2d-98.54644622473863!3d19.46889383952075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1d147b7c8f5f9%3A0x8bdf72377f84c714!2sxoletongo%20centro%20de%20avistamiento!5e1!3m2!1ses-419!2smx!4v1744858078568!5m2!1ses-419!2smx"
+            width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Lema + Galería -->
+    <div class="col-lg-6 d-flex flex-column align-items-center justify-content-center">
+        <!-- Lema -->
+        <h4 style="color: #fff; font-weight: 600;" class="mb-3">"Xoletongo Turismo Natural"</h4>
+
+        <!-- Galería en 2x2 -->
+        <h3 class="footer_title"style="color: white;">Galería</h3>
+    <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+    <a href="{% static 'img/gallery/1.jpg' %}" class="popup-image">
+        <img src="{% static 'img/gallery/1.jpg' %}" alt="Imagen 1" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    </a>
+    <a href="{% static 'img/gallery/2.jpg' %}" class="popup-image">
+        <img src="{% static 'img/gallery/2.jpg' %}" alt="Imagen 2" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    </a>
+    <a href="{% static 'img/gallery/3.jpg' %}" class="popup-image">
+        <img src="{% static 'img/gallery/3.jpg' %}" alt="Imagen 3" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    </a>
+    <a href="{% static 'img/gallery/4.jpg' %}" class="popup-image">
+        <img src="{% static 'img/gallery/4.jpg' %}" alt="Imagen 4" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    </a>
+</div>
+
+    </div>
+</div>
+
+        </div>
+    </div>
+
+    <!-- Pie inferior -->
+    <div class="copy-right_text">
+        <div class="container">
+            <div class="footer_border"></div>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="copy_right">
+                        &copy; <script>document.write(new Date().getFullYear());</script> Xoletongo - Todos los derechos reservados.
+                    </p>
                 </div>
             </div>
         </div>
-        <div class="copy-right_text">
-            <div class="container">
-                <div class="footer_border"></div>
-                <div class="row">
-                    <div class="col-xl-8 col-md-7 col-lg-9">
-                        <p class="copy_right">
-                            &copy; <script>document.write(new Date().getFullYear());</script> All rights reserved |
-                            Template by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                        </p>
-                    </div>
-                    <div class="col-xl-4 col-md-5 col-lg-3">
-                        <div class="socail_links">
-                            <ul>
-                                <li><a href="#"><i class="fa fa-facebook-square"></i></a></li>
-                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                <li><a href="#"><i class="fa fa-instagram"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
+    </div>
+</footer>
+
+    
 
     <!-- Popup Form -->
     <!-- FORM POPUP -->
@@ -263,4 +262,5 @@
         });
     </script>
 </body>
+
 </html>
