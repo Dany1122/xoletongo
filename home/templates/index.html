@@ -10,48 +10,39 @@
 <div class="slider_area">
     <div class="slider_active owl-carousel">
         <div class="single_slider d-flex align-items-center justify-content-center slider_bg_1">
+            <div class="overlay"></div>
             <div class="container">
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="slider_text text-center">
-                            <h3>Montana Resort</h3>
-                            <p>Unlock to enjoy the view of Martine</p>
+                            <h3>¡Tlaxcala brilla!</h3>
+                            <p>Santuario de las luciérnagas</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
+            <div class="overlay"></div>
             <div class="container">
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="slider_text text-center">
-                            <h3>Life is Beautiful</h3>
-                            <p>Unlock to enjoy the view of Martine</p>
+                            <h3>Conexión con la Naturaleza</h3>
+                            <p>Un paseo nocturno dentro de los bosques de coníferas, donde las noches se vuelven mágicas.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="single_slider d-flex align-items-center justify-content-center slider_bg_1">
+        <div class="single_slider d-flex align-items-center justify-content-center slider_bg_3">
+            <div class="overlay"></div>
             <div class="container">
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="slider_text text-center">
-                            <h3>Montana Resort</h3>
-                            <p>Unlock to enjoy the view of Martine</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="single_slider  d-flex align-items-center justify-content-center slider_bg_2">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-12">
-                        <div class="slider_text text-center">
-                            <h3>Life is Beautiful</h3>
-                            <p>Unlock to enjoy the view of Martine</p>
+                            <h3>Hospitalidad en la Sierra</h3>
+                            <p>Hospédate con nosotros y descubre un entorno único</p>
                         </div>
                     </div>
                 </div>
@@ -68,13 +59,12 @@
             <div class="col-xl-5 col-lg-5">
                 <div class="about_info">
                     <div class="section_title mb-20px">
-                        <span>About Us</span>
-                        <h3>A Luxuries Hotel <br>with Nature</h3>
+                        <span>Comienza la aventura</span>
+                        <h3>Visita<br>Xoletongo</h3>
                     </div>
-                    <p>Suscipit libero pretium nullam potenti. Interdum, blandit phasellus consectetuer dolor ornare
-                        dapibus enim ut tincidunt rhoncus tellus sollicitudin pede nam maecenas, dolor sem. Neque
-                        sollicitudin enim.</p>
-                    <a href="#" class="line-button">Learn More</a>
+                    <p>Empresa familiar apasionada por la comida tradicional Tlaxcalteca, y comprometida con el rescate de las recetas de herencia e historia.
+                         Ofrecemos experiencias vivas, con base en las tradiciones y costumbres de nuestros Pueblos.</p>
+                    <a href="#" class="line-button">Conoce más</a>
                 </div>
             </div>
             <div class="col-xl-7 col-lg-7">
@@ -89,32 +79,187 @@
 <!-- about_area_end -->
 
 <!-- offers_area_start -->
+<!-- offers_area_start -->
 <div class="offers_area">
     <div class="container">
         <div class="section_title text-center mb-100">
-            <span>Our Offers</span>
-            <h3>Ongoing Offers</h3>
+            <span>¿Qué ofrecemos?</span>
+            <h3>Servicios Disponibles</h3>
         </div>
         <div class="row">
-            {% for i in "123"|make_list %}
-            <div class="col-xl-4 col-md-4">
-                <div class="single_offers">
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
                     <div class="about_thumb">
-                        <img src="{% static 'img/offers/'|add:i|add:'.png' %}" alt="">
+                        <img src="{% static 'img/offers/gastroturismo.png' %}" alt="Gastroturismo">
                     </div>
-                    <h3>Up to 35% savings on Club <br>rooms and Suites</h3>
-                    <ul>
-                        <li>Luxaries condition</li>
-                        <li>3 Adults & 2 Children size</li>
-                        <li>Sea view side</li>
-                    </ul>
-                    <a href="#" class="book_now">book now</a>
+                    <h3>Gastroturismo</h3>
+                    <p>Degustaciones de platillos tradicionales con ingredientes prehispánicos.</p>
                 </div>
             </div>
-            {% endfor %}
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/agroturismo.png' %}" alt="Agroturismo">
+                    </div>
+                    <h3>Agroturismo</h3>
+                    <p>Recolectamos productos del campo listos para cocinarse.</p>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/regenerativo.png' %}" alt="Turismo Regenerativo">
+                    </div>
+                    <h3>Turismo Regenerativo</h3>
+                    <p>Convivencia con las comunidades locales y su día a día.</p>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/destilado.png' %}" alt="Destilado Artesanal">
+                    </div>
+                    <h3>Destilado Artesanal</h3>
+                    <p>Destilación artesanal de agave con sal de gusano Chinicuil.</p>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/senderismo.png' %}" alt="Senderismo">
+                    </div>
+                    <h3>Senderismo</h3>
+                    <p>Interpretación ambiental de flora y fauna local.</p>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/luciernagas.png' %}" alt="Avistamiento de luciérnagas">
+                    </div>
+                    <h3>Avistamiento de Luciérnagas</h3>
+                    <p>Experiencia mágica en temporada de junio a agosto.</p>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mx-auto">
+                <div class="single_offers text-center">
+                    <div class="about_thumb">
+                        <img src="{% static 'img/offers/talleres.png' %}" alt="Talleres">
+                    </div>
+                    <h3>Talleres</h3>
+                    <p>Elaboración de alimentos tradicionales y pan de pulque.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+<!-- offers_area_end -->
+<!-- offers_area_start -->
+<div class="offers_area">
+    <div class="container">
+        <div class="section_title text-center mb-100">
+            <span>¿Qué ofrecemos?</span>
+            <h3>Servicios Disponibles</h3>
+        </div>
+        <div class="row">
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'gastroturismo' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/gastroturismo.png' %}" alt="Gastroturismo">
+                        </div>
+                        <h3>Gastroturismo</h3>
+                        <p>Degustaciones de platillos tradicionales con ingredientes prehispánicos.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'agroturismo' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/agroturismo.png' %}" alt="Agroturismo">
+                        </div>
+                        <h3>Agroturismo</h3>
+                        <p>Recolectamos productos del campo listos para cocinarse.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'regenerativo' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/regenerativo.png' %}" alt="Turismo Regenerativo">
+                        </div>
+                        <h3>Turismo Regenerativo</h3>
+                        <p>Convivencia con las comunidades locales y su día a día.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'destilamiento' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/destilado.png' %}" alt="Destilado Artesanal">
+                        </div>
+                        <h3>Destilado Artesanal</h3>
+                        <p>Destilación artesanal de agave con sal de gusano Chinicuil.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'senderismo' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/senderismo.png' %}" alt="Senderismo">
+                        </div>
+                        <h3>Senderismo</h3>
+                        <p>Interpretación ambiental de flora y fauna local.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6">
+                <a href="{% url 'avistamiento' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/luciernagas.png' %}" alt="Avistamiento de Luciérnagas">
+                        </div>
+                        <h3>Avistamiento de Luciérnagas</h3>
+                        <p>Experiencia mágica en temporada de junio a agosto.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-xl-4 col-md-6 mx-auto">
+                <a href="{% url 'talleres' %}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static 'img/offers/talleres.png' %}" alt="Talleres">
+                        </div>
+                        <h3>Talleres</h3>
+                        <p>Elaboración de pan de pulque y otros alimentos tradicionales.</p>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- offers_area_end -->
+
 <!-- offers_area_end -->
 
 <!-- video_area_start -->
@@ -207,16 +352,4 @@
 </div>
 <!-- forQuery_end -->
 
-<!-- instragram_area_start -->
-<div class="instragram_area">
-    {% for i in "12345"|make_list %}
-    <div class="single_instagram">
-        <img src="{% static 'img/instragram/'|add:i|add:'.png' %}" alt="">
-        <div class="ovrelay">
-            <a href="#"><i class="fa fa-instagram"></i></a>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-<!-- instragram_area_end -->
 {% endblock %}
