@@ -89,3 +89,8 @@ def login_view(request):
 
     return render(request, 'login.html')
 
+# views.py
+def registro_view(request):
+    return render(request, 'registro.html')
+
+

@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <title>Iniciar Sesión - Xoletongo</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        
+        <div class="login-card">
+            <div class="image-container">
+                <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+            </div>
+            <div class="login-form">
+                <div class="logo-circle">
+                    <span>Xoletongo</span>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="username">Correo electrónico</label>
+                    <input type="email" id="username" name="username" required>
+
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <button type="submit" class="login-btn">Iniciar Sesión</button>
+                </form>
+                <div class="extra-options">
+                    <p>¿No tienes una cuenta? <a href="{% url 'registro' %}">Regístrate</a></p>
+                </div>
+                <div class="back-home">
+                    <a href="/" class="back-link">← Volver al inicio</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</body>
+</html>

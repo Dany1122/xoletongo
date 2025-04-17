@@ -1,0 +1,120 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f4f4;
+}
+
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.login-card {
+    background: #fff;
+    width: 360px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.image-container img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.login-form {
+    padding: 30px 25px;
+    position: relative;
+}
+
+.logo-circle {
+    background-color: #77b43f; /* verde Xoletongo */
+    color: white;
+    width: 80px;
+    height: 80px;
+    font-size: 14px;
+    text-align: center;
+    line-height: 80px;
+    border-radius: 50%;
+    position: absolute;
+    top: -40px;
+    left: calc(50% - 40px);
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form label {
+    font-size: 14px;
+    color: #444;
+}
+
+form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border 0.3s;
+}
+
+form input:focus {
+    border-color: #77b43f;
+    outline: none;
+}
+
+.login-btn {
+    background-color: #77b43f;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #61972f;
+}
+
+.extra-options {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.extra-options a {
+    color: #77b43f;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.extra-options a:hover {
+    text-decoration: underline;
+}
+
+.back-home {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.back-link {
+    text-decoration: none;
+    color: #5da35d;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #3a703a;
+}
+
