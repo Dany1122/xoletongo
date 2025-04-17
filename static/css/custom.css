@@ -105,3 +105,186 @@
     line-height: 1.4;
     margin-bottom: 0;
 }
+
+.video_area {
+    padding: 60px 0;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.video_wrapper video {
+    width: auto;
+    height: 90vh;
+    max-height: 600px;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    object-fit: contain;
+}
+
+.reconocimiento_card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.reconocimiento_card h5 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.reconocimiento_card p {
+    font-size: 14px;
+    color: #555;
+}
+
+.reconocimientos-section {
+    background-color: #111;
+    color: #f5f5f5;
+    padding: 60px 0;
+}
+
+.section-title {
+    color: #8dd34d;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #ccc;
+}
+
+.recon-card {
+    background-color: #1c1c1c;
+    border-radius: 15px;
+    padding: 20px;
+    height: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+}
+
+.recon-card:hover {
+    transform: translateY(-5px);
+}
+
+.recon-img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.recon-title {
+    font-size: 1.2rem;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.recon-text {
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.recon-video {
+    width: 100%;
+    border-radius: 10px;
+    height: auto;
+}
+.about_area {
+    padding: 80px 0;
+    background-color: #fafafa;
+}
+
+.about_info .section_title span {
+    font-weight: bold;
+    color: #8dd34d;
+    text-transform: uppercase;
+}
+
+.about_info .line-button {
+    color: #8dd34d;
+    border-bottom: 1px solid #8dd34d;
+    transition: 0.3s ease;
+}
+
+.about_info .line-button:hover {
+    color: #6fb63b;
+    border-color: #6fb63b;
+}
+
+.features_room.reservaciones_overlay {
+    position: relative;
+    padding: 100px 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+
+.features_room.reservaciones_overlay::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6); /* Oscurecimiento */
+    z-index: 0;
+}
+
+.features_room .container {
+    position: relative;
+    z-index: 2;
+}
+
+.features_room .text-white h3,
+.features_room .text-white span {
+    color: white;
+}
+.features_room.reservaciones_overlay_dark {
+    background: linear-gradient(135deg, #0a0a0a, #1c1c1c);
+    padding: 100px 0;
+    position: relative;
+}
+
+.features_room.reservaciones_overlay_dark .section_title h3,
+.features_room.reservaciones_overlay_dark .section_title span {
+    color: #fff;
+}
+
+.single_rooms {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* sombra sutil inicial */
+}
+
+.single_rooms:hover {
+    box-shadow: 0 8px 20px rgba(0, 255, 0, 0.4); /* sombra verde al hover */
+    transform: translateY(-5px); /* pequeño levantamiento */
+}
+
+.whatsapp-btn {
+    background-color: #25D366 !important;
+    color: white !important;
+    padding: 12px 25px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    border: none;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+}
+
+.whatsapp-btn:hover {
+    background-color: #1ebe5b !important;
+    color: white !important;
+}
+
+.whatsapp-btn i {
+    margin-right: 10px;
+    font-size: 20px;
+}
