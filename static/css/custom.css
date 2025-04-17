@@ -288,3 +288,81 @@
     margin-right: 10px;
     font-size: 20px;
 }
+
+.sidebar_menu {
+    border-radius: 15px;
+    background: #fff;
+    height: 100%;
+}
+
+.sidebar_menu .nav-link {
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.sidebar_menu .nav-link i {
+    margin-right: 10px;
+}
+
+.sidebar_menu .nav-link:hover,
+.sidebar_menu .nav-link.active {
+    background: #4b8d2a;
+    color: #fff !important;
+}
+
+.badge-success {
+    background-color: #4CAF50;
+}
+
+.badge-warning {
+    background-color: #FFC107;
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+.page-body #sticky-header,
+.page-body .main-header-area {
+    background-color: #000 !important;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.page-body .main-menu ul li a {
+    color: white !important;
+}
+
+.page-body .main-menu ul li a:hover {
+    color: #28a745 !important;
+}
+
+.page-body .submenu {
+    background-color: #000 !important;
+}
+
+.page-body .submenu li a {
+    color: white !important;
+}
+
+.page-body .submenu li a:hover {
+    color: #28a745 !important;
+}
+
+body.page-body .perfil_usuario_area {
+    padding-top: 150px;           /* Espacio para que no se encime */
+    background-color: #000000;    /* Fondo negro */
+    color: white;                 /* Opcional: texto blanco */
+}
+body.page-body {
+    margin: 0;
+    padding: 0;
+}
+
+.page-body .table td{
+    color: #000 !important;
+}
+

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}
+    Perfil
+{% endblock %}
+{% block body_class %}page-body{% endblock %}
+
+{% block content %}
+<div class="contenido-principal">
+<section class="perfil_usuario_area section_padding bg-light">
+    <div class="container">
+        <div class="row">
+            <!-- Menú lateral -->
+            <div class="col-md-3">
+                <div class="sidebar_menu p-3 bg-white shadow rounded">
+                    <h5 class="text-center mb-4">Mi Cuenta</h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#"><i class="fa fa-user"></i> Perfil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fa fa-calendar-check-o"></i> Mis Reservaciones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fa fa-cog"></i> Editar Perfil</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="#"><i class="fa fa-sign-out"></i> Cerrar Sesión</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="col-md-9">
+                <div class="content_area p-4 bg-white shadow rounded">
+                    <h4 class="mb-4">Mis Reservaciones</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered">
+                            <thead class="thead-dark text-center">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Personas</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% for reserva in reservaciones %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ reserva.tipo }}</td>
+                                    <td>{{ reserva.fecha }}</td>
+                                    <td>{{ reserva.personas }}</td>
+                                    <td>
+                                        {% if reserva.estado == 'confirmada' %}
+                                            <span class="badge badge-success">Confirmada</span>
+                                        {% elif reserva.estado == 'pendiente' %}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Cancelada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">Aún no tienes reservaciones.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+{% endblock %}

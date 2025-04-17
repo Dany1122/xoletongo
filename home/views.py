@@ -94,3 +94,14 @@ def registro_view(request):
     return render(request, 'registro.html')
 
 
+#Vista simulada registro
+def perfil_usuario(request):
+    usuario = request.user
+    reservaciones = [
+        {'tipo': 'Hospedaje', 'fecha': '2025-06-10', 'personas': 2, 'estado': 'confirmada'},
+        {'tipo': 'Experiencia mágica', 'fecha': '2025-07-15', 'personas': 4, 'estado': 'pendiente'},
+        {'tipo': 'Senderismo', 'fecha': '2025-08-01', 'personas': 3, 'estado': 'cancelada'},
+    ]
+    return render(request, 'perfil.html', {'usuario': usuario, 'reservaciones': reservaciones})
+
+
