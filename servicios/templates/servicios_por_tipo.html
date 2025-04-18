@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}
+    Hospedaje
+{% endblock %}
+
+{% block content %}
+    <!-- bradcam_area_start -->
+    <div class="bradcam_area breadcam_bg">
+        <div class="overlay"></div>
+        <h3>Tipos de Hospedaje</h3>
+    </div>
+    <!-- bradcam_area_end -->
+
+    <!-- hospedaje_area_start -->
+    <div class="offers_area padding_top">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="section_title text-center mb-100">
+                        <span>Nuestras Opciones</span>
+                        <h3>Elige tu tipo de hospedaje</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- Camping -->
+                <div class="col-xl-4 col-md-6">
+                        <div class="single_offers text-center">
+                            <div class="about_thumb">
+                                <img src="{% static 'img/hospedaje/camping.jpg' %}" alt="Gastroturismo">
+                            </div>
+                            <h3>Camping</h3>
+                            <p>Experiencia al aire libre</p>
+
+                            <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
+                        </div>
+                </div>
+
+                <!-- Glamping -->
+                <div class="col-xl-4 col-md-4 mb-4">
+                    <div class="single_offers">
+                        <div class="about_thumb" style="height: 250px; overflow: hidden; border-radius: 10px;">
+                            <img src="{% static 'img/hospedaje/glamping.jpg' %}" 
+                                 alt="Glamping" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h3>Glamping</h3>
+                            <p>Comodidad y lujo en la naturaleza</p>
+                            <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
+                    </div>
+                </div>
+
+                <!-- Cabaña -->
+                <div class="col-xl-4 col-md-4 mb-4">
+                    <div class="single_offers">
+                        <div class="about_thumb" style="height: 250px; overflow: hidden; border-radius: 10px;">
+                            <img src="{% static 'img/hospedaje/cabana.jpg' %}" 
+                                 alt="Cabaña" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h3>Cabaña</h3>
+                            <p>Espacios acogedores y rústicos</p>
+                        <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- hospedaje_area_end -->
+{% endblock %}

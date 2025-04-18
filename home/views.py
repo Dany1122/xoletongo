@@ -13,7 +13,7 @@ def index(request):
     return render(request, 'home/index.html')
 
 def nosotros(request):
-    return render(request, 'home/nosotros.html')
+    return render(request, 'nosotros.html')
 
 # Servicios
 def avistamiento(request):
@@ -66,7 +66,7 @@ def galeria(request):
 
 # Contacto
 def contacto(request):
-    return render(request, 'home/contacto.html')
+    return render(request, 'contacto.html')
 
 
 #Login
