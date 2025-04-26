@@ -1,4 +1,5 @@
 {% load static %}
+{% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -87,22 +88,102 @@
             <div class="circle-logo">Xoletongo</div>
         </div>
         <div class="card-body">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
             <form method="post">
                 {% csrf_token %}
-                <input type="text" name="nombre" class="form-control" placeholder="Nombre completo">
-                <input type="email" name="correo" class="form-control" placeholder="Correo electrónico">
-                <input type="date" name="fecha_nacimiento" class="form-control">
-                <input type="tel" name="telefono" class="form-control" placeholder="Teléfono">
-                <input type="password" name="password" class="form-control" placeholder="Contraseña">
-                <button type="submit" class="btn btn-register mt-2">Registrarme</button>
+
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Nombre de usuario</label>
+                    {{ form.username|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_nombre_completo" class="form-label">Nombre completo</label>
+                    {{ form.nombre_completo|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_email" class="form-label">Correo electrónico</label>
+                    {{ form.email|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+                    {{ form.fecha_nacimiento|add_class:"form-control"|attr:"type:date" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_telefono" class="form-label">Teléfono</label>
+                    {{ form.telefono|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_password1" class="form-label">Contraseña</label>
+                    {{ form.password1|add_class:"form-control" }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="id_password2" class="form-label">Confirmar contraseña</label>
+                    {{ form.password2|add_class:"form-control" }}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-register">Registrarse</button>
+                </div>
             </form>
+
             <p class="text-center mt-3 text-small">
                 ¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-link">Inicia sesión</a>
             </p>
             <p class="text-center mt-2 text-small">
                 ← <a href="{% url 'home' %}" class="text-link">Volver al inicio</a>
             </p>
+
         </div>
     </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+    <!-- Opcional: Auto-cierre de alertas después de 5 segundos -->
+    <script>
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.classList.remove('show');
+                alert.classList.add('fade');
+                setTimeout(function() {
+                    alert.remove();
+                }, 500); // después de que desaparece visualmente
+            });
+        }, 5000);
+    </script>
+
 </body>
 </html>

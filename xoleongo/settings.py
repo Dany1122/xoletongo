@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     'home',
     'reservaciones',
     'servicios',
+    'usuarios',
+    'widget_tweaks',
 ]
+AUTH_USER_MODEL = 'usuarios.CustomUser'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

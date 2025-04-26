@@ -25,8 +25,11 @@
                             <a class="nav-link" href="#"><i class="fa fa-cog"></i> Editar Perfil</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-danger" href="#"><i class="fa fa-sign-out"></i> Cerrar Sesión</a>
+                            <a class="nav-link text-danger" href="{% url 'logout' %}">
+                                <i class="fa fa-sign-out"></i> Cerrar Sesión
+                            </a>
                         </li>
+                        
                     </ul>
                 </div>
             </div>

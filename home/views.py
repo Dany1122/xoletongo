@@ -69,39 +69,6 @@ def contacto(request):
     return render(request, 'contacto.html')
 
 
-#Login
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib import messages
 
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            return redirect('home')  # o a donde quieras redirigir
-        else:
-            messages.error(request, 'Nombre de usuario o contraseña incorrectos.')
-
-    return render(request, 'login.html')
-
-# views.py
-def registro_view(request):
-    return render(request, 'registro.html')
-
-
-#Vista simulada registro
-def perfil_usuario(request):
-    usuario = request.user
-    reservaciones = [
-        {'tipo': 'Hospedaje', 'fecha': '2025-06-10', 'personas': 2, 'estado': 'confirmada'},
-        {'tipo': 'Experiencia mágica', 'fecha': '2025-07-15', 'personas': 4, 'estado': 'pendiente'},
-        {'tipo': 'Senderismo', 'fecha': '2025-08-01', 'personas': 3, 'estado': 'cancelada'},
-    ]
-    return render(request, 'perfil.html', {'usuario': usuario, 'reservaciones': reservaciones})
 
 
