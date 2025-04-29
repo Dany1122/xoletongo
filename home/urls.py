@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import HomeView
 from . import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('', HomeView.as_view(), name='home'),
@@ -28,7 +30,7 @@ urlpatterns = [
     path('reservaciones/luciernagas/visita/', views.luciernagas_visita, name='luciernagas_visita'),
 
     # Galería
-    path('galeria/', views.galeria, name='galeria'),
+    path('galeria/', views.galeria, name='galeria'), 
 
     # Contacto
     path('contacto/', views.contacto, name='contacto'),
@@ -40,4 +42,4 @@ urlpatterns = [
     #perfil
     path('perfil/', views.perfil_usuario, name='perfil'),
 
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

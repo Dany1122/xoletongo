@@ -42,33 +42,7 @@
                                         <li><a class="active" href="{% url 'home' %}">Inicio</a></li>
                                         <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
                                     
-                                        <li><a href="#">Servicios <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="{% url 'detalle_servicio' 1 %}">Avistamiento de luciérnagas</a></li>
-                                                <li><a href="{% url 'agroturismo' %}">Agroturismo</a></li>
-                                                <li><a href="{% url 'destilamiento' %}">Destilamiento artesanal</a></li>
-                                                <li><a href="{% url 'gastroturismo' %}">Gastro turismo</a></li>
-                                                <li><a href="{% url 'talleres' %}">Talleres</a></li>
-                                                <li><a href="{% url 'senderismo' %}">Senderismo</a></li>
-                                                <li><a href="{% url 'regenerativo' %}">Turismo regenerativo</a></li>
-                                            </ul>
-                                        </li>
-                                    
-                                        <li><a href="#">Reservaciones <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="{% url 'subservicios_por_tipo' 'Hospedaje' %}">Hospedaje</a></li>
-                                                <li><a href="{% url 'experiencia' %}">Experiencia mágica</a></li>
-                                                <li><a href="#">Temporada de luciérnagas <i class="ti-angle-right"></i></a>
-                                                    <ul class="submenu">
-                                                        <li><a href="{% url 'luciernagas_hospedaje' %}">Hospedaje</a></li>
-                                                        <li><a href="{% url 'luciernagas_transporte' %}">Transporte</a></li>
-                                                        <li><a href="{% url 'luciernagas_comida' %}">Comida</a></li>
-                                                        <li><a href="{% url 'luciernagas_cena' %}">Cena</a></li>
-                                                        <li><a href="{% url 'luciernagas_visita' %}">Visita</a></li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
+                                        <li><a href="{% url 'servicios_por_tipo' %}">Servicios</a></li>
                                     
                                         <li><a href="{% url 'galeria' %}">Galería</a></li>
                                         <li><a href="{% url 'contacto' %}">Contacto</a></li>
@@ -93,7 +67,7 @@
                                 </div>
                                 
                                 <div class="book_btn d-none d-lg-block">
-                                    <a href="#test-form" class="btn-reserva radius popup-with-form" >Reserva Ya!</a>
+                                    <a href="{% url 'servicios_por_tipo' %}" class="btn-reserva radius" >Reserva Ya!</a>
                                 </div>
                             </div>
                         </div>

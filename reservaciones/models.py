@@ -10,9 +10,10 @@ class Reservacion(models.Model):
     numero_personas = models.PositiveIntegerField()
     fecha_reserva = models.DateTimeField(auto_now_add=True)
     comentario = models.TextField(null=True, blank=True)  # Comentarios adicionales del cliente
+    pago_realizado = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Reserva: {self.subservicio.nombre} por {self.nombre_cliente}"
+        return f"Reserva de {self.nombre_cliente}"
     
 class Reservacion_servicio(models.Model):
     id_reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE, related_name='reservacion')

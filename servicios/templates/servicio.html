@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block titulo %}
-    Avistamiento de luciernagas
+   {{ servicio.titulo }}
 {% endblock %}
 
 {% block content %}
@@ -23,7 +23,14 @@
                 <p>{{ servicio.descripcion }}</p>
                 <h4 class="mt-20">Costo por persona</h4>
                 <p><strong>${{ servicio.costo_por_persona }}</strong></p>
-                <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar ahora</a>
+                <h4 class="mt-20">Costo por niño</h4>
+                <p><strong>${{ servicio.costo_niño }}</strong></p>
+                <h4 class="mt-20">Costo con descuento</h4>
+                <p><strong>${{ servicio.costo_con_descuento }}</strong></p>
+                {% if servicio.restricciones %}
+                <p><strong>Restricciones:</strong> {{ servicio.restricciones }}</p>
+                {% endif %}
+                <a href="{% url 'crear_reservacion' servicio.id %}" class="btn-reserva">Reservar ahora</a>
             </div>
         </div>
 
