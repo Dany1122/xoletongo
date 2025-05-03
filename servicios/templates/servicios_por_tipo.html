@@ -2,71 +2,54 @@
 {% load static %}
 
 {% block titulo %}
-    Hospedaje
+    Servicios - Xoleongo
 {% endblock %}
 
 {% block content %}
-    <!-- bradcam_area_start -->
-    <div class="bradcam_area breadcam_bg">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/servicios.css' %}">
+</head>
+<body>
+    <div class="bradcam_area breadcam_bg_2">
         <div class="overlay"></div>
-        <h3>Tipos de Hospedaje</h3>
+        <h3>Nuestros Servicios</h3>
     </div>
-    <!-- bradcam_area_end -->
-
-    <!-- hospedaje_area_start -->
-    <div class="offers_area padding_top">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="section_title text-center mb-100">
-                        <span>Nuestras Opciones</span>
-                        <h3>Elige tu tipo de hospedaje</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <!-- Camping -->
-                <div class="col-xl-4 col-md-6">
-                        <div class="single_offers text-center">
-                            <div class="about_thumb">
-                                <img src="{% static 'img/hospedaje/camping.jpg' %}" alt="Gastroturismo">
+    <div class="container my-5">
+        <div class="accordion" id="accordionServicios">
+            {% for tipo in tipos_servicio %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ forloop.counter }}">
+                            {{ tipo.nombre }}
+                        </button>
+                    </h2>
+                    <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionServicios">
+                        <div class="accordion-body">
+                            <div class="row">
+                                {% for servicio in tipo.subservicios.all %}
+                                    <div class="col-md-4 mb-4">
+                                        <a href="{% url 'detalle_servicio' servicio.id %}" class="text-decoration-none text-dark">
+                                            <div class="card h-100">
+                                                <img src="{{ servicio.imagen_principal.url }}" class="card-img-top" alt="{{ servicio.titulo }}">
+                                                <div class="card-body">
+                                                    <h5 class="card-title text-center">{{ servicio.titulo }}</h5>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                {% endfor %}
                             </div>
-                            <h3>Camping</h3>
-                            <p>Experiencia al aire libre</p>
-
-                            <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
                         </div>
-                </div>
-
-                <!-- Glamping -->
-                <div class="col-xl-4 col-md-4 mb-4">
-                    <div class="single_offers">
-                        <div class="about_thumb" style="height: 250px; overflow: hidden; border-radius: 10px;">
-                            <img src="{% static 'img/hospedaje/glamping.jpg' %}" 
-                                 alt="Glamping" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <h3>Glamping</h3>
-                            <p>Comodidad y lujo en la naturaleza</p>
-                            <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
                     </div>
                 </div>
-
-                <!-- Cabaña -->
-                <div class="col-xl-4 col-md-4 mb-4">
-                    <div class="single_offers">
-                        <div class="about_thumb" style="height: 250px; overflow: hidden; border-radius: 10px;">
-                            <img src="{% static 'img/hospedaje/cabana.jpg' %}" 
-                                 alt="Cabaña" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <h3>Cabaña</h3>
-                            <p>Espacios acogedores y rústicos</p>
-                        <a href="#test-form" class="btn-reserva radius popup-with-form">Reservar</a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
-    <!-- hospedaje_area_end -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 {% endblock %}

@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <title>Pago Reservación - Xoletongo</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="image-container">
+                <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+            </div>
+            <div class="login-form">
+                <div class="logo-circle">
+                    <span>Pagar</span>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <p class="text-center mb-4">Servicio: <strong>{{ servicio.titulo }}</strong></p>
+                    <p class="text-center mb-4">Total: <strong>${{ servicio.costo_por_persona|floatformat:2 }} MXN</strong></p>
+
+                    <button type="submit" class="login-btn">Pagar ahora</button>
+                </form>
+                <div class="back-home">
+                    <a href="/" class="back-link">← Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

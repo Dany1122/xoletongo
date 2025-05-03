@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}
+   Galería de Imágenes
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/galeria.css' %}">
+
+<div class="bradcam_area breadcam_bg_2">
+    <div class="overlay"></div>
+    <h3 class="galeria-titulo">Galería de Imágenes</h3>
+</div>
+
+<section class="galeria-container">
+    {% for imagen in imagenes %}
+        <div class="imagen-box">
+            <img src="{{ imagen.imagen.url }}" alt="{{ imagen.descripcion }}" onclick="abrirModal(this)">
+            {% if imagen.descripcion %}
+                <div class="descripcion">{{ imagen.descripcion }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</section>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+    <span class="cerrar" onclick="cerrarModal()">&times;</span>
+    <img class="modal-contenido" id="imgModal">
+    <div id="caption"></div>
+</div>
+
+<script>
+    function abrirModal(imagen) {
+        var modal = document.getElementById("modal");
+        var modalImg = document.getElementById("imgModal");
+        var caption = document.getElementById("caption");
+
+        modal.style.display = "block";
+        modalImg.src = imagen.src;
+        caption.innerHTML = imagen.alt;
+    }
+
+    function cerrarModal() {
+        document.getElementById("modal").style.display = "none";
+    }
+</script>
+{% endblock %}

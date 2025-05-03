@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import View
+from servicios.models import ImagenServicio
 
 # Create your views here.
 class HomeView(View):
@@ -62,7 +63,7 @@ def luciernagas_visita(request):
 
 # Galería
 def galeria(request):
-    return render(request, 'home/galeria.html')
+    return render(request, 'galeria.html')
 
 # Contacto
 def contacto(request):
@@ -70,5 +71,8 @@ def contacto(request):
 
 
 
+def galeria(request):
+    imagenes = ImagenServicio.objects.all()  # Obtener todas las imágenes almacenadas
+    return render(request, 'galeria.html', {'imagenes': imagenes})
 
 
