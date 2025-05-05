@@ -142,3 +142,14 @@ STATICFILES_DIRS=[os.path.join(BASE_DIR, 'static'),]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+PAYPAL_CLIENT_ID = 'ARSUW_9J6bp_g5eGOiFbz3-xA8r2ktn5UK99lWhlTKAzyopjorYRVVUTj9Km-5kdoc7K1PTpjFcat7H7'
+PAYPAL_SECRET = 'EM8FvqwAaJ1JxM-fth-uA602qdxQrRqCoTxv-tpQJTrWleADyZ-vQ4ozRvYtN8ISFlrrckvwBLWHtf2E'
+PAYPAL_MODE = 'sandbox'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'xoletongo0@gmail.com'
+EMAIL_HOST_PASSWORD = 'lhru oysb fgim xdpt'
