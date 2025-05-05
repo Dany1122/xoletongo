@@ -19,31 +19,36 @@
                 </div>
                 <form method="post">
                     {% csrf_token %}
-                    <label for="nombre_cliente">Nombre</label>
-                    <input type="text" id="nombre_cliente" name="nombre_cliente" required>
-
-                    <label for="email_cliente">Correo electrónico</label>
-                    <input type="email" id="email_cliente" name="email_cliente" required>
-
+                
+                    {% if not request.user.is_authenticated %}
+                        <label for="nombre_cliente">Nombre</label>
+                        <input type="text" id="nombre_cliente" name="nombre_cliente" required>
+                
+                        <label for="email_cliente">Correo electrónico</label>
+                        <input type="email" id="email_cliente" name="email_cliente" required>
+                    {% else %}
+                        <p><strong>Reservando como:</strong> {{ request.user.get_full_name|default:request.user.username }} ({{ request.user.email }})</p>
+                    {% endif %}
+                
                     <label for="fecha_inicio">Fecha de inicio</label>
                     <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-
+                
                     <label for="fecha_fin">Fecha de fin</label>
                     <input type="date" id="fecha_fin" name="fecha_fin">
-
+                
                     <label for="numero_personas">Número de personas</label>
                     <input type="number" id="numero_personas" name="numero_personas" min="1" required>
-
+                
                     <label for="comentario">Comentario (opcional)</label>
                     <textarea id="comentario" name="comentario"></textarea>
-
+                
                     <div class="checkbox-pago">
                         <input type="checkbox" id="pago" name="pago" value="1">
                         <label for="pago">Quiero pagar ahora</label>
                     </div>
                 
                     <button type="submit" class="reservar-btn">Reservar</button>
-                </form>
+                </form>                
                 <div class="back-home">
                     <a href="/" class="back-link">← Volver al inicio</a>
                 </div>

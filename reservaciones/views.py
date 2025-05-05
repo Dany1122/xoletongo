@@ -1,44 +1,45 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Servicio, Reservacion, Reservacion_servicio
+from .forms import ReservacionAnonimaForm, ReservacionAutenticadaForm
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 def crear_reservacion(request, servicio_id):
     servicio = get_object_or_404(Servicio, id=servicio_id)
 
     if request.method == 'POST':
-        if 'pago' in request.POST:
-            # Si quiere pagar, pasamos la info temporalmente
-            request.session['reservacion_datos'] = {
-                'nombre_cliente': request.POST['nombre_cliente'],
-                'email_cliente': request.POST['email_cliente'],
-                'fecha_inicio': request.POST['fecha_inicio'],
-                'fecha_fin': request.POST.get('fecha_fin', ''),
-                'numero_personas': request.POST['numero_personas'],
-                'comentario': request.POST.get('comentario', ''),
-                'servicio_id': servicio.id
-            }
-            return redirect('procesar_pago')  # Redirige a la vista de pago
-        
+        if request.user.is_authenticated:
+            form = ReservacionAutenticadaForm(request.POST)
         else:
-            # Si NO quiere pagar, crea directamente la reservación
-            reservacion = Reservacion.objects.create(
-                nombre_cliente=request.POST['nombre_cliente'],
-                email_cliente=request.POST['email_cliente'],
-                fecha_inicio=request.POST['fecha_inicio'],
-                fecha_fin=request.POST.get('fecha_fin', None),
-                numero_personas=request.POST['numero_personas'],
-                comentario=request.POST.get('comentario', ''),
-                pago_realizado=False
-            )
+            form = ReservacionAnonimaForm(request.POST)
+
+        if form.is_valid():
+            reservacion = form.save(commit=False)
+            if request.user.is_authenticated:
+                reservacion.nombre_cliente = request.user.get_full_name() or request.user.username
+                reservacion.email_cliente = request.user.email
+            reservacion.pago_realizado = 'pago' in request.POST
+            reservacion.save()
 
             Reservacion_servicio.objects.create(
                 id_reservacion=reservacion,
                 servicio=servicio
             )
 
-            return redirect('reservacion_exitosa')
+            if 'pago' in request.POST:
+                request.session['reservacion_datos'] = {
+                    'id': reservacion.id
+                }
+                return redirect('procesar_pago')
+            else:
+                return redirect('reservacion_exitosa')
 
-    return render(request, 'reservacion.html', {'servicio': servicio})
+    else:
+        form = ReservacionAutenticadaForm() if request.user.is_authenticated else ReservacionAnonimaForm()
+
+    return render(request, 'reservacion.html', {'form': form, 'servicio': servicio})
+
 
 def procesar_pago(request):
     if request.method == 'POST':
