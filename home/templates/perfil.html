@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block titulo %}
+    Perfil
+{% endblock %}
+{% block body_class %}page-body{% endblock %}
+
+{% block content %}
+<div class="contenido-principal">
+<section class="perfil_usuario_area section_padding bg-light">
+    <div class="container">
+        <div class="row">
+            <!-- Menú lateral -->
+            <div class="col-md-3">
+                <div class="sidebar_menu p-3 bg-white shadow rounded">
+                    <h5 class="text-center mb-4">Mi Cuenta</h5>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#"><i class="fa fa-calendar-check-o"></i> Mis Reservaciones</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="{% url 'logout' %}">
+                                <i class="fa fa-sign-out"></i> Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>                    
+                </div>
+            </div>
+
+            <!-- Contenido principal -->
+            <div class="col-md-9">
+                <div class="content_area p-4 bg-white shadow rounded">
+                    <h4 class="mb-4">Mis Reservaciones</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered">
+                            <thead class="thead-dark text-center">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Personas</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-center">
+                                {% for reserva in reservaciones %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        {% if reserva.servicio_reservado.first %}
+                                            {{ reserva.servicio_reservado.first.servicio.titulo }}
+                                        {% else %}
+                                            Sin servicio
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reserva.fecha_inicio }}</td>
+                                    <td>
+                                        <span class="font-weight-bold">
+                                            {{ reserva.numero_adultos|add:reserva.numero_ninos|add:reserva.numero_descuento }}
+                                        </span>
+                                        <details class="mt-2">
+                                            <summary class="btn btn-sm btn-outline-primary detalle-resumen">Ver detalle</summary>
+                                            <div class="border rounded p-2 mt-2 bg-light text-left small">
+                                                <p class="mb-1"><strong>Adultos:</strong> {{ reserva.numero_adultos }} x ${{ reserva.servicio_reservado.first.servicio.costo_por_persona }}</p>
+                                                <p class="mb-1"><strong>Niños:</strong> {{ reserva.numero_ninos }} x ${{ reserva.servicio_reservado.first.servicio.costo_niño }}</p>
+                                                <p class="mb-1"><strong>Con Descuento:</strong> {{ reserva.numero_descuento }} x ${{ reserva.servicio_reservado.first.servicio.costo_con_descuento }}</p>
+                                                <hr class="my-1">
+                                                <p class="mb-0"><strong>Total pagado:</strong> ${{ reserva.total_pagado }}</p>
+                                            </div>
+                                        </details>                                        
+                                    </td>
+                                    
+                                    <td>
+                                        {% if reserva.estado == 'aprobada' %}
+                                            <span class="badge badge-success">Aprobada</span>
+                                        {% elif reserva.estado == 'pendiente' %}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% elif reserva.estado == 'finalizada' %}
+                                            <span class="badge badge-secondary">Finalizada</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Sin estado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>                                
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">Aún no tienes reservaciones.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</div>
+
+<style>
+    /* Elimina la flecha del summary */
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+    
+    details summary {
+        list-style: none;
+        display: inline-block;
+        cursor: pointer;
+    }
+    </style>
+    
+    
+{% endblock %}

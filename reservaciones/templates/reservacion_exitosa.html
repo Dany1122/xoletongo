@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <title>Reservación Exitosa - Xoletongo</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="image-container">
+                <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+            </div>
+            <div class="login-form">
+                <div class="logo-circle">
+                    <span>Éxito</span>
+                </div>
+                <h2 class="text-center text-green-700">¡Reservación Exitosa!</h2>
+                <p class="text-center mb-4">Tu reservación se ha registrado correctamente.</p>
+                <div class="back-home">
+                    <a href="/" class="back-link">← Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

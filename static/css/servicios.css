@@ -1,0 +1,53 @@
+/* Cambiar el fondo del área de encabezado del acordeón */
+.accordion-button {
+    background-color: #f5f5f5; /* Color claro de fondo */
+    color: #333; /* Texto oscuro */
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none !important;
+}
+
+/* Cambiar el fondo cuando está expandido */
+.accordion-button:not(.collapsed) {
+    background-color: #8BC34A; /* Color más oscuro cuando abierto */
+    color: #000; /* Texto más fuerte */
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.125);
+}
+
+/* Eliminar el borde azul predeterminado al enfocar */
+.accordion-button:focus {
+    box-shadow: none;
+}
+
+/* Estilo del contenedor del accordion */
+.accordion-item {
+    background-color: #ffffff; /* Fondo blanco para cada item */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+/* Mejorar el espacio interno del cuerpo del accordion */
+.accordion-body {
+    padding: 20px;
+    background-color: #fafafa; /* Color ligeramente distinto al header */
+}
+
+/* Estilos para las cards de los servicios */
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}

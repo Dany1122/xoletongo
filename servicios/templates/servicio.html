@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}
+   {{ servicio.titulo }}
+{% endblock %}
+
+{% block content %}
+<!-- bradcam_area_start -->
+<div class="bradcam_area" style="background-image: url('{{ servicio.imagen_principal.url }}'); background-size: cover; background-position: center;">
+    <div class="overlay"></div>
+    <h3>{{ servicio.titulo }}</h3>
+</div>
+    <!-- bradcam_area_end -->
+<section class="service-details-area section-top-border">
+    <div class="container box_1170">
+        <h3 class="mb-30">{{ servicio.titulo }}</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <img src="{{ servicio.imagen_principal.url }}" alt="{{ servicio.titulo }}" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <p>{{ servicio.descripcion }}</p>
+                <h4 class="mt-20">Costo por persona</h4>
+                <p><strong>${{ servicio.costo_por_persona }}</strong></p>
+                <h4 class="mt-20">Costo por niño</h4>
+                <p><strong>${{ servicio.costo_niño }}</strong></p>
+                <h4 class="mt-20">Costo con descuento</h4>
+                <p><strong>${{ servicio.costo_con_descuento }}</strong></p>
+                {% if servicio.restricciones %}
+                <p><strong>Restricciones:</strong> {{ servicio.restricciones }}</p>
+                {% endif %}
+                <a href="{% url 'crear_reservacion' servicio.id %}" class="btn-reserva">Reservar ahora</a>
+            </div>
+        </div>
+
+       
+        <div class="section-top-border">
+            <h3 class="mb-30">Galería</h3>
+            <div class="row gallery-item">
+                {% for img in servicio.galeria.all %}
+                <div class="col-md-4">
+                    <a href="{{ img.imagen.url }}" class="img-pop-up">
+                        <div class="single-gallery-image" style="background: url('{{ img.imagen.url }}');"></div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
