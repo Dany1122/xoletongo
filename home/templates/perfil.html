@@ -16,21 +16,14 @@
                     <h5 class="text-center mb-4">Mi Cuenta</h5>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#"><i class="fa fa-user"></i> Perfil</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fa fa-calendar-check-o"></i> Mis Reservaciones</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fa fa-cog"></i> Editar Perfil</a>
+                            <a class="nav-link active" href="#"><i class="fa fa-calendar-check-o"></i> Mis Reservaciones</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-danger" href="{% url 'logout' %}">
                                 <i class="fa fa-sign-out"></i> Cerrar Sesión
                             </a>
                         </li>
-                        
-                    </ul>
+                    </ul>                    
                 </div>
             </div>
 
@@ -53,19 +46,42 @@
                                 {% for reserva in reservaciones %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td>{{ reserva.tipo }}</td>
-                                    <td>{{ reserva.fecha }}</td>
-                                    <td>{{ reserva.personas }}</td>
                                     <td>
-                                        {% if reserva.estado == 'confirmada' %}
-                                            <span class="badge badge-success">Confirmada</span>
-                                        {% elif reserva.estado == 'pendiente' %}
-                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% if reserva.servicio_reservado.first %}
+                                            {{ reserva.servicio_reservado.first.servicio.titulo }}
                                         {% else %}
-                                            <span class="badge badge-danger">Cancelada</span>
+                                            Sin servicio
                                         {% endif %}
                                     </td>
-                                </tr>
+                                    <td>{{ reserva.fecha_inicio }}</td>
+                                    <td>
+                                        <span class="font-weight-bold">
+                                            {{ reserva.numero_adultos|add:reserva.numero_ninos|add:reserva.numero_descuento }}
+                                        </span>
+                                        <details class="mt-2">
+                                            <summary class="btn btn-sm btn-outline-primary detalle-resumen">Ver detalle</summary>
+                                            <div class="border rounded p-2 mt-2 bg-light text-left small">
+                                                <p class="mb-1"><strong>Adultos:</strong> {{ reserva.numero_adultos }} x ${{ reserva.servicio_reservado.first.servicio.costo_por_persona }}</p>
+                                                <p class="mb-1"><strong>Niños:</strong> {{ reserva.numero_ninos }} x ${{ reserva.servicio_reservado.first.servicio.costo_niño }}</p>
+                                                <p class="mb-1"><strong>Con Descuento:</strong> {{ reserva.numero_descuento }} x ${{ reserva.servicio_reservado.first.servicio.costo_con_descuento }}</p>
+                                                <hr class="my-1">
+                                                <p class="mb-0"><strong>Total pagado:</strong> ${{ reserva.total_pagado }}</p>
+                                            </div>
+                                        </details>                                        
+                                    </td>
+                                    
+                                    <td>
+                                        {% if reserva.estado == 'aprobada' %}
+                                            <span class="badge badge-success">Aprobada</span>
+                                        {% elif reserva.estado == 'pendiente' %}
+                                            <span class="badge badge-warning">Pendiente</span>
+                                        {% elif reserva.estado == 'finalizada' %}
+                                            <span class="badge badge-secondary">Finalizada</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Sin estado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>                                
                                 {% empty %}
                                 <tr>
                                     <td colspan="5">Aún no tienes reservaciones.</td>
@@ -80,4 +96,19 @@
     </div>
 </section>
 </div>
+
+<style>
+    /* Elimina la flecha del summary */
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+    
+    details summary {
+        list-style: none;
+        display: inline-block;
+        cursor: pointer;
+    }
+    </style>
+    
+    
 {% endblock %}

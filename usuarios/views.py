@@ -3,6 +3,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from .forms import CustomUserCreationForm
 from django.contrib.auth.forms import AuthenticationForm
+from reservaciones.models import Reservacion
 
 def registro_view(request):
     if request.method == 'POST':
@@ -44,5 +45,6 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def perfil_view(request):
-    return render(request, 'perfil.html')
+    reservaciones = Reservacion.objects.filter(email_cliente=request.user.email).order_by('-fecha_reserva')
+    return render(request, 'perfil.html', {'reservaciones': reservaciones})
 
