@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
     <title>Reservar Servicio - Xoletongo</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
@@ -35,10 +35,16 @@
                 
                     <label for="fecha_fin">Fecha de fin</label>
                     <input type="date" id="fecha_fin" name="fecha_fin">
-                
-                    <label for="numero_personas">Número de personas</label>
-                    <input type="number" id="numero_personas" name="numero_personas" min="1" required>
-                
+
+                    <label for="adultos">Número de adultos</label>
+                    <input type="number" id="adultos" name="adultos" min="1" required>
+
+                    <label for="ninos">Número de niños</label>
+                    <input type="number" id="ninos" name="ninos" min="0" required>
+
+                    <label for="descuento">Número de personas con descuento</label>
+                    <input type="number" id="descuento" name="descuento" min="0" required>
+
                     <label for="comentario">Comentario (opcional)</label>
                     <textarea id="comentario" name="comentario"></textarea>
                 
@@ -46,7 +52,7 @@
                         <input type="checkbox" id="pago" name="pago" value="1">
                         <label for="pago">Quiero pagar ahora</label>
                     </div>
-                
+
                     <button type="submit" class="reservar-btn">Reservar</button>
                 </form>                
                 <div class="back-home">
