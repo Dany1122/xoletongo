@@ -9,7 +9,9 @@ class ReservacionAnonimaForm(forms.ModelForm):
             'email_cliente',
             'fecha_inicio',
             'fecha_fin',
-            'numero_personas',
+            'numero_adultos',
+            'numero_ninos',
+            'numero_descuento',
             'comentario',
             'pago_realizado'
         ]
@@ -20,7 +22,9 @@ class ReservacionAutenticadaForm(forms.ModelForm):
         fields = [
             'fecha_inicio',
             'fecha_fin',
-            'numero_personas',
+            'numero_adultos',
+            'numero_ninos',
+            'numero_descuento',
             'comentario',
             'pago_realizado'
         ]

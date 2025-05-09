@@ -19,7 +19,6 @@ def crear_reservacion(request, servicio_id):
     servicio = get_object_or_404(Servicio, id=servicio_id)
 
     if request.method == 'POST':
-<<<<<<< HEAD
         if request.user.is_authenticated:
             form = ReservacionAutenticadaForm(request.POST)
         else:
@@ -32,7 +31,7 @@ def crear_reservacion(request, servicio_id):
                 reservacion.email_cliente = request.user.email
             reservacion.pago_realizado = 'pago' in request.POST
             reservacion.save()
-=======
+            
         fecha_inicio = datetime.strptime(request.POST['fecha_inicio'], "%Y-%m-%d").date()
         fecha_fin = request.POST.get('fecha_fin')
         if fecha_fin:
@@ -55,8 +54,8 @@ def crear_reservacion(request, servicio_id):
         if 'pago' in request.POST:
             # Guardar datos en sesión para redirigir al pago
             request.session['reservacion_datos'] = {
-                'nombre_cliente': request.POST['nombre_cliente'],
-                'email_cliente': request.POST['email_cliente'],
+                'nombre_cliente': request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
+                'email_cliente': request.user.email if request.user.is_authenticated else request.POST.get('email_cliente', ''),
                 'fecha_inicio': request.POST['fecha_inicio'],
                 'fecha_fin': request.POST.get('fecha_fin', ''),
                 'adultos': numero_adultos,
@@ -70,8 +69,8 @@ def crear_reservacion(request, servicio_id):
         else:
             # Crear reserva sin pago inmediato
             reservacion = Reservacion.objects.create(
-                nombre_cliente=request.POST['nombre_cliente'],
-                email_cliente=request.POST['email_cliente'],
+                nombre_cliente=request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
+                email_cliente=request.user.email if request.user.is_authenticated else request.POST.get('email_cliente', ''),
                 fecha_inicio=fecha_inicio,
                 fecha_fin=fecha_fin if fecha_fin else None,
                 numero_adultos=numero_adultos,
@@ -81,13 +80,11 @@ def crear_reservacion(request, servicio_id):
                 pago_realizado=False,
                 total_pagado=total  # Aquí se almacena el total
             )
->>>>>>> danitza
 
             Reservacion_servicio.objects.create(
                 id_reservacion=reservacion,
                 servicio=servicio
             )
-<<<<<<< HEAD
 
             if 'pago' in request.POST:
                 request.session['reservacion_datos'] = {
@@ -95,16 +92,14 @@ def crear_reservacion(request, servicio_id):
                 }
                 return redirect('procesar_pago')
             else:
+                enviar_correo_confirmacion(reservacion, servicio)
                 return redirect('reservacion_exitosa')
 
     else:
         form = ReservacionAutenticadaForm() if request.user.is_authenticated else ReservacionAnonimaForm()
 
     return render(request, 'reservacion.html', {'form': form, 'servicio': servicio})
-=======
-            enviar_correo_confirmacion(reservacion, servicio)
-            return redirect('reservacion_exitosa')
->>>>>>> danitza
+
 
 
 paypalrestsdk.configure({
