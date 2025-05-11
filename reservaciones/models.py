@@ -4,6 +4,11 @@ from decimal import Decimal
 
 # Create your models here.
 class Reservacion(models.Model):
+    ESTADOS = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('finalizada', 'Finalizada'),
+    ]
     nombre_cliente = models.CharField(max_length=100)
     email_cliente = models.EmailField()
     fecha_inicio = models.DateField()
@@ -16,9 +21,8 @@ class Reservacion(models.Model):
     pago_realizado = models.BooleanField(default=False)
     total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     
-    class Meta:
-        verbose_name_plural='Reservaciones'
-
+class Meta:
+    verbose_name_plural='Reservaciones'
     def __str__(self):
         return f"Reserva de {self.nombre_cliente}"
 
