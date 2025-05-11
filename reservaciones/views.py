@@ -237,7 +237,7 @@ def enviar_correo_confirmacion(reservacion, servicio):
 
     send_mail(
         subject=asunto,
-        message='',  # texto plano opcional
+        message='',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[reservacion.email_cliente],
         fail_silently=False,
