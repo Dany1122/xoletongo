@@ -20,6 +20,13 @@ class Reservacion(models.Model):
     comentario = models.TextField(null=True, blank=True)
     pago_realizado = models.BooleanField(default=False)
     total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    pago_realizado = models.BooleanField(default=False)
+    total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    estado = models.CharField(
+        max_length=15,
+        choices=ESTADOS,
+        default='pendiente'
+    )
     
 class Meta:
     verbose_name_plural='Reservaciones'
