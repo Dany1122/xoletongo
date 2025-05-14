@@ -10,7 +10,7 @@ class Empresa(models.Model):
     clabe = models.CharField(max_length=18)
     logotipo = models.ImageField(upload_to='empresas/logos/', null=True, blank=True)
     sitio_web = models.URLField(blank=True, null=True)
-
+    activa = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:

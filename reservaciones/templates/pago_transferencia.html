@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pago por Transferencia</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-form">
+            <div class="logo-circle">
+                <span>Transferencia</span>
+            </div>
+            <h2>Datos para transferencia bancaria</h2>
+
+            {% if empresa %}
+                <ul>
+                    <li><strong>Nombre:</strong> {{ empresa.nombre }}</li>
+                    <li><strong>Cuenta:</strong> {{ empresa.cuenta_bancaria }}</li>
+                    <li><strong>CLABE:</strong> {{ empresa.clabe }}</li>
+                    <li><strong>Correo de contacto:</strong> {{ empresa.correo_contacto }}</li>
+                </ul>
+            {% endif %}
+
+            <p>Total a pagar: <strong>${{ total|floatformat:2 }}</strong></p>
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="comprobante">Sube tu comprobante (PDF o imagen):</label>
+                <input type="file" name="comprobante" accept=".pdf,image/*" required>
+
+                <button type="submit" class="reservar-btn">Enviar comprobante</button>
+            </form>
+
+            <div class="back-home">
+                <a href="/" class="back-link">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

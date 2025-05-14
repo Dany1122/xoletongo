@@ -13,7 +13,7 @@ class ReservacionAnonimaForm(forms.ModelForm):
             'numero_ninos',
             'numero_descuento',
             'comentario',
-            'pago_realizado'
+            'pago_realizado',
         ]
 
 class ReservacionAutenticadaForm(forms.ModelForm):

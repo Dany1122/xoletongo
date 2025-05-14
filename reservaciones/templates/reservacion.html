@@ -53,6 +53,12 @@
                         <label for="pago">Quiero pagar ahora</label>
                     </div>
 
+                    <div id="opciones-pago" style="display: none; margin-top: 10px;">
+                        <p><strong>Selecciona un método de pago:</strong></p>
+                        <label><input type="radio" name="metodo_pago" value="paypal" checked> PayPal</label><br>
+                        <label><input type="radio" name="metodo_pago" value="transferencia"> Transferencia bancaria</label>
+                    </div>
+
                     <button type="submit" class="reservar-btn">Reservar</button>
                 </form>                
                 <div class="back-home">
@@ -61,5 +67,25 @@
             </div>
         </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const pagoCheckbox = document.getElementById('pago');
+        const opcionesPago = document.getElementById('opciones-pago');
+
+        function toggleOpcionesPago() {
+            if (pagoCheckbox.checked) {
+                opcionesPago.style.display = 'block';
+            } else {
+                opcionesPago.style.display = 'none';
+            }
+        }
+
+        // Activar cuando se cambie el estado del checkbox
+        pagoCheckbox.addEventListener('change', toggleOpcionesPago);
+
+        // Ejecutar en carga por si ya está marcado
+        toggleOpcionesPago();
+    });
+</script>
 </body>
 </html>

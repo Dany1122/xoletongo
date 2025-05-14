@@ -1,6 +1,7 @@
 from django.db import models
 from servicios.models import Servicio
 from decimal import Decimal
+from empresas.models import Empresa
 
 # Create your models here.
 class Reservacion(models.Model):
@@ -22,11 +23,15 @@ class Reservacion(models.Model):
     total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     pago_realizado = models.BooleanField(default=False)
     total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    comprobante_pago = models.FileField(upload_to='comprobantes/', null=True, blank=True)
+    empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE, null=True, blank=True)
     estado = models.CharField(
         max_length=15,
         choices=ESTADOS,
         default='pendiente'
     )
+    def __str__(self):
+        return f"Reserva de {self.nombre_cliente}"
     
 class Meta:
     verbose_name_plural='Reservaciones'

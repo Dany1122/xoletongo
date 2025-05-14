@@ -13,8 +13,13 @@ import json
 from django.http import JsonResponse, HttpResponseRedirect
 import paypalrestsdk
 from django.core.mail import send_mail
+import os
+from django.core.files.storage import FileSystemStorage
+from empresas.models import Empresa
+import mimetypes
 
 # Create your views here.
+
 def crear_reservacion(request, servicio_id):
     servicio = get_object_or_404(Servicio, id=servicio_id)
 
@@ -50,8 +55,9 @@ def crear_reservacion(request, servicio_id):
             Decimal(servicio.costo_niño) * numero_ninos +
             Decimal(servicio.costo_con_descuento) * numero_descuento
         )
-
-        if 'pago' in request.POST:
+        metodo_pago = request.POST.get('metodo_pago', '')
+        quiere_pagar = request.POST.get('pago') == '1'
+        if quiere_pagar:
             # Guardar datos en sesión para redirigir al pago
             request.session['reservacion_datos'] = {
                 'nombre_cliente': request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
@@ -63,12 +69,21 @@ def crear_reservacion(request, servicio_id):
                 'descuento': numero_descuento,
                 'comentario': request.POST.get('comentario', ''),
                 'servicio_id': servicio.id,
-                'total': str(total)  # opcional: guarda el total para mostrar en procesar_pago
+                'total': str(total),  # opcional: guarda el total para mostrar en procesar_pago
+                'metodo_pago': request.POST.get('metodo_pago', 'paypal')
             }
-            return redirect('procesar_pago')
+            if metodo_pago == 'paypal':
+                return redirect('procesar_pago')
+            elif metodo_pago == 'transferencia':
+                return redirect('pago_transferencia')
+            else:
+                messages.error(request, "Método de pago no válido.")
+                return redirect(request.path)
         else:
             # Crear reserva sin pago inmediato
+            empresa = request.user.empresa if request.user.is_authenticated else Empresa.objects.filter(activa=True).first()
             reservacion = Reservacion.objects.create(
+                empresa=empresa,
                 nombre_cliente=request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
                 email_cliente=request.user.email if request.user.is_authenticated else request.POST.get('email_cliente', ''),
                 fecha_inicio=fecha_inicio,
@@ -167,7 +182,9 @@ def pago_exitoso(request):
     )
 
     # Crear la reservación con pago confirmado
+    empresa = Empresa.objects.filter(activa=True).first()
     reservacion = Reservacion.objects.create(
+        empresa=empresa,
         nombre_cliente=datos['nombre_cliente'],
         email_cliente=datos['email_cliente'],
         fecha_inicio=datos['fecha_inicio'],
@@ -209,7 +226,9 @@ def pago_cancelado(request):
     )
 
     # Guardar reservación sin pago
+    empresa = Empresa.objects.filter(activa=True).first()
     reservacion = Reservacion.objects.create(
+        empresa=empresa,
         nombre_cliente=datos['nombre_cliente'],
         email_cliente=datos['email_cliente'],
         fecha_inicio=datos['fecha_inicio'],
@@ -270,3 +289,55 @@ def enviar_correo_confirmacion(reservacion, servicio):
         fail_silently=False,
         html_message=mensaje_html
     )
+
+
+@csrf_exempt
+def pago_transferencia(request):
+    datos = request.session.get('reservacion_datos')
+    if not datos:
+        return redirect('home')
+
+    servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
+    empresa = Empresa.objects.filter(activa=True).first()
+
+    total = (
+        Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
+        Decimal(servicio.costo_niño) * int(datos['ninos']) +
+        Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
+    )
+
+    if request.method == 'POST':
+        archivo = request.FILES.get('comprobante')
+        if archivo:
+            tipo, _ = mimetypes.guess_type(archivo.name)
+            if tipo in ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']:
+            # Crear reservación
+                reservacion = Reservacion.objects.create(
+                    empresa=empresa,
+                    nombre_cliente=datos['nombre_cliente'],
+                    email_cliente=datos['email_cliente'],
+                    fecha_inicio=datos['fecha_inicio'],
+                    fecha_fin=datos['fecha_fin'] if datos['fecha_fin'] else None,
+                    numero_adultos=datos['adultos'],
+                    numero_ninos=datos['ninos'],
+                    numero_descuento=datos['descuento'],
+                    comentario=datos.get('comentario', ''),
+                    pago_realizado=False,
+                    total_pagado=total,
+                    comprobante_pago=archivo
+            )
+
+            Reservacion_servicio.objects.create(
+                id_reservacion=reservacion,
+                servicio=servicio
+            )
+
+            enviar_correo_confirmacion(reservacion, servicio)
+            del request.session['reservacion_datos']
+            messages.success(request, "Reservación registrada. Comprobante enviado.")
+            return redirect('reservacion_exitosa')
+
+    return render(request, 'pago_transferencia.html', {
+        'empresa': empresa,
+        'total': total
+    })
