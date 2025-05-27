@@ -47,8 +47,8 @@
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>
-                                        {% if reserva.servicio_reservado.first %}
-                                            {{ reserva.servicio_reservado.first.servicio.titulo }}
+                                        {% if reserva.reservacion.first %}
+                                            {{ reserva.reservacion.first.servicio.titulo }}
                                         {% else %}
                                             Sin servicio
                                         {% endif %}
@@ -61,9 +61,9 @@
                                         <details class="mt-2">
                                             <summary class="btn btn-sm btn-outline-primary detalle-resumen">Ver detalle</summary>
                                             <div class="border rounded p-2 mt-2 bg-light text-left small">
-                                                <p class="mb-1"><strong>Adultos:</strong> {{ reserva.numero_adultos }} x ${{ reserva.servicio_reservado.first.servicio.costo_por_persona }}</p>
-                                                <p class="mb-1"><strong>Niños:</strong> {{ reserva.numero_ninos }} x ${{ reserva.servicio_reservado.first.servicio.costo_niño }}</p>
-                                                <p class="mb-1"><strong>Con Descuento:</strong> {{ reserva.numero_descuento }} x ${{ reserva.servicio_reservado.first.servicio.costo_con_descuento }}</p>
+                                                <p class="mb-1"><strong>Adultos:</strong> {{ reserva.numero_adultos }} x ${{ reserva.reservacion.first.servicio.costo_por_persona }}</p>
+                                                <p class="mb-1"><strong>Niños:</strong> {{ reserva.numero_ninos }} x ${{ reserva.reservacion.first.servicio.costo_niño }}</p>
+                                                <p class="mb-1"><strong>Con Descuento:</strong> {{ reserva.numero_descuento }} x ${{ reserva.reservacion.first.servicio.costo_con_descuento }}</p>
                                                 <hr class="my-1">
                                                 <p class="mb-0"><strong>Total pagado:</strong> ${{ reserva.total_pagado }}</p>
                                             </div>

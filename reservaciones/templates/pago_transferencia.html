@@ -3,23 +3,102 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>Pago por Transferencia</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <style>
+        body {
+            background: #f3f3f3;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-header {
+            background-image: url('{% static "img/login-bg.png" %}');
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            position: relative;
+        }
+        .circle-logo {
+            width: 80px;
+            height: 80px;
+            background: #7cb342;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .card-body {
+            padding: 60px 30px 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-login {
+            background: #7cb342;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            width: 100%;
+            padding: 12px;
+        }
+        .btn-login:hover {
+            background: #689f38;
+        }
+        .text-small {
+            font-size: 0.9rem;
+        }
+        .text-link {
+            color: #7cb342;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .text-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 <div class="login-container">
     <div class="login-card">
+        <div class="image-container">
+                <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+            </div>
         <div class="login-form">
             <div class="logo-circle">
                 <span>Transferencia</span>
             </div>
-            <h2>Datos para transferencia bancaria</h2>
+            <h4>Datos para transferencia bancaria</h4>
 
             {% if empresa %}
                 <ul>
                     <li><strong>Nombre:</strong> {{ empresa.nombre }}</li>
                     <li><strong>Cuenta:</strong> {{ empresa.cuenta_bancaria }}</li>
                     <li><strong>CLABE:</strong> {{ empresa.clabe }}</li>
+                    <li><strong>Número de tarjeta:</strong> {{ empresa.numero_terjeta }}</li>
                     <li><strong>Correo de contacto:</strong> {{ empresa.correo_contacto }}</li>
                 </ul>
             {% endif %}
@@ -31,7 +110,9 @@
                 <label for="comprobante">Sube tu comprobante (PDF o imagen):</label>
                 <input type="file" name="comprobante" accept=".pdf,image/*" required>
 
-                <button type="submit" class="reservar-btn">Enviar comprobante</button>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-login">Enviar comprobante</button>
+                </div>
             </form>
 
             <div class="back-home">
