@@ -3,11 +3,13 @@ from django.db import models
 # Create your models here.
 class Empresa(models.Model):
     nombre = models.CharField(max_length=100)
+    nombre_titular = models.CharField(max_length=100)
     correo_contacto = models.EmailField()
     telefono = models.CharField(max_length=20)
     ubicacion = models.CharField(max_length=255)
-    cuenta_bancaria = models.CharField(max_length=100)
+    cuenta_bancaria = models.CharField(max_length=18)
     clabe = models.CharField(max_length=18)
+    numero_terjeta = models.CharField(max_length=16)
     logotipo = models.ImageField(upload_to='empresas/logos/', null=True, blank=True)
     sitio_web = models.URLField(blank=True, null=True)
     activa = models.BooleanField(default=False)
