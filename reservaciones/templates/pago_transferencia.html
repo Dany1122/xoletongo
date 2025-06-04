@@ -26,16 +26,19 @@
             overflow: hidden;
             position: relative;
         }
-        .card-header {
-            background-image: url('{% static "img/login-bg.png" %}');
-            background-size: cover;
-            background-position: center;
-            height: 200px;
+        .image-container {
             position: relative;
+            height: 200px;
         }
-        .circle-logo {
-            width: 80px;
-            height: 80px;
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .logo-circle {
+            width: 100px;
+            height: 100px;
             background: #7cb342;
             color: white;
             font-weight: bold;
@@ -44,12 +47,13 @@
             justify-content: center;
             border-radius: 50%;
             position: absolute;
-            bottom: -40px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 14px;
         }
-        .card-body {
+        .login-form {
             padding: 60px 30px 30px;
         }
         .form-control {
@@ -68,9 +72,6 @@
         .btn-login:hover {
             background: #689f38;
         }
-        .text-small {
-            font-size: 0.9rem;
-        }
         .text-link {
             color: #7cb342;
             text-decoration: none;
@@ -79,46 +80,46 @@
         .text-link:hover {
             text-decoration: underline;
         }
+        .back-home {
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="login-card">
-        <div class="image-container">
-                <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
-            </div>
-        <div class="login-form">
-            <div class="logo-circle">
-                <span>Transferencia</span>
-            </div>
-            <h4>Datos para transferencia bancaria</h4>
+<div class="card">
+    <div class="image-container">
+        <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+        <div class="logo-circle">
+            <span>Transferencia</span>
+        </div>
+    </div>
+    <div class="login-form">
+        <h4 class="text-center mb-4">Datos para transferencia bancaria</h4>
 
-            {% if empresa %}
-                <ul>
-                    <li><strong>Empresa:</strong> {{ empresa.nombre }}</li>
-                    <li><strong>Nombre del titular:</strong> {{ empresa.nombre_titular }}</li>
-                    <li><strong>Cuenta:</strong> {{ empresa.cuenta_bancaria }}</li>
-                    <li><strong>CLABE:</strong> {{ empresa.clabe }}</li>
-                    <li><strong>Número de tarjeta:</strong> {{ empresa.numero_terjeta }}</li>
-                    <li><strong>Correo de contacto:</strong> {{ empresa.correo_contacto }}</li>
-                </ul>
-            {% endif %}
+        {% if empresa %}
+            <ul class="mb-4">
+                <li><strong>Empresa:</strong> {{ empresa.nombre }}</li>
+                <li><strong>Titular:</strong> {{ empresa.nombre_titular }}</li>
+                <li><strong>Cuenta:</strong> {{ empresa.cuenta_bancaria }}</li>
+                <li><strong>CLABE:</strong> {{ empresa.clabe }}</li>
+                <li><strong>Tarjeta:</strong> {{ empresa.numero_terjeta }}</li>
+                <li><strong>Correo:</strong> {{ empresa.correo_contacto }}</li>
+            </ul>
+        {% endif %}
 
-            <p>Total a pagar: <strong>${{ total|floatformat:2 }}</strong></p>
+        <p class="mb-4">Total a pagar: <strong class="text-success">${{ total|floatformat:2 }}</strong></p>
 
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <label for="comprobante">Sube tu comprobante (PDF o imagen):</label>
-                <input type="file" name="comprobante" accept=".pdf,image/*" required>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="comprobante" class="form-label">Sube tu comprobante (PDF o imagen):</label>
+            <input type="file" name="comprobante" class="form-control" accept=".pdf,image/*" required>
 
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-success btn-login">Enviar comprobante</button>
-                </div>
-            </form>
+            <button type="submit" class="btn btn-login mt-3">Enviar comprobante</button>
+        </form>
 
-            <div class="back-home">
-                <a href="/" class="back-link">← Volver al inicio</a>
-            </div>
+        <div class="back-home">
+            <a href="/" class="text-link">← Volver al inicio</a>
         </div>
     </div>
 </div>
