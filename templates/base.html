@@ -39,15 +39,12 @@
                             <div class="main-menu d-none d-lg-block">
                                 <nav>
                                     <ul id="navigation">
-                                        <li><a class="active" href="{% url 'home' %}">Inicio</a></li>
-                                        <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
-                                    
-                                        <li><a href="{% url 'servicios_por_tipo' %}">Servicios</a></li>
-                                    
-                                        <li><a href="{% url 'galeria' %}">Galería</a></li>
-                                        <li><a href="{% url 'contacto' %}">Contacto</a></li>
+                                        <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}" style="text-decoration: none;">Inicio</a></li>
+                                        <li><a href="{% url 'nosotros' %}" class="{% if request.path == '/nosotros/' %}active{% endif %}" style="text-decoration: none;">Nosotros</a></li>
+                                        <li><a href="{% url 'servicios_por_tipo' %}" class="{% if request.path == '/servicios/' %}active{% endif %}" style="text-decoration: none;">Servicios</a></li>
+                                        <li><a href="{% url 'galeria' %}" class="{% if request.path == '/galeria/' %}active{% endif %}" style="text-decoration: none;">Galería</a></li>
+                                        <li><a href="{% url 'contacto' %}" class="{% if request.path == '/contacto/' %}active{% endif %}" style="text-decoration: none;">Contacto</a></li>
                                     </ul>
-                                    
                                 </nav>
                             </div>
                         </div>

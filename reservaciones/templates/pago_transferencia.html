@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>Pago por Transferencia</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <style>
+        body {
+            background: #f3f3f3;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-container {
+            position: relative;
+            height: 200px;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: #7cb342;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 14px;
+        }
+        .login-form {
+            padding: 60px 30px 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-login {
+            background: #7cb342;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            width: 100%;
+            padding: 12px;
+        }
+        .btn-login:hover {
+            background: #689f38;
+        }
+        .text-link {
+            color: #7cb342;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .text-link:hover {
+            text-decoration: underline;
+        }
+        .back-home {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="image-container">
+        <img src="{% static 'img/login-bg.png' %}" alt="Fondo Xoletongo">
+        <div class="logo-circle">
+            <span>Transferencia</span>
+        </div>
+    </div>
+    <div class="login-form">
+        <h4 class="text-center mb-4">Datos para transferencia bancaria</h4>
+
+        {% if empresa %}
+            <ul class="mb-4">
+                <li><strong>Empresa:</strong> {{ empresa.nombre }}</li>
+                <li><strong>Titular:</strong> {{ empresa.nombre_titular }}</li>
+                <li><strong>Cuenta:</strong> {{ empresa.cuenta_bancaria }}</li>
+                <li><strong>CLABE:</strong> {{ empresa.clabe }}</li>
+                <li><strong>Tarjeta:</strong> {{ empresa.numero_terjeta }}</li>
+                <li><strong>Correo:</strong> {{ empresa.correo_contacto }}</li>
+            </ul>
+        {% endif %}
+
+        <p class="mb-4">Total a pagar: <strong class="text-success">${{ total|floatformat:2 }}</strong></p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="comprobante" class="form-label">Sube tu comprobante (PDF o imagen):</label>
+            <input type="file" name="comprobante" class="form-control" accept=".pdf,image/*" required>
+
+            <button type="submit" class="btn btn-login mt-3">Enviar comprobante</button>
+        </form>
+
+        <div class="back-home">
+            <a href="/" class="text-link">← Volver al inicio</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

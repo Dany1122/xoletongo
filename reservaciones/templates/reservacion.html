@@ -4,8 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>Reservar Servicio - Xoletongo</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <style>
+        body {
+            background: #f3f3f3;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .card-header {
+            background-image: url('{% static "img/login-bg.png" %}');
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            position: relative;
+        }
+        .circle-logo {
+            width: 80px;
+            height: 80px;
+            background: #7cb342;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .card-body {
+            padding: 60px 30px 30px;
+        }
+        .form-control {
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-login {
+            background: #7cb342;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 10px;
+            width: 100%;
+            padding: 12px;
+        }
+        .btn-login:hover {
+            background: #689f38;
+        }
+        .text-small {
+            font-size: 0.9rem;
+        }
+        .text-link {
+            color: #7cb342;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .text-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
@@ -29,13 +103,19 @@
                     {% else %}
                         <p><strong>Reservando como:</strong> {{ request.user.get_full_name|default:request.user.username }} ({{ request.user.email }})</p>
                     {% endif %}
-                
-                    <label for="fecha_inicio">Fecha de inicio</label>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-                
-                    <label for="fecha_fin">Fecha de fin</label>
-                    <input type="date" id="fecha_fin" name="fecha_fin">
+                    <div id="fecha-inicio-container">
+                        <label for="fecha_inicio">Fecha de reservación</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+                    </div>
 
+                    <div id="fecha-fin-container">
+                        <label for="fecha_fin">Fecha de fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin">
+                    </div>
+                    <div id="hora-conteiner">
+                        <label for="hora_recepcion">Hora de recepción</label>
+                        <input type="time" id="hora_recepcion" name="hora_recepcion" required>
+                    </div>
                     <label for="adultos">Número de adultos</label>
                     <input type="number" id="adultos" name="adultos" min="1" required>
 
@@ -53,7 +133,15 @@
                         <label for="pago">Quiero pagar ahora</label>
                     </div>
 
-                    <button type="submit" class="reservar-btn">Reservar</button>
+                    <div id="opciones-pago" style="display: none; margin-top: 10px;">
+                        <p><strong>Selecciona un método de pago:</strong></p>
+                        <label><input type="radio" name="metodo_pago" value="paypal" checked> PayPal</label><br>
+                        <label><input type="radio" name="metodo_pago" value="transferencia"> Transferencia bancaria</label>
+                    </div>
+
+                    <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-login">Reservar</button>
+                    </div>
                 </form>                
                 <div class="back-home">
                     <a href="/" class="back-link">← Volver al inicio</a>
@@ -61,5 +149,90 @@
             </div>
         </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipoServicio = "{{ tipo_servicio }}";
+        const fechaInicioContainer = document.getElementById('fecha-inicio-container');
+        const fechaFinContainer = document.getElementById('fecha-fin-container');
+        const horaConteiner = document.getElementById('hora-conteiner');
+        const fechaInicio = document.getElementById('fecha_inicio');
+        const fechaFin = document.getElementById('fecha_fin');
+        const horaRecepcion = document.getElementById('hora_recepcion');
+
+        // Si es por hora, ocultar campos de fecha y mostrar la hora de recepcion
+        if (tipoServicio === "porHora") {
+            fechaFinContainer.style.display = 'none';
+            fechaFin.required = false;
+
+            fechaInicioContainer.style.display = 'block';
+            fechaInicio.required = true;
+
+            horaConteiner.style.display = 'block';
+            horaRecepcion.required = true;
+        } else {
+            fechaFinContainer.style.display = 'block';
+            fechaFin.required = true;
+
+            fechaInicioContainer.style.display = 'block';
+            fechaInicio.required = true;
+
+            horaConteiner.style.display = 'none';
+            horaRecepcion.required = false;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const pagoCheckbox = document.getElementById('pago');
+        const opcionesPago = document.getElementById('opciones-pago');
+
+        function toggleOpcionesPago() {
+            if (pagoCheckbox.checked) {
+                opcionesPago.style.display = 'block';
+            } else {
+                opcionesPago.style.display = 'none';
+            }
+        }
+
+        // Activar cuando se cambie el estado del checkbox
+        pagoCheckbox.addEventListener('change', toggleOpcionesPago);
+
+        // Ejecutar en carga por si ya está marcado
+        toggleOpcionesPago();
+    });
+
+    // Obtener los elementos
+    const fechaInicio = document.getElementById('fecha_inicio');
+    const fechaFin = document.getElementById('fecha_fin');
+
+     fechaFin.disabled = true;
+    // Función para obtener la fecha actual en formato YYYY-MM-DD
+    function obtenerFechaActual() {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Establece la fecha mínima de inicio como hoy
+    fechaInicio.min = obtenerFechaActual();
+
+    // Cuando el usuario seleccione la fecha de inicio, la fecha mínima de fin será igual o posterior
+    fechaInicio.addEventListener('change', function () {
+        if (this.value) {
+            fechaFin.disabled = false;
+            fechaFin.min = this.value;
+
+            // Si ya hay una fecha de fin seleccionada menor a la de inicio, la borra
+            if (fechaFin.value && fechaFin.value < this.value) {
+                fechaFin.value = '';
+            }
+        } else {
+            fechaFin.disabled = true;
+            fechaFin.value = '';
+        }
+    });
+    
+</script>
 </body>
 </html>
