@@ -48,3 +48,5 @@ coverage.xml
 
 # Pycharm
 .idea/
+
+*.pyc
