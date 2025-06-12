@@ -21,6 +21,7 @@ import mimetypes
 # Create your views here.
 
 def crear_reservacion(request, servicio_id):
+    empresa = Empresa.objects.filter(activa=True).first()
     servicio = get_object_or_404(Servicio, id=servicio_id)
 
     if request.method == 'POST':
@@ -35,18 +36,37 @@ def crear_reservacion(request, servicio_id):
                 reservacion.nombre_cliente = request.user.get_full_name() or request.user.username
                 reservacion.email_cliente = request.user.email
             reservacion.pago_realizado = 'pago' in request.POST
-            reservacion.save()
-            
-        fecha_inicio = datetime.strptime(request.POST['fecha_inicio'], "%Y-%m-%d").date()
-        fecha_fin = request.POST.get('fecha_fin')
-        if fecha_fin:
-            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-            if fecha_fin < fecha_inicio:
-                messages.error(request, "La fecha de fin no puede ser anterior a la fecha de inicio.")
+
+        # Obtener y validar fechas y horas según tipo de servicio
+        if servicio.servicio.tipo == 'porDia':
+            try:
+                fecha_inicio = datetime.strptime(request.POST['fecha_inicio'], "%Y-%m-%d").date()
+                fecha_fin_str = request.POST.get('fecha_fin')
+                if fecha_fin_str:
+                    fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d").date()
+                    if fecha_fin < fecha_inicio:
+                        messages.error(request, "La fecha de fin no puede ser anterior a la fecha de inicio.")
+                        return redirect(request.path)
+                    noches = (fecha_fin - fecha_inicio).days or 1
+                else:
+                    fecha_fin = None
+                    noches = 1
+            except (KeyError, ValueError):
+                messages.error(request, "Las fechas ingresadas no son válidas.")
                 return redirect(request.path)
-            noches = (fecha_fin - fecha_inicio).days
         else:
+            fecha_inicio = datetime.strptime(request.POST['fecha_inicio'], "%Y-%m-%d").date()
+            fecha_fin = None
             noches = 1
+
+        # Obtener y validar hora de recepción
+        hora_recepcion_str = request.POST.get('hora_recepcion')
+        try:
+            hora_recepcion = datetime.strptime(hora_recepcion_str, '%H:%M').time() if hora_recepcion_str else None
+        except ValueError:
+            messages.error(request, "La hora de recepción no es válida.")
+            return redirect(request.path)
+
         numero_adultos = int(request.POST['adultos'])
         numero_ninos = int(request.POST['ninos'])
         numero_descuento = int(request.POST['descuento'])
@@ -57,22 +77,24 @@ def crear_reservacion(request, servicio_id):
             Decimal(servicio.costo_niño) * numero_ninos +
             Decimal(servicio.costo_con_descuento) * numero_descuento
         )
+
         metodo_pago = request.POST.get('metodo_pago', '')
         quiere_pagar = request.POST.get('pago') == '1'
+
         if quiere_pagar:
-            # Guardar datos en sesión para redirigir al pago
             request.session['reservacion_datos'] = {
                 'nombre_cliente': request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
                 'email_cliente': request.user.email if request.user.is_authenticated else request.POST.get('email_cliente', ''),
-                'fecha_inicio': request.POST['fecha_inicio'],
-                'fecha_fin': request.POST.get('fecha_fin', ''),
+                'fecha_inicio': fecha_inicio.strftime("%Y-%m-%d"),
+                'fecha_fin': fecha_fin.strftime("%Y-%m-%d") if fecha_fin else '',
+                'hora_recepcion': hora_recepcion.strftime('%H:%M') if hora_recepcion else '',
                 'adultos': numero_adultos,
                 'ninos': numero_ninos,
                 'descuento': numero_descuento,
                 'comentario': request.POST.get('comentario', ''),
                 'servicio_id': servicio.id,
-                'total': str(total),  # opcional: guarda el total para mostrar en procesar_pago
-                'metodo_pago': request.POST.get('metodo_pago', 'paypal')
+                'total': str(total),
+                'metodo_pago': metodo_pago
             }
             if metodo_pago == 'paypal':
                 return redirect('procesar_pago')
@@ -82,20 +104,19 @@ def crear_reservacion(request, servicio_id):
                 messages.error(request, "Método de pago no válido.")
                 return redirect(request.path)
         else:
-            # Crear reserva sin pago inmediato
-            empresa = request.user.empresa if request.user.is_authenticated else Empresa.objects.filter(activa=True).first()
             reservacion = Reservacion.objects.create(
                 empresa=empresa,
                 nombre_cliente=request.user.get_full_name() or request.user.username if request.user.is_authenticated else request.POST.get('nombre_cliente', ''),
                 email_cliente=request.user.email if request.user.is_authenticated else request.POST.get('email_cliente', ''),
                 fecha_inicio=fecha_inicio,
-                fecha_fin=fecha_fin if fecha_fin else None,
+                fecha_fin=fecha_fin,
+                hora_recepcion=hora_recepcion,
                 numero_adultos=numero_adultos,
                 numero_ninos=numero_ninos,
                 numero_descuento=numero_descuento,
                 comentario=request.POST.get('comentario', ''),
                 pago_realizado=False,
-                total_pagado=total  # Aquí se almacena el total
+                total_pagado=total
             )
 
             Reservacion_servicio.objects.create(
@@ -115,7 +136,11 @@ def crear_reservacion(request, servicio_id):
     else:
         form = ReservacionAutenticadaForm() if request.user.is_authenticated else ReservacionAnonimaForm()
 
-    return render(request, 'reservacion.html', {'form': form, 'servicio': servicio})
+    return render(request, 'reservacion.html', {
+        'form': form,
+        'servicio': servicio,
+        'tipo_servicio': servicio.servicio.tipo,
+    })
 
 
 
@@ -132,21 +157,25 @@ def procesar_pago(request):
 
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
-    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
-    fecha_fin = datos['fecha_fin']
-    if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        noches = (fecha_fin - fecha_inicio).days
+    if servicio.servicio.tipo == 'porDia':
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = datos['fecha_fin']
+        if fecha_fin:
+            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            noches = (fecha_fin - fecha_inicio).days or 1
+        else:
+            noches = 1
     else:
+        fecha_inicio =  datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = None
         noches = 1
-    # Calcular el total
+
     total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
     )
 
-    # Crear un pago en PayPal
     payment = paypalrestsdk.Payment({
         'intent': 'sale',
         'payer': {
@@ -166,7 +195,6 @@ def procesar_pago(request):
     })
 
     if payment.create():
-        # Encuentra el link de aprobación y redirige a PayPal para que el usuario apruebe el pago
         approval_url = next(link.href for link in payment.links if link.rel == 'approval_url')
         return redirect(approval_url)
     else:
@@ -180,31 +208,40 @@ def pago_exitoso(request):
     datos = request.session.get('reservacion_datos')
     if not datos:
         return redirect('home')
-
+    
+    empresa = Empresa.objects.filter(activa=True).first()
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
-    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
-    fecha_fin = datos['fecha_fin']
-    if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        noches = (fecha_fin - fecha_inicio).days + 1
+    if servicio.servicio.tipo == 'porDia':
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = datos['fecha_fin']
+        if fecha_fin:
+            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            noches = (fecha_fin - fecha_inicio).days or 1
+        else:
+            fecha_fin = None
+            noches = 1
     else:
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = None
         noches = 1
-    # Calcular total
+
+    hora_recepcion = datos.get('hora_recepcion')
+    hora_recepcion = datetime.strptime(hora_recepcion, '%H:%M').time() if hora_recepcion else None
+
     total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
     )
 
-    # Crear la reservación con pago confirmado
-    empresa = Empresa.objects.filter(activa=True).first()
     reservacion = Reservacion.objects.create(
         empresa=empresa,
         nombre_cliente=datos['nombre_cliente'],
         email_cliente=datos['email_cliente'],
-        fecha_inicio=datos['fecha_inicio'],
-        fecha_fin=datos['fecha_fin'] if datos['fecha_fin'] else None,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        hora_recepcion=hora_recepcion,
         numero_adultos=datos['adultos'],
         numero_ninos=datos['ninos'],
         numero_descuento=datos['descuento'],
@@ -218,12 +255,8 @@ def pago_exitoso(request):
         servicio=servicio
     )
 
-    # Enviar correo con HTML
     enviar_correo_confirmacion(reservacion, servicio)
-
-    # Limpia la sesión
     del request.session['reservacion_datos']
-
     return redirect('reservacion_exitosa')
 
 @csrf_exempt
@@ -231,31 +264,39 @@ def pago_cancelado(request):
     datos = request.session.get('reservacion_datos')
     if not datos:
         return redirect('home')
-
+    empresa = Empresa.objects.filter(activa=True).first()
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
-    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
-    fecha_fin = datos['fecha_fin']
-    if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        noches = (fecha_fin - fecha_inicio).days + 1
+    if servicio.servicio.tipo == 'porDia':
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = datos['fecha_fin']
+        if fecha_fin:
+            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            noches = (fecha_fin - fecha_inicio).days or 1
+        else:
+            fecha_fin = None
+            noches = 1
     else:
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = None
         noches = 1
-    # Calcular total
+
+    hora_recepcion = datos.get('hora_recepcion')
+    hora_recepcion = datetime.strptime(hora_recepcion, '%H:%M').time() if hora_recepcion else None
+
     total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
     )
 
-    # Guardar reservación sin pago
-    empresa = Empresa.objects.filter(activa=True).first()
     reservacion = Reservacion.objects.create(
         empresa=empresa,
         nombre_cliente=datos['nombre_cliente'],
         email_cliente=datos['email_cliente'],
-        fecha_inicio=datos['fecha_inicio'],
-        fecha_fin=datos['fecha_fin'] if datos['fecha_fin'] else None,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        hora_recepcion=hora_recepcion,
         numero_adultos=datos['adultos'],
         numero_ninos=datos['ninos'],
         numero_descuento=datos['descuento'],
@@ -269,12 +310,8 @@ def pago_cancelado(request):
         servicio=servicio
     )
 
-    # Enviar correo de confirmación indicando que el pago no se completó
     enviar_correo_confirmacion(reservacion, servicio)
-
-    # Limpiar sesión
     del request.session['reservacion_datos']
-
     messages.warning(request, "La reservación fue registrada, pero el pago no se completó.")
     return redirect('reservacion_exitosa')
 
@@ -292,6 +329,7 @@ def enviar_correo_confirmacion(reservacion, servicio):
             <ul>
                 <li><strong>Fecha de inicio:</strong> {reservacion.fecha_inicio}</li>
                 <li><strong>Fecha de fin:</strong> {reservacion.fecha_fin or 'N/A'}</li>
+                <li><strong>Hora de recepción:</strong> {reservacion.hora_recepcion.strftime('%H:%M') if reservacion.hora_recepcion else 'N/A'}</li>
                 <li><strong>Adultos:</strong> {reservacion.numero_adultos}</li>
                 <li><strong>Niños:</strong> {reservacion.numero_ninos}</li>
                 <li><strong>Personas con descuento:</strong> {reservacion.numero_descuento}</li>
@@ -323,13 +361,23 @@ def pago_transferencia(request):
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
     empresa = Empresa.objects.filter(activa=True).first()
 
-    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
-    fecha_fin = datos['fecha_fin']
-    if fecha_fin:
-        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        noches = (fecha_fin - fecha_inicio).days + 1
+    if servicio.servicio.tipo == 'porDia':
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = datos['fecha_fin']
+        if fecha_fin:
+            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            noches = (fecha_fin - fecha_inicio).days or 1
+        else:
+            fecha_fin = None
+            noches = 1
     else:
+        fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+        fecha_fin = None
         noches = 1
+
+    hora_recepcion = datos.get('hora_recepcion')
+    hora_recepcion = datetime.strptime(hora_recepcion, '%H:%M').time() if hora_recepcion else None
+
     total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
@@ -341,13 +389,13 @@ def pago_transferencia(request):
         if archivo:
             tipo, _ = mimetypes.guess_type(archivo.name)
             if tipo in ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']:
-            # Crear reservación
                 reservacion = Reservacion.objects.create(
                     empresa=empresa,
                     nombre_cliente=datos['nombre_cliente'],
                     email_cliente=datos['email_cliente'],
-                    fecha_inicio=datos['fecha_inicio'],
-                    fecha_fin=datos['fecha_fin'] if datos['fecha_fin'] else None,
+                    fecha_inicio=fecha_inicio,
+                    fecha_fin=fecha_fin,
+                    hora_recepcion=hora_recepcion,
                     numero_adultos=datos['adultos'],
                     numero_ninos=datos['ninos'],
                     numero_descuento=datos['descuento'],
@@ -355,17 +403,17 @@ def pago_transferencia(request):
                     pago_realizado=False,
                     total_pagado=total,
                     comprobante_pago=archivo
-            )
+                )
 
-            Reservacion_servicio.objects.create(
-                id_reservacion=reservacion,
-                servicio=servicio
-            )
+                Reservacion_servicio.objects.create(
+                    id_reservacion=reservacion,
+                    servicio=servicio
+                )
 
-            enviar_correo_confirmacion(reservacion, servicio)
-            del request.session['reservacion_datos']
-            messages.success(request, "Reservación registrada. Comprobante enviado.")
-            return redirect('reservacion_exitosa')
+                enviar_correo_confirmacion(reservacion, servicio)
+                del request.session['reservacion_datos']
+                messages.success(request, "Reservación registrada. Comprobante enviado.")
+                return redirect('reservacion_exitosa')
 
     return render(request, 'pago_transferencia.html', {
         'empresa': empresa,

@@ -103,13 +103,19 @@
                     {% else %}
                         <p><strong>Reservando como:</strong> {{ request.user.get_full_name|default:request.user.username }} ({{ request.user.email }})</p>
                     {% endif %}
-                
-                    <label for="fecha_inicio">Fecha de inicio</label>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-                
-                    <label for="fecha_fin">Fecha de fin</label>
-                    <input type="date" id="fecha_fin" name="fecha_fin">
+                    <div id="fecha-inicio-container">
+                        <label for="fecha_inicio">Fecha de reservación</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+                    </div>
 
+                    <div id="fecha-fin-container">
+                        <label for="fecha_fin">Fecha de fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin">
+                    </div>
+                    <div id="hora-conteiner">
+                        <label for="hora_recepcion">Hora de recepción</label>
+                        <input type="time" id="hora_recepcion" name="hora_recepcion" required>
+                    </div>
                     <label for="adultos">Número de adultos</label>
                     <input type="number" id="adultos" name="adultos" min="1" required>
 
@@ -144,6 +150,37 @@
         </div>
     </div>
     <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipoServicio = "{{ tipo_servicio }}";
+        const fechaInicioContainer = document.getElementById('fecha-inicio-container');
+        const fechaFinContainer = document.getElementById('fecha-fin-container');
+        const horaConteiner = document.getElementById('hora-conteiner');
+        const fechaInicio = document.getElementById('fecha_inicio');
+        const fechaFin = document.getElementById('fecha_fin');
+        const horaRecepcion = document.getElementById('hora_recepcion');
+
+        // Si es por hora, ocultar campos de fecha y mostrar la hora de recepcion
+        if (tipoServicio === "porHora") {
+            fechaFinContainer.style.display = 'none';
+            fechaFin.required = false;
+
+            fechaInicioContainer.style.display = 'block';
+            fechaInicio.required = true;
+
+            horaConteiner.style.display = 'block';
+            horaRecepcion.required = true;
+        } else {
+            fechaFinContainer.style.display = 'block';
+            fechaFin.required = true;
+
+            fechaInicioContainer.style.display = 'block';
+            fechaInicio.required = true;
+
+            horaConteiner.style.display = 'none';
+            horaRecepcion.required = false;
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         const pagoCheckbox = document.getElementById('pago');
         const opcionesPago = document.getElementById('opciones-pago');
