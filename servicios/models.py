@@ -3,8 +3,13 @@ from empresas.models import Empresa
 
 # Create your models here.
 class TipoServicio(models.Model):
+    TIPOS = [
+        ('porDia', 'Por día'),
+        ('porHora', 'Por hora'),
+    ]
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(null=True, blank=True)
+    tipo = models.CharField(max_length=15, choices=TIPOS)
 
     def __str__(self):
         return self.nombre

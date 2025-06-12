@@ -12,8 +12,9 @@ class Reservacion(models.Model):
     ]
     nombre_cliente = models.CharField(max_length=100)
     email_cliente = models.EmailField()
-    fecha_inicio = models.DateField()
+    fecha_inicio = models.DateField(null=True, blank=True)
     fecha_fin = models.DateField(null=True, blank=True)
+    hora_recepcion = models.TimeField(null=True, blank=True)
     numero_adultos = models.PositiveIntegerField()
     numero_ninos = models.PositiveIntegerField()
     numero_descuento = models.PositiveIntegerField()

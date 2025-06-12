@@ -44,13 +44,15 @@ def crear_reservacion(request, servicio_id):
             if fecha_fin < fecha_inicio:
                 messages.error(request, "La fecha de fin no puede ser anterior a la fecha de inicio.")
                 return redirect(request.path)
-
+            noches = (fecha_fin - fecha_inicio).days
+        else:
+            noches = 1
         numero_adultos = int(request.POST['adultos'])
         numero_ninos = int(request.POST['ninos'])
         numero_descuento = int(request.POST['descuento'])
 
         # Cálculo del total a pagar
-        total = (
+        total = noches * (
             Decimal(servicio.costo_por_persona) * numero_adultos +
             Decimal(servicio.costo_niño) * numero_ninos +
             Decimal(servicio.costo_con_descuento) * numero_descuento
@@ -130,8 +132,15 @@ def procesar_pago(request):
 
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
+    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+    fecha_fin = datos['fecha_fin']
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        noches = (fecha_fin - fecha_inicio).days
+    else:
+        noches = 1
     # Calcular el total
-    total = (
+    total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
@@ -174,8 +183,15 @@ def pago_exitoso(request):
 
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
+    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+    fecha_fin = datos['fecha_fin']
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        noches = (fecha_fin - fecha_inicio).days + 1
+    else:
+        noches = 1
     # Calcular total
-    total = (
+    total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
@@ -218,8 +234,15 @@ def pago_cancelado(request):
 
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
 
+    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+    fecha_fin = datos['fecha_fin']
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        noches = (fecha_fin - fecha_inicio).days + 1
+    else:
+        noches = 1
     # Calcular total
-    total = (
+    total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])
@@ -300,7 +323,14 @@ def pago_transferencia(request):
     servicio = get_object_or_404(Servicio, id=datos['servicio_id'])
     empresa = Empresa.objects.filter(activa=True).first()
 
-    total = (
+    fecha_inicio = datetime.strptime(datos['fecha_inicio'], "%Y-%m-%d").date()
+    fecha_fin = datos['fecha_fin']
+    if fecha_fin:
+        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        noches = (fecha_fin - fecha_inicio).days + 1
+    else:
+        noches = 1
+    total = noches * (
         Decimal(servicio.costo_por_persona) * int(datos['adultos']) +
         Decimal(servicio.costo_niño) * int(datos['ninos']) +
         Decimal(servicio.costo_con_descuento) * int(datos['descuento'])

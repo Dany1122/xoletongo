@@ -14,7 +14,13 @@ class Empresa(models.Model):
     sitio_web = models.URLField(blank=True, null=True)
     activa = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-
+    smtp_host = models.CharField(max_length=150, blank=True, null=True, help_text="Servidor SMTP (p. ej. smtp.gmail.com)")
+    smtp_port = models.PositiveIntegerField(default=587, help_text="Puerto SMTP (p. ej. 587 para TLS, 465 para SSL)")
+    smtp_user = models.CharField(max_length=100, blank=True, null=True, help_text="Usuario SMTP (p. ej. nombre@dominio.com)")
+    smtp_password = models.CharField(max_length=100, blank=True, null=True, help_text="Contraseña SMTP (o contraseña de aplicación)")
+    smtp_use_tls = models.BooleanField(default=True, help_text="Activar TLS al enviar correo")
+    smtp_use_ssl = models.BooleanField(default=False, help_text="Activar SSL al enviar correo")
+    
     class Meta:
         verbose_name_plural = "Empresas"
 
