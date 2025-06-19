@@ -1,0 +1,31 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Dashboard | Admin{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Bienvenido al Panel de Administración</h1>
+
+<div class="row">
+
+    <!-- Total de usuarios -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Usuarios Registrados</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_usuarios }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total de reservaciones -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Reservaciones</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_reservaciones }}</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

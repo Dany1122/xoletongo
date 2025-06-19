@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'usuarios',
     'widget_tweaks',
     'empresas',
+    'adminpanel',
 ]
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 

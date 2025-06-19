@@ -8,5 +8,14 @@ class CustomUser(AbstractUser):
     telefono = models.CharField(max_length=20, null=True, blank=True)
     empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE, null=True, blank=True)
 
+    ROLES = (
+        ('Administrador', 'Administrador'),
+        ('Empleado', 'Empleado'),
+        ('Encargado', 'Encargado'),
+        ('Cliente', 'Cliente'),
+    )
+
+    rol = models.CharField(max_length=20, choices=ROLES, default='Cliente')
+
     def __str__(self):
         return self.username
