@@ -23,7 +23,7 @@
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-leaf"></i>
                 </div>
-                <div class="sidebar-brand-text mx-3">{{ empresa.nombre }}</div>
+                <div class="sidebar-brand-text mx-3">{{ empresa_activa.nombre }}</div>
             </a>
 
             <!-- Divider -->
@@ -31,7 +31,7 @@
 
             <!-- Dashboard -->
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
