@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'adminpanel.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'xoleongo.urls'
@@ -151,3 +152,5 @@ PAYPAL_SECRET = 'EM8FvqwAaJ1JxM-fth-uA602qdxQrRqCoTxv-tpQJTrWleADyZ-vQ4ozRvYtN8I
 PAYPAL_MODE = 'sandbox'
 
 EMAIL_BACKEND = 'empresas.backends.EmpresaSMTPBackend'
+
+LOGIN_URL = '/usuarios/login/'

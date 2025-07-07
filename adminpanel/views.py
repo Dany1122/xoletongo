@@ -3,10 +3,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from usuarios.models import CustomUser
 from reservaciones.models import Reservacion
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm
+from adminpanel.forms import CustomUserForm, CustomUserEditForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
+from .models import Venta
 
 # ── PDF ─────────────────────────────────────────────────────────────
 from reportlab.lib.pagesizes import LETTER
@@ -65,12 +66,12 @@ def lista_usuarios(request):
 def editar_usuario(request, id):
     usuario = get_object_or_404(CustomUser, id=id)
     if request.method == 'POST':
-        form = CustomUserForm(request.POST, instance=usuario)
+        form = CustomUserEditForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
             return redirect('/adminpanel/usuarios/?editado=1')
     else:
-        form = CustomUserForm(instance=usuario)
+        form = CustomUserEditForm(instance=usuario)
     return render(request, 'editar_usuario.html', {'form': form})
 
 def eliminar_usuario(request, id):
@@ -87,6 +88,19 @@ def agregar_usuario(request):
     else:
         form = CustomUserForm()
     return render(request, 'agregar_usuario.html', {'form': form})
+
+def kanban_ventas(request):
+    pendientes = Venta.objects.filter(estado='Pendiente').order_by('-fecha')
+    pagadas = Venta.objects.filter(estado='Pagado').order_by('-fecha')
+    canceladas = Venta.objects.filter(estado='Cancelado').order_by('-fecha')
+
+
+    context = {
+        'pendientes': pendientes,
+        'pagadas': pagadas,
+        'canceladas': canceladas,
+    }
+    return render(request, 'kanban_ventas.html', context)
 
 @login_required
 def exportar_usuarios_pdf(request):
