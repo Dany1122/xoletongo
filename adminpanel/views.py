@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from usuarios.models import CustomUser
+from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion
 from empresas.models import Empresa
 from adminpanel.forms import CustomUserForm, CustomUserEditForm
@@ -9,6 +10,10 @@ from django.db.models import Q
 from collections import defaultdict
 from .models import Venta
 
+from adminpanel.forms import CustomUserForm, ServicioForm
+from django.core.paginator import Paginator
+from django.db.models import Q
+from collections import defaultdict
 # ── PDF ─────────────────────────────────────────────────────────────
 from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
@@ -149,3 +154,70 @@ def exportar_usuarios_pdf(request):
     return FileResponse(buffer,
                         as_attachment=True,
                         filename="usuarios_xoletongo.pdf")
+
+def lista_servicios(request):
+    empresa = Empresa.objects.filter(activa=True).first()
+    if not empresa:
+        return render(request, 'lista_servicios.html', {'error': 'No hay empresa activa'})
+
+    q = request.GET.get("q", "").strip()
+    queryset = Servicio.objects.filter(empresa=empresa)
+    if q:
+        queryset = queryset.filter(
+            Q(titulo__icontains=q) | Q(descripcion__icontains=q)
+        )
+
+    queryset = queryset.order_by('-id')
+
+    # Agrupar los últimos 4 por tipo
+    agrupados = defaultdict(list)
+    for servicio in queryset:
+        if len(agrupados[servicio.servicio]) < 4:
+            agrupados[servicio.servicio].append(servicio)
+
+    servicios_por_tipo = [
+        {"tipo": tipo, "servicios": agrupados[tipo]}
+        for tipo in agrupados
+    ]
+
+    # Paginación
+    paginator = Paginator(queryset, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'lista_servicios.html', {
+        "empresa": empresa,
+        "servicios_por_tipo": servicios_por_tipo,
+        "page_obj": page_obj,
+        "q": q
+    })
+
+def agregar_servicio(request):
+    if request.method == 'POST':
+        form = ServicioForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/adminpanel/servicios/?creado=1')
+    else:
+        form = ServicioForm()
+    return render(request, 'agregar_servicio.html', {'form': form})
+
+def editar_servicio(request, id):
+    servicio = get_object_or_404(Servicio, id=id)
+    if request.method == 'POST':
+        form = ServicioForm(request.POST, instance=servicio)
+        if form.is_valid():
+            form.save()
+            return redirect('/adminpanel/servicios/?editado=1')
+    else:
+        form = ServicioForm(instance=servicio)
+    return render(request, 'editar_servicio.html', {'form': form})
+
+def eliminar_servicio(id):
+    servicio = get_object_or_404(Servicio, id=id)
+    servicio.delete()
+    return redirect('/adminpanel/servicios/?eliminado=1')
+
+def exportar_servicios_pdf(request):
+
+    return 0
