@@ -6,12 +6,9 @@
 
 {% block content %}
 <div class="row justify-content-center">
-
-    <!-- Card contenedora -->
     <div class="col-lg-8">
         <div class="card shadow mb-4">
-
-            <!-- Header de la tarjeta -->
+            <!-- Header -->
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">
                     <i class="fas fa-user-plus mr-1"></i> Agregar Usuario
@@ -21,20 +18,42 @@
                 </a>
             </div>
 
-            <!-- Cuerpo de la tarjeta -->
+            <!-- Body -->
             <div class="card-body">
                 <form method="post" novalidate>
                     {% csrf_token %}
 
-                    <!-- Grid Bootstrap para dos columnas en pantallas medianas -->
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label>Nombre de usuario</label>
                             {{ form.username|add_class:"form-control" }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small">{{ form.username.errors }}</div>
+                            {% endif %}
                         </div>
                         <div class="form-group col-md-6">
                             <label>Email</label>
                             {{ form.email|add_class:"form-control" }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Contraseña</label>
+                            {{ form.password|add_class:"form-control" }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small">{{ form.password.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Confirmar contraseña</label>
+                            {{ form.password_confirm|add_class:"form-control" }}
+                            {% if form.password_confirm.errors %}
+                                <div class="text-danger small">{{ form.password_confirm.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -42,26 +61,27 @@
                         <div class="form-group col-md-6">
                             <label>Rol</label>
                             {{ form.rol|add_class:"form-control" }}
+                            {% if form.rol.errors %}
+                                <div class="text-danger small">{{ form.rol.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group col-md-3">
-                            <div class="custom-control custom-switch mt-4">
-                                {{ form.is_staff|add_class:"custom-control-input" }}
-                                <label class="custom-control-label" for="{{ form.is_staff.id_for_label }}">
-                                    Staff
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group col-md-3">
-                            <div class="custom-control custom-switch mt-4">
-                                {{ form.is_active|add_class:"custom-control-input" }}
-                                <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">
-                                    Activo
-                                </label>
-                            </div>
+                        <div class="form-group col-md-6">
+                            <label>Teléfono</label>
+                            {{ form.telefono|add_class:"form-control" }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger small">{{ form.telefono.errors }}</div>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <!-- Botones -->
+                    <div class="form-group form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label ml-2">Activo</label>
+                        {% if form.is_active.errors %}
+                            <div class="text-danger small">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-user-plus mr-1"></i> Guardar usuario
                     </button>
@@ -72,6 +92,5 @@
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}

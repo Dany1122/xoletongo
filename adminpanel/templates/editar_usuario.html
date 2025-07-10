@@ -42,17 +42,16 @@
 
                     <div class="form-row">
                         <div class="form-group col-md-6">
+                            <label>Teléfono</label>
+                            {{ form.telefono|add_class:"form-control" }}
+                        </div>
+                        <div class="form-group col-md-6">
                             <label>Rol</label>
                             {{ form.rol|add_class:"form-control" }}
                         </div>
-                        <div class="form-group col-md-3">
-                            <div class="custom-control custom-switch mt-4">
-                                {{ form.is_staff|add_class:"custom-control-input" }}
-                                <label class="custom-control-label" for="{{ form.is_staff.id_for_label }}">
-                                    Staff
-                                </label>
-                            </div>
-                        </div>
+                    </div>
+
+                    <div class="form-row">
                         <div class="form-group col-md-3">
                             <div class="custom-control custom-switch mt-4">
                                 {{ form.is_active|add_class:"custom-control-input" }}

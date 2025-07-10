@@ -1,0 +1,59 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Ventas (Kanban)</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <h5 class="text-primary">Pendiente</h5>
+        <div class="bg-light p-2 rounded">
+            {% for venta in pendientes %}
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.descripcion }}</strong><br>
+                        Monto: ${{ venta.monto }}<br>
+                        Fecha: {{ venta.fecha|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas pendientes.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <h5 class="text-success">Pagado</h5>
+        <div class="bg-light p-2 rounded">
+            {% for venta in pagadas %}
+                <div class="card mb-2 border-success">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.descripcion }}</strong><br>
+                        Monto: ${{ venta.monto }}<br>
+                        Fecha: {{ venta.fecha|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas pagadas.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <h5 class="text-danger">Cancelado</h5>
+        <div class="bg-light p-2 rounded">
+            {% for venta in canceladas %}
+                <div class="card mb-2 border-danger">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.descripcion }}</strong><br>
+                        Monto: ${{ venta.monto }}<br>
+                        Fecha: {{ venta.fecha|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas canceladas.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
