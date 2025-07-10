@@ -17,4 +17,6 @@ urlpatterns = [
     path("servicios/exportar/pdf/", views.exportar_servicios_pdf, name="admin_exportar_servicios_pdf"),
     
     path('ventas/', views.kanban_ventas, name='admin_ventas'),
+
+    path('reservaciones/', views.lista_reservaciones, name='admin_reservaciones'),
 ]

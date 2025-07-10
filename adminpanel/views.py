@@ -4,7 +4,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, ServicioForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -216,4 +216,8 @@ def eliminar_servicio(id):
 
 def exportar_servicios_pdf(request):
 
+    return 0
+
+def lista_reservaciones(request):
+    
     return 0
