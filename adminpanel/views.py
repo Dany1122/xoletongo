@@ -2,12 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
-from reservaciones.models import Reservacion
+from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
 from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
+from django.contrib import messages
 from .models import Venta
 
 # ── PDF ─────────────────────────────────────────────────────────────
@@ -219,5 +220,30 @@ def exportar_servicios_pdf(request):
     return 0
 
 def lista_reservaciones(request):
-    
-    return 0
+    if request.method == 'POST':
+        reservacion_id = request.POST.get('reservacion_id')
+        nuevo_estado = request.POST.get('estado')
+        reservacion = get_object_or_404(Reservacion, id=reservacion_id)
+        reservacion.estado = nuevo_estado
+        reservacion.save()
+        return redirect('admin_reservaciones')
+
+    reservaciones = Reservacion.objects.all().order_by('-fecha_reserva')
+    reservaciones_con_servicio = []
+
+    for r in reservaciones:
+        servicio = None
+        relacion = Reservacion_servicio.objects.filter(id_reservacion=r).first()
+        if relacion:
+            servicio = relacion.servicio
+        reservaciones_con_servicio.append({
+            'reservacion': r,
+            'servicio': servicio,
+            'tipo_servicio': servicio.servicio.tipo if servicio else None,
+            'titulo_servicio': servicio.titulo if servicio else 'Sin servicio',
+            'total_pagado': r.total_pagado,
+        })
+
+    return render(request, 'lista_reservaciones.html', {
+        'reservaciones': reservaciones_con_servicio
+    })
