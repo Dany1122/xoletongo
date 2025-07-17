@@ -10,6 +10,8 @@ from django.db.models import Q
 from collections import defaultdict
 from django.contrib import messages
 from .models import Venta
+from itertools import chain
+from django.db.models import Sum
 
 # ── PDF ─────────────────────────────────────────────────────────────
 from reportlab.lib.pagesizes import LETTER
@@ -92,15 +94,29 @@ def agregar_usuario(request):
     return render(request, 'agregar_usuario.html', {'form': form})
 
 def kanban_ventas(request):
-    pendientes = Venta.objects.filter(estado='Pendiente').order_by('-fecha')
-    pagadas = Venta.objects.filter(estado='Pagado').order_by('-fecha')
-    canceladas = Venta.objects.filter(estado='Cancelado').order_by('-fecha')
+    pendientes = Reservacion.objects.filter(estado='pendiente').order_by('-fecha_reserva')[:5]
+    pagados = Reservacion.objects.filter(estado='aprobada').order_by('-fecha_reserva')[:5]
+    cancelados = Reservacion.objects.filter(estado='finalizada').order_by('-fecha_reserva')[:5]
 
+    # Totales por estado
+    total_pendientes = Reservacion.objects.filter(estado='pendiente').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_pagados = Reservacion.objects.filter(estado='aprobada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_cancelados = Reservacion.objects.filter(estado='finalizada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+
+    todas = list(chain(
+        Reservacion.objects.filter(estado='pendiente'),
+        Reservacion.objects.filter(estado='aprobada'),
+        Reservacion.objects.filter(estado='finalizada')
+    ))
 
     context = {
         'pendientes': pendientes,
-        'pagadas': pagadas,
-        'canceladas': canceladas,
+        'pagados': pagados,
+        'cancelados': cancelados,
+        'todas': todas,
+        'total_pendientes': total_pendientes,
+        'total_pagados': total_pagados,
+        'total_cancelados': total_cancelados,
     }
     return render(request, 'kanban_ventas.html', context)
 
