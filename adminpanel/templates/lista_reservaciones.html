@@ -1,0 +1,57 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Lista de Reservaciones</h2>
+
+{% for item in reservaciones %}
+    {% with reservacion=item.reservacion servicio=item.servicio tipo=item.tipo_servicio titulo=item.titulo_servicio total=item.total_pagado pago_realizado=item.pago_realizado %}
+        <div class="card my-3 p-3">
+            <p><strong>Cliente:</strong> {{ reservacion.nombre_cliente }}</p>
+            <p><strong>Correo:</strong> {{ reservacion.email_cliente }}</p>
+            <p><strong>Servicio:</strong> {{ titulo }}</p>
+
+            {% if pago_realizado %}
+                <p><strong>Pago realizado:</strong> Sí</p>
+            {% else %}
+                <p><strong>Pago realizado:</strong> No</p>
+                {% if reservacion.comprobante_pago %}
+                    <p>
+                        <strong>Comprobante de pago:</strong>
+                        <a href="{{ reservacion.comprobante_pago.url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            Ver comprobante
+                        </a>
+                    </p>
+                {% endif %}
+            {% endif %}
+
+            {% if tipo == "porHora" %}
+                <p><strong>Fecha de reserva:</strong> {{ reservacion.fecha_reserva|date:"d/m/Y H:i" }}</p>
+            {% elif tipo == "porDia" %}
+                <p><strong>Del:</strong> {{ reservacion.fecha_inicio }} <strong>al</strong> {{ reservacion.fecha_fin }}</p>
+            {% else %}
+                <p><em>Tipo de servicio no especificado.</em></p>
+            {% endif %}
+
+            <p><strong>Total pagado:</strong> ${{ total|floatformat:2 }}</p>
+            <p><strong>Estado actual:</strong> {{ reservacion.get_estado_display }}</p>
+
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="reservacion_id" value="{{ reservacion.id }}">
+                <select name="estado" class="form-select w-auto d-inline">
+                    {% for clave, texto in reservacion.ESTADOS %}
+                        <option value="{{ clave }}" {% if reservacion.estado == clave %}selected{% endif %}>
+                            {{ texto }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
+            </form>
+        </div>
+    {% endwith %}
+{% empty %}
+    <p>No hay reservaciones.</p>
+{% endfor %}
+
+{% endblock %}

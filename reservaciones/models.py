@@ -34,8 +34,6 @@ class Reservacion(models.Model):
     
     class Meta:
         verbose_name_plural='Reservaciones'
-        def __str__(self):
-            return f"Reserva de {self.nombre_cliente}"
 
 class Reservacion_servicio(models.Model):
     id_reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE, related_name='reservacion')

@@ -2,13 +2,16 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
-from reservaciones.models import Reservacion
+from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, CustomUserEditForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
+from django.contrib import messages
 from .models import Venta
+from itertools import chain
+from django.db.models import Sum
 
 from adminpanel.forms import CustomUserForm, ServicioForm
 from django.core.paginator import Paginator
@@ -95,15 +98,29 @@ def agregar_usuario(request):
     return render(request, 'agregar_usuario.html', {'form': form})
 
 def kanban_ventas(request):
-    pendientes = Venta.objects.filter(estado='Pendiente').order_by('-fecha')
-    pagadas = Venta.objects.filter(estado='Pagado').order_by('-fecha')
-    canceladas = Venta.objects.filter(estado='Cancelado').order_by('-fecha')
+    pendientes = Reservacion.objects.filter(estado='pendiente').order_by('-fecha_reserva')[:5]
+    pagados = Reservacion.objects.filter(estado='aprobada').order_by('-fecha_reserva')[:5]
+    cancelados = Reservacion.objects.filter(estado='finalizada').order_by('-fecha_reserva')[:5]
 
+    # Totales por estado
+    total_pendientes = Reservacion.objects.filter(estado='pendiente').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_pagados = Reservacion.objects.filter(estado='aprobada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_cancelados = Reservacion.objects.filter(estado='finalizada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+
+    todas = list(chain(
+        Reservacion.objects.filter(estado='pendiente'),
+        Reservacion.objects.filter(estado='aprobada'),
+        Reservacion.objects.filter(estado='finalizada')
+    ))
 
     context = {
         'pendientes': pendientes,
-        'pagadas': pagadas,
-        'canceladas': canceladas,
+        'pagados': pagados,
+        'cancelados': cancelados,
+        'todas': todas,
+        'total_pendientes': total_pendientes,
+        'total_pagados': total_pagados,
+        'total_cancelados': total_cancelados,
     }
     return render(request, 'kanban_ventas.html', context)
 
@@ -221,3 +238,32 @@ def eliminar_servicio(id):
 def exportar_servicios_pdf(request):
 
     return 0
+
+def lista_reservaciones(request):
+    if request.method == 'POST':
+        reservacion_id = request.POST.get('reservacion_id')
+        nuevo_estado = request.POST.get('estado')
+        reservacion = get_object_or_404(Reservacion, id=reservacion_id)
+        reservacion.estado = nuevo_estado
+        reservacion.save()
+        return redirect('admin_reservaciones')
+
+    reservaciones = Reservacion.objects.all().order_by('-fecha_reserva')
+    reservaciones_con_servicio = []
+
+    for r in reservaciones:
+        servicio = None
+        relacion = Reservacion_servicio.objects.filter(id_reservacion=r).first()
+        if relacion:
+            servicio = relacion.servicio
+        reservaciones_con_servicio.append({
+            'reservacion': r,
+            'servicio': servicio,
+            'tipo_servicio': servicio.servicio.tipo if servicio else None,
+            'titulo_servicio': servicio.titulo if servicio else 'Sin servicio',
+            'total_pagado': r.total_pagado,
+        })
+
+    return render(request, 'lista_reservaciones.html', {
+        'reservaciones': reservaciones_con_servicio
+    })

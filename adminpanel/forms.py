@@ -11,12 +11,10 @@ class CustomUserForm(forms.ModelForm):
         label='Confirmar contraseña',
         widget=forms.PasswordInput,
     )
-
     class Meta:
         model = CustomUser
-
         fields = ['username', 'email', 'rol', 'is_active', 'telefono']
-
+        
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
@@ -32,6 +30,23 @@ class CustomUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class ServicioForm(forms.ModelForm):
+    class Meta:
+        model = Servicio
+        fields = ['titulo', 
+                  'servicio', 
+                  'descripcion', 
+                  'costo_por_persona',
+                  'costo_niño', 
+                  'costo_con_descuento', 
+                  'imagen_principal',
+                  'duracion', 
+                  'restricciones', 
+                  'galeria'
+        ]
+
+    
     
 class CustomUserEditForm(forms.ModelForm):
     class Meta:
@@ -52,3 +67,4 @@ class ServicioForm(forms.ModelForm):
                   'restricciones', 
                   'galeria'
         ]
+
