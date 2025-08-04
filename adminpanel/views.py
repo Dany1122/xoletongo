@@ -12,8 +12,8 @@ from django.contrib import messages
 from .models import Venta
 from itertools import chain
 from django.db.models import Sum
+from datetime import datetime
 
-from adminpanel.forms import CustomUserForm, ServicioForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -98,31 +98,67 @@ def agregar_usuario(request):
     return render(request, 'agregar_usuario.html', {'form': form})
 
 def kanban_ventas(request):
-    pendientes = Reservacion.objects.filter(estado='pendiente').order_by('-fecha_reserva')[:5]
-    pagados = Reservacion.objects.filter(estado='aprobada').order_by('-fecha_reserva')[:5]
-    cancelados = Reservacion.objects.filter(estado='finalizada').order_by('-fecha_reserva')[:5]
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+    busqueda = request.GET.get("busqueda", "").strip()
 
-    # Totales por estado
-    total_pendientes = Reservacion.objects.filter(estado='pendiente').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
-    total_pagados = Reservacion.objects.filter(estado='aprobada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
-    total_cancelados = Reservacion.objects.filter(estado='finalizada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    filtros = Q()
+    if fecha_inicio:
+        filtros &= Q(fecha_reserva__date__gte=fecha_inicio)
+    if fecha_fin:
+        filtros &= Q(fecha_reserva__date__lte=fecha_fin)
+    if busqueda:
+        filtros &= (
+            Q(nombre_cliente__icontains=busqueda) |
+            Q(email_cliente__icontains=busqueda) |
+            Q(id__icontains=busqueda)
+        )
 
-    todas = list(chain(
-        Reservacion.objects.filter(estado='pendiente'),
-        Reservacion.objects.filter(estado='aprobada'),
-        Reservacion.objects.filter(estado='finalizada')
-    ))
+    # Filtrar todas según los filtros generales
+    todas_filtradas = Reservacion.objects.filter(filtros).order_by('-fecha_reserva')
+
+    total_registros = todas_filtradas.count()
+
+    # Filtrar para columnas del Kanban (últimos 5 de cada estado)
+    pendientes = todas_filtradas.filter(estado='pendiente')[:5]
+    pagados = todas_filtradas.filter(estado='aprobada')[:5]
+    cancelados = todas_filtradas.filter(estado='finalizada')[:5]
+
+    # Totales por estado (con los mismos filtros aplicados)
+    total_pendientes = todas_filtradas.filter(estado='pendiente').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_pagados = todas_filtradas.filter(estado='aprobada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_cancelados = todas_filtradas.filter(estado='finalizada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+
+    # Paginación de la lista general
+    paginator = Paginator(todas_filtradas, 10)  # 10 por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Agregar filtros rápidos al contexto
+    from datetime import date, timedelta
+    hoy = date.today()
+    semana_inicio = hoy - timedelta(days=hoy.weekday())
+    mes_inicio = hoy.replace(day=1)
 
     context = {
         'pendientes': pendientes,
         'pagados': pagados,
         'cancelados': cancelados,
-        'todas': todas,
+        'todas': todas_filtradas,
+        'page_obj': page_obj,
         'total_pendientes': total_pendientes,
         'total_pagados': total_pagados,
         'total_cancelados': total_cancelados,
+        'total_registros': total_registros,
     }
+
+    context.update({
+        'hoy': hoy.isoformat(),
+        'semana_inicio': semana_inicio.isoformat(),
+        'mes_inicio': mes_inicio.isoformat(),
+    })
     return render(request, 'kanban_ventas.html', context)
+
 
 @login_required
 def exportar_usuarios_pdf(request):
@@ -267,3 +303,83 @@ def lista_reservaciones(request):
     return render(request, 'lista_reservaciones.html', {
         'reservaciones': reservaciones_con_servicio
     })
+
+@login_required
+def exportar_ventas_pdf(request):
+    # Reaplicar filtros para exportar el mismo conjunto de datos
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+    busqueda = request.GET.get("busqueda", "").strip()
+
+    filtros = Q()
+    if fecha_inicio:
+        filtros &= Q(fecha_reserva__date__gte=fecha_inicio)
+    if fecha_fin:
+        filtros &= Q(fecha_reserva__date__lte=fecha_fin)
+    if busqueda:
+        filtros &= (
+            Q(nombre_cliente__icontains=busqueda) |
+            Q(email_cliente__icontains=busqueda) |
+            Q(id__icontains=busqueda)
+        )
+
+    queryset = Reservacion.objects.filter(filtros).order_by('-fecha_reserva')
+
+    total_registros = queryset.count()
+    total_pendientes = queryset.filter(estado='pendiente').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_pagados = queryset.filter(estado='aprobada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+    total_cancelados = queryset.filter(estado='finalizada').aggregate(Sum('total_pagado'))['total_pagado__sum'] or 0
+
+    # Crear PDF
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=LETTER)
+    width, height = LETTER
+    y = height - 50
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(40, y, "Resumen de Ventas – Xoletongo")
+    y -= 30
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(40, y, f"Total de registros: {total_registros}")
+    y -= 20
+    pdf.drawString(40, y, f"Total Pendientes: ${total_pendientes}")
+    y -= 20
+    pdf.drawString(40, y, f"Total Pagados: ${total_pagados}")
+    y -= 20
+    pdf.drawString(40, y, f"Total Cancelados: ${total_cancelados}")
+    y -= 30
+
+    # Encabezado de tabla
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(40, y, "ID")
+    pdf.drawString(80, y, "Cliente")
+    pdf.drawString(200, y, "Email")
+    pdf.drawString(360, y, "Estado")
+    pdf.drawString(440, y, "Monto")
+    y -= 15
+    pdf.line(40, y, width - 40, y)
+    y -= 10
+
+    # Filas de tabla
+    pdf.setFont("Helvetica", 9)
+    for r in queryset:
+        if y < 60:
+            pdf.showPage()
+            y = height - 50
+        pdf.drawString(40, y, str(r.id))
+        pdf.drawString(80, y, r.nombre_cliente[:18])
+        pdf.drawString(200, y, r.email_cliente[:25])
+        pdf.drawString(360, y, r.estado.capitalize())
+        pdf.drawString(440, y, f"${r.total_pagado}")
+        y -= 14
+
+    pdf.showPage()
+    pdf.save()
+
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename="resumen_ventas.pdf")
+
+
+
+

@@ -8,8 +8,6 @@ urlpatterns = [
     path('usuarios/editar/<int:id>/', views.editar_usuario, name='admin_editar_usuario'),
     path('usuarios/eliminar/<int:id>/', views.eliminar_usuario, name='admin_eliminar_usuario'),
     path('usuarios/agregar/', views.agregar_usuario, name='admin_agregar_usuario'),
-    path("usuarios/exportar/pdf/", views.exportar_usuarios_pdf,
-         name="admin_exportar_usuarios_pdf"),
     path('ventas/', views.kanban_ventas, name='admin_ventas'),
     path("usuarios/exportar/pdf/", views.exportar_usuarios_pdf, name="admin_exportar_usuarios_pdf"),
     
@@ -19,7 +17,9 @@ urlpatterns = [
     path('servicios/eliminar/<int:id>/', views.eliminar_servicio, name='admin_eliminar_servicio'),
     path("servicios/exportar/pdf/", views.exportar_servicios_pdf, name="admin_exportar_servicios_pdf"),
     
-     path('ventas/', views.kanban_ventas, name='admin_ventas'),
+    path('ventas/', views.kanban_ventas, name='admin_ventas'),
+    path('ventas/exportar/pdf/', views.exportar_ventas_pdf, name='admin_exportar_pdf'),
+
 
     path('reservaciones/', views.lista_reservaciones, name='admin_reservaciones'),
 ]
