@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 # Create your models here.
 class Venta(models.Model):
@@ -15,3 +16,13 @@ class Venta(models.Model):
 
     def __str__(self):
         return f"{self.titulo} (${self.monto})"
+
+User = get_user_model()
+
+class Novedad(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    accion = models.CharField(max_length=255)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} - {self.accion}"

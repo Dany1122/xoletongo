@@ -11,8 +11,11 @@ from collections import defaultdict
 from django.contrib import messages
 from .models import Venta
 from itertools import chain
-from django.db.models import Sum
+from django.db.models import Sum,Count
 from datetime import datetime
+from adminpanel.utils import registrar_novedad
+from adminpanel.models import Novedad
+
 
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -24,15 +27,45 @@ from reportlab.lib import colors
 from django.http import FileResponse
 import io
 
+@login_required
 def dashboard(request):
     empresa = Empresa.objects.filter(activa=True).first()
     total_usuarios = CustomUser.objects.count()
     total_reservaciones = Reservacion.objects.count()
+    total_servicios = Servicio.objects.count()
+    total_ventas = Venta.objects.aggregate(total=Sum('monto'))['total'] or 0
+    clientes_activos = CustomUser.objects.filter(is_active=True).count()
+    ultimo_ingreso = request.user.last_login
+
+    # Servicio más solicitado
+    servicio_popular = (
+        Reservacion_servicio.objects
+        .values('servicio__titulo')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+        .first()
+    )
+    servicio_mas_solicitado = servicio_popular['servicio__titulo'] if servicio_popular else 'Sin datos'
+
+    # Reservaciones pendientes
+    reservaciones_pendientes = Reservacion.objects.filter(estado='pendiente').count()
+
+     # Novedades recientes
+    novedades = Novedad.objects.order_by('-fecha')[:10]
+
     return render(request, 'dashboard.html', {
         'empresa': empresa,
         'total_usuarios': total_usuarios,
         'total_reservaciones': total_reservaciones,
+        'total_servicios': total_servicios,
+        'total_ventas': total_ventas,
+        'clientes_activos': clientes_activos,
+        'ultimo_ingreso': ultimo_ingreso,
+        'servicio_mas_solicitado': servicio_mas_solicitado,
+        'reservaciones_pendientes': reservaciones_pendientes,
+        'novedades': novedades,
     })
+
 
 def lista_usuarios(request):
     # ── Búsqueda ────────────────────────────────────────────────────────────────
@@ -77,6 +110,7 @@ def editar_usuario(request, id):
         form = CustomUserEditForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
+            registrar_novedad(request.user, f"Editó el usuario: {usuario.username}")
             return redirect('/adminpanel/usuarios/?editado=1')
     else:
         form = CustomUserEditForm(instance=usuario)
@@ -85,13 +119,15 @@ def editar_usuario(request, id):
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(CustomUser, id=id)
     usuario.delete()
+    registrar_novedad(request.user, f"Eliminó al usuario: {usuario.username}")
     return redirect('/adminpanel/usuarios/?eliminado=1')
 
 def agregar_usuario(request):
     if request.method == 'POST':
         form = CustomUserForm(request.POST)
         if form.is_valid():
-            form.save()
+            usuario=form.save()
+            registrar_novedad(request.user, f"Agregó un usuario: {usuario.username}")
             return redirect('/adminpanel/usuarios/?creado=1')
     else:
         form = CustomUserForm()
@@ -204,6 +240,9 @@ def exportar_usuarios_pdf(request):
     pdf.save()
 
     buffer.seek(0)
+
+    registrar_novedad(request.user, "Exportó PDF con listado de usuarios")
+
     return FileResponse(buffer,
                         as_attachment=True,
                         filename="usuarios_xoletongo.pdf")
@@ -249,7 +288,8 @@ def agregar_servicio(request):
     if request.method == 'POST':
         form = ServicioForm(request.POST)
         if form.is_valid():
-            form.save()
+            servicio = form.save()
+            registrar_novedad(request.user, f"Agregó un servicio: {servicio.titulo}")
             return redirect('/adminpanel/servicios/?creado=1')
     else:
         form = ServicioForm()
@@ -261,13 +301,15 @@ def editar_servicio(request, id):
         form = ServicioForm(request.POST, instance=servicio)
         if form.is_valid():
             form.save()
+            registrar_novedad(request.user, f"Editó el servicio: {servicio.titulo}")
             return redirect('/adminpanel/servicios/?editado=1')
     else:
         form = ServicioForm(instance=servicio)
     return render(request, 'editar_servicio.html', {'form': form})
 
-def eliminar_servicio(id):
+def eliminar_servicio(request, id):
     servicio = get_object_or_404(Servicio, id=id)
+    registrar_novedad(request.user, f"Eliminó el servicio: {servicio.titulo}")
     servicio.delete()
     return redirect('/adminpanel/servicios/?eliminado=1')
 
@@ -282,6 +324,7 @@ def lista_reservaciones(request):
         reservacion = get_object_or_404(Reservacion, id=reservacion_id)
         reservacion.estado = nuevo_estado
         reservacion.save()
+        registrar_novedad(request.user, f"Actualizó estado de reservación #{reservacion.id} a {nuevo_estado}")
         return redirect('admin_reservaciones')
 
     reservaciones = Reservacion.objects.all().order_by('-fecha_reserva')
@@ -378,6 +421,9 @@ def exportar_ventas_pdf(request):
     pdf.save()
 
     buffer.seek(0)
+
+    registrar_novedad(request.user, "Exportó PDF con resumen de ventas")
+
     return FileResponse(buffer, as_attachment=True, filename="resumen_ventas.pdf")
 
 
