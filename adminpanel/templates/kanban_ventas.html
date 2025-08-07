@@ -1,0 +1,335 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Ventas</h1>
+
+<div class="row">
+    <!-- Pendiente -->
+    <div class="col-md-4">
+        <h5 class="text-primary">Pendiente</h5>
+        {% if pendientes|length >= 5 %}
+            <p class="text-muted small">Mostrando últimas 5</p>
+        {% endif %}
+        <p class="font-weight-bold text-primary small">Total: ${{ total_pendientes }}</p>
+        <div class="bg-light p-2 rounded">
+            {% for venta in pendientes %}
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.nombre_cliente }}</strong><br>
+                        Monto: ${{ venta.total_pagado }}<br>
+                        Fecha: {{ venta.fecha_reserva|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas pendientes.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagado -->
+    <div class="col-md-4">
+        <h5 class="text-success">Pagado</h5>
+        {% if pagados|length >= 5 %}
+            <p class="text-muted small">Mostrando últimas 5</p>
+        {% endif %}
+        <p class="font-weight-bold text-success small">Total: ${{ total_pagados }}</p>
+        <div class="bg-light p-2 rounded">
+            {% for venta in pagados %}
+                <div class="card mb-2 border-success">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.nombre_cliente }}</strong><br>
+                        Monto: ${{ venta.total_pagado }}<br>
+                        Fecha: {{ venta.fecha_reserva|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas pagadas.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Cancelado -->
+    <div class="col-md-4">
+        <h5 class="text-danger">Cancelado</h5>
+        {% if cancelados|length >= 5 %}
+            <p class="text-muted small">Mostrando últimas 5</p>
+        {% endif %}
+        <p class="font-weight-bold text-danger small">Total: ${{ total_cancelados }}</p>
+        <div class="bg-light p-2 rounded">
+            {% for venta in cancelados %}
+                <div class="card mb-2 border-danger">
+                    <div class="card-body p-2">
+                        <strong>{{ venta.nombre_cliente }}</strong><br>
+                        Monto: ${{ venta.total_pagado }}<br>
+                        Fecha: {{ venta.fecha_reserva|date:"d/m/Y" }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted small">Sin ventas canceladas.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!--filtros rapidos-->
+<div class="mb-3">
+  <span class="mr-2 font-weight-bold">Rápido:</span>
+
+  <a href="?fecha_inicio={{ hoy }}&fecha_fin={{ hoy }}"
+     class="btn btn-sm {% if request.GET.fecha_inicio == hoy and request.GET.fecha_fin == hoy and not request.GET.busqueda %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+     Hoy
+  </a>
+
+  <a href="?fecha_inicio={{ semana_inicio }}&fecha_fin={{ hoy }}"
+     class="btn btn-sm {% if request.GET.fecha_inicio == semana_inicio and request.GET.fecha_fin == hoy and not request.GET.busqueda %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+     Esta semana
+  </a>
+
+  <a href="?fecha_inicio={{ mes_inicio }}&fecha_fin={{ hoy }}"
+     class="btn btn-sm {% if request.GET.fecha_inicio == mes_inicio and request.GET.fecha_fin == hoy and not request.GET.busqueda %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+     Este mes
+  </a>
+
+  <a href="{% url 'admin_ventas' %}"
+     class="btn btn-sm {% if not request.GET.fecha_inicio and not request.GET.fecha_fin and not request.GET.busqueda %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+     Todos
+  </a>
+</div>
+
+<!--Tabla de resultados-->
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label for="fecha_inicio" class="form-label">Desde:</label>
+    <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+  </div>
+
+  <div class="col-md-3">
+    <label for="fecha_fin" class="form-label">Hasta:</label>
+    <input type="date" id="fecha_fin" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+  </div>
+
+  <div class="col-md-3">
+    <label for="busqueda" class="form-label">Buscar:</label>
+    <input type="text" id="busqueda" name="busqueda" placeholder="Cliente, servicio..." class="form-control" value="{{ request.GET.busqueda }}">
+  </div>
+
+  {% if request.GET.fecha_inicio or request.GET.fecha_fin or request.GET.busqueda %}
+    <div class="col-md-3 d-flex align-items-end">
+        <div class="w-50">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+        <div class="w-50 ml-2">
+            <a href="{% url 'admin_ventas' %}" class="btn btn-outline-dark w-100">Limpiar</a>
+        </div>
+    </div>
+  {% else %}
+    <div class="col-md-3 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+  {% endif %}
+</form>
+
+<!-- Tabla detallada de ventas -->
+<div class="alert alert-info font-weight-bold">
+    <i class="fas fa-list-alt"></i>
+    <span class="text-dark">Total: {{ total_registros }}</span> |
+
+    <i class="fas fa-clock"></i>
+    <span class="text-warning">Pendientes: ${{ total_pendientes }}</span> |
+
+    <i class="fas fa-check-circle"></i>
+    <span class="text-success">Pagados: ${{ total_pagados }}</span> |
+
+    <i class="fas fa-times-circle"></i>
+    <span class="text-danger">Cancelados: ${{ total_cancelados }}</span>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Lista de Reservaciones</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead class="thead-light">
+                    <tr>
+                        <th># Venta</th>
+                        <th>Cliente</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in page_obj %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td>{{ r.nombre_cliente }}</td>
+                        <td>{{ r.email_cliente }}</td>
+                        <td>
+                            {% if r.estado == "pendiente" %}
+                                <span class="text-primary">Pendiente</span>
+                            {% elif r.estado == "aprobada" %}
+                                <span class="text-success">Pagado</span>
+                            {% elif r.estado == "finalizada" %}
+                                <span class="text-danger">Cancelado</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ r.total_pagado }}</td>
+                        <td>{{ r.fecha_reserva|date:"d/m/Y" }}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detalleModal{{ r.id }}">
+                                Ver más
+                            </button>
+                             <!-- Modal de detalles -->
+                            <div class="modal fade" id="detalleModal{{ r.id }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel{{ r.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="modalLabel{{ r.id }}">Detalle de Reservación</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Cliente:</strong> {{ r.nombre_cliente }}</p>
+                                            <p><strong>Email:</strong> {{ r.email_cliente }}</p>
+                                            <p><strong>Fecha de reserva:</strong> {{ r.fecha_reserva|date:"d/m/Y" }}</p>
+                                            <p><strong>Estado:</strong>
+                                                {% if r.estado == "pendiente" %}Pendiente
+                                                {% elif r.estado == "aprobada" %}Pagado
+                                                {% elif r.estado == "finalizada" %}Cancelado
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Adultos:</strong> {{ r.numero_adultos }}</p>
+                                            <p><strong>Niños:</strong> {{ r.numero_ninos }}</p>
+                                            <p><strong>Descuento:</strong> {{ r.numero_descuento }}</p>
+                                            <p><strong>Total pagado:</strong> ${{ r.total_pagado }}</p>
+                                            <p><strong>Comentario:</strong><br>{{ r.comentario|default:"(Sin comentario)" }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No hay ventas registradas con esos parámetros.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                                &laquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&laquo;</span>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                                &raquo;
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">&raquo;</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <!-- Gráficas y exportación -->
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Resumen Gráfico</h6>
+                    <a href="{% url 'admin_exportar_pdf' %}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="estadoChart" width="300" height="300"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="montoChart"></canvas>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const estadoChart = new Chart(document.getElementById('estadoChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pendientes', 'Pagados', 'Cancelados'],
+      datasets: [{
+        label: 'Reservas',
+        data: [
+          {{ pendientes|length|default:0 }},
+          {{ pagados|length|default:0 }},
+          {{ cancelados|length|default:0 }}
+        ],
+        backgroundColor: ['#ffc107', '#28a745', '#dc3545']
+      }]
+    },
+    options: {
+    responsive: false,
+    maintainAspectRatio: false
+    }
+  });
+
+  const montoChart = new Chart(document.getElementById('montoChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Pendientes', 'Pagados', 'Cancelados'],
+      datasets: [{
+        label: 'Monto total ($)',
+        data: [
+          {{ total_pendientes|default:0 }},
+          {{ total_pagados|default:0 }},
+          {{ total_cancelados|default:0 }}
+        ],
+        backgroundColor: ['#ffc107', '#28a745', '#dc3545']
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}
+{% endblock %}

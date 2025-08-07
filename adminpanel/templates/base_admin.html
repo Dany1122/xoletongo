@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Panel de Administración{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'adminpanel/img/favicon.ico' %}">
+
+    <!-- SBAdmin2 CSS -->
+    <link href="{% static 'adminpanel/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'adminpanel/css/sb-admin-2.min.css' %}" rel="stylesheet">
+</head>
+
+<body id="page-top">
+    <!-- Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'admin_dashboard' %}">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">{{ empresa_activa.nombre }}</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Usuarios -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_usuarios' %}">
+                    <i class="fas fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+            </li>
+
+            <!-- Servicios/Productos -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_servicios' %}">
+                    <i class="fas fa-tasks"></i>
+                    <span>Servicios/Productos</span>
+                </a>
+            </li>
+
+            <!-- Ventas -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_ventas' %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Ventas</span>
+                </a>
+            </li>
+
+            <!-- Reservaciones -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_reservaciones' %}">
+                    <i class="fas fa-address-book"></i>
+                    <span>Reservaciones</span>
+                </a>
+            </li>
+
+            <hr class="sidebar-divider d-none d-md-block">
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Contenido principal -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+               <!-- Navbar superior -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow justify-content-end">
+
+                    <!-- Usuario (Dropdown) -->
+                    <ul class="navbar-nav ml-auto">
+                        {% if user.is_authenticated %}
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+                                    {{ user.get_full_name|default:user.username }}
+                                </span>
+                                <i class="fas fa-user-circle fa-lg text-primary"></i>
+                            </a>
+                            <!-- Dropdown - User Info -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                                <h6 class="dropdown-header">
+                                     Rol: {{ user.rol }}
+                                </h6>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Cerrar sesión
+                                </a>
+                            </div>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+
+                <!-- Contenido -->
+                <div class="container-fluid">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+
+            </div>
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'adminpanel/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'adminpanel/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'adminpanel/js/sb-admin-2.min.js' %}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
