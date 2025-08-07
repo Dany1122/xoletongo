@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'usuarios',
     'widget_tweaks',
     'empresas',
+    'adminpanel',
 ]
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'adminpanel.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'xoleongo.urls'
@@ -69,6 +71,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'adminpanel.context_processors.empresa_context',
             ],
         },
     },
@@ -149,3 +152,5 @@ PAYPAL_SECRET = 'EM8FvqwAaJ1JxM-fth-uA602qdxQrRqCoTxv-tpQJTrWleADyZ-vQ4ozRvYtN8I
 PAYPAL_MODE = 'sandbox'
 
 EMAIL_BACKEND = 'empresas.backends.EmpresaSMTPBackend'
+
+LOGIN_URL = '/usuarios/login/'
