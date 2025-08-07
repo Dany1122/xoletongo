@@ -1,0 +1,249 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="mb-3 text-right">
+        <a href="{% url 'admin_agregar_usuario' %}" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> Agregar Usuario
+        </a>
+    </div>
+
+    <h1 class="h3 mb-4 text-gray-800">Usuarios</h1>
+
+        {# ───────── Tarjetas (máx. 4 por rol) ───────── #}
+        {% for grupo in grupos_por_rol %}
+        <h5 class="text-primary mt-4">{{ grupo.rol }}</h5>
+        <div class="row">
+            {% for usuario in grupo.usuarios %}
+            <div class="col-md-3 mb-4">
+                <div class="card shadow">
+                <div class="card-body text-center">
+                    <h6 class="font-weight-bold">{{ usuario.username }}</h6>
+                    {% if usuario.email %}
+                    <p class="mb-1 text-muted">{{ usuario.email }}</p>
+                    {% endif %}
+                    {% if usuario.nombre_completo %}
+                    <p class="mb-1 small">{{ usuario.nombre_completo }}</p>
+                    {% endif %}
+                    <div class="mt-2">
+                    <a href="{% url 'admin_editar_usuario' usuario.id %}"
+                        class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <button class="btn btn-sm btn-danger"
+                            data-toggle="modal"
+                            data-target="#confirmModal{{ usuario.id }}">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </button>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Modal Confirmación Eliminación -->
+            <div class="modal fade" id="confirmModal{{ usuario.id }}" tabindex="-1" role="dialog" aria-labelledby="modalLabel{{ usuario.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="modalLabel{{ usuario.id }}">Confirmar eliminación</h5>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            ¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.username }}</strong>?<br>
+                            Esta acción no se puede deshacer.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                            <form method="POST" action="{% url 'admin_eliminar_usuario' usuario.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endfor %}
+    </div>
+
+{% endfor %}
+
+<hr class="mb-4">
+
+{# ───────────── Buscador + Tabla paginada ───────────── #}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list mr-1"></i> Lista completa
+        </h6>
+        <a href="{% url 'admin_exportar_usuarios_pdf' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-file-pdf"></i> Exportar PDF
+        </a>
+
+        <form class="form-inline" method="get">
+            <input name="q" value="{{ q }}" class="form-control mr-sm-2"
+                   type="search" placeholder="Buscar usuario…"
+                   aria-label="Buscar">
+            <button class="btn btn-outline-primary my-2 my-sm-0" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+  </div>
+
+  <div class="card-body table-responsive">
+      <table class="table table-hover">
+          <thead>
+              <tr class="small text-muted">
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th class="text-center">Acciones</th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for u in page_obj %}
+              <tr>
+                  <td>{{ u.username }}</td>
+                  <td>{{ u.email|default:"—" }}</td>
+                  <td>{{ u.rol }}</td>
+                  <td class="text-center">
+                      <a href="{% url 'admin_editar_usuario' u.id %}"
+                         class="btn btn-sm btn-outline-primary">
+                         <i class="fas fa-edit"></i>
+                      </a>
+                      <button class="btn btn-sm btn-outline-danger"
+                              data-toggle="modal"
+                              data-target="#confirmModal{{ u.id }}">
+                          <i class="fas fa-trash-alt"></i>
+                      </button>
+                  </td>
+              </tr>
+          {% empty %}
+              <tr><td colspan="4" class="text-center text-muted">Sin resultados.</td></tr>
+          {% endfor %}
+          </tbody>
+      </table>
+
+      {# Paginación #}
+      {% if page_obj.has_other_pages %}
+      <nav>
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?q={{ q }}&page={{ page_obj.previous_page_number }}">‹</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">‹</span></li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                  <a class="page-link" href="?q={{ q }}&page={{ num }}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?q={{ q }}&page={{ page_obj.next_page_number }}">›</a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">›</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+  </div>
+</div>
+
+<!-- Modal de éxito -->
+<!-- Modal de creación -->
+<div class="modal fade" id="createdModal" tabindex="-1" role="dialog" aria-labelledby="createdModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="createdModalLabel">Usuario agregado</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-user-check fa-3x text-success mb-3"></i><br>
+        El usuario fue agregado correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de edicion -->
+<div class="modal fade" id="editedModal" tabindex="-1" role="dialog" aria-labelledby="editedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-primary">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editedModalLabel">Cambios guardados</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-save fa-3x text-primary mb-3"></i><br>
+        Los cambios se guardaron correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de eliminacion -->
+<div class="modal fade" id="deletedModal" tabindex="-1" role="dialog" aria-labelledby="deletedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deletedModalLabel">Usuario eliminado</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i><br>
+        El usuario fue eliminado correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getQueryParam(param) {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+  window.onload = function () {
+    if (getQueryParam('creado') === '1') {
+      $('#createdModal').modal('show');
+    }
+    if (getQueryParam('editado') === '1') {
+      $('#editedModal').modal('show');
+    }
+    if (getQueryParam('eliminado') === '1') {
+      $('#deletedModal').modal('show');
+    }
+  };
+</script>
+
+{% endblock %}
