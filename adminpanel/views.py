@@ -4,7 +4,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -15,6 +15,8 @@ from django.db.models import Sum,Count
 from datetime import datetime
 from adminpanel.utils import registrar_novedad
 from adminpanel.models import Novedad
+from django.urls import reverse
+from django.http import HttpResponseForbidden
 
 
 from django.core.paginator import Paginator
@@ -26,6 +28,13 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from django.http import FileResponse
 import io
+
+def _user_is_admin(user):
+    return (
+        getattr(user, "is_superuser", False)
+        or user.groups.filter(name__iexact="administrador").exists()
+        or getattr(user, "rol", "").lower() == "administrador"
+    )
 
 @login_required
 def dashboard(request):
@@ -427,5 +436,32 @@ def exportar_ventas_pdf(request):
     return FileResponse(buffer, as_attachment=True, filename="resumen_ventas.pdf")
 
 
+@login_required
+def configuracion_empresa(request):
+    # Si manejas única empresa activa
+    empresa = Empresa.objects.filter(activa=True).first()
+    is_admin = _user_is_admin(request.user)
+
+    if request.method == "POST":
+        if not is_admin:
+            return HttpResponseForbidden("No tienes permisos para modificar la configuración de la empresa.")
+        form = EmpresaForm(request.POST, request.FILES, instance=empresa)
+        if form.is_valid():
+            was_created = empresa is None
+            empresa = form.save()
+            flag = "creado=1" if was_created else "editado=1"
+            # ⬇️ usa el nombre correcto de la ruta
+            return redirect(f"{reverse('configuracion_empresa')}?{flag}")
+    else:
+        form = EmpresaForm(instance=empresa)
+        if not is_admin:
+            for f in form.fields.values():
+                f.disabled = True
+
+    return render(
+        request,
+        "confEmpresa.html",  # si tu template se llama así, déjalo igual
+        {"form": form, "is_admin": is_admin, "empresa": empresa},
+    )
 
 

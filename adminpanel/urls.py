@@ -22,4 +22,6 @@ urlpatterns = [
 
 
     path('reservaciones/', views.lista_reservaciones, name='admin_reservaciones'),
+
+    path('configuracion/', views.configuracion_empresa, name='configuracion_empresa'),
 ]
