@@ -4,7 +4,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm, ProductoForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -14,7 +14,7 @@ from itertools import chain
 from django.db.models import Sum,Count
 from datetime import datetime
 from adminpanel.utils import registrar_novedad
-from adminpanel.models import Novedad
+from adminpanel.models import Novedad, Producto, CategoriaProducto
 from django.urls import reverse
 from django.http import HttpResponseForbidden
 
@@ -463,5 +463,37 @@ def configuracion_empresa(request):
         "confEmpresa.html",  # si tu template se llama así, déjalo igual
         {"form": form, "is_admin": is_admin, "empresa": empresa},
     )
+
+def admin_productos(request):
+    productos = Producto.objects.all()
+    categorias = CategoriaProducto.objects.all()
+    return render(request, 'lista_productos.html', {
+        'productos': productos,
+        'categorias': categorias,
+    })
+
+def admin_agregar_producto(request):
+    return render(request, 'agregar_producto.html', {})
+
+
+def admin_agregar_producto(request):
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_productos')  # vuelve al listado
+    else:
+        form = ProductoForm()
+
+    return render(request, 'agregar_producto.html', {'form': form})
+
+def crear_categoria_producto(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+        if nombre:
+            CategoriaProducto.objects.create(nombre=nombre, descripcion=descripcion)
+    return redirect('admin_productos')
+
 
 

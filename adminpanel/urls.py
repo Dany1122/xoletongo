@@ -16,6 +16,10 @@ urlpatterns = [
     path('servicios/editar/<int:id>/', views.editar_servicio, name='admin_editar_servicio'),
     path('servicios/eliminar/<int:id>/', views.eliminar_servicio, name='admin_eliminar_servicio'),
     path("servicios/exportar/pdf/", views.exportar_servicios_pdf, name="admin_exportar_servicios_pdf"),
+
+    path('productos/', views.admin_productos, name='admin_productos'),
+    path('productos/agregar/', views.admin_agregar_producto, name='admin_agregar_producto'),
+    path('categorias/crear/', views.crear_categoria_producto, name='crear_categoria_producto'),
     
     path('ventas/', views.kanban_ventas, name='admin_ventas'),
     path('ventas/exportar/pdf/', views.exportar_ventas_pdf, name='admin_exportar_pdf'),
