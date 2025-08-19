@@ -123,3 +123,12 @@ class ProductoForm(forms.ModelForm):
             'sku': forms.TextInput(attrs={'class': 'form-control'}),
             'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+class CategoriaProductoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaProducto
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }

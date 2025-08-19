@@ -1,0 +1,84 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<h1 class="h3 mb-4 text-gray-800"><strong>Editar Producto:</strong> {{ producto.nombre }}</h1>
+
+<form method="POST" enctype="multipart/form-data" class="card shadow p-4 mx-auto" style="max-width: 900px;">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="id_nombre" class="form-label">Nombre</label>
+                {{ form.nombre }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_descripcion" class="form-label">Descripción</label>
+                {{ form.descripcion }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_precio" class="form-label">Precio</label>
+                {{ form.precio }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_categoria" class="form-label">Categoría</label>
+                {{ form.categoria }}
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label for="id_imagen" class="form-label">Imagen</label>
+                {% if producto.imagen %}
+                    <div class="mb-2">
+                        <p class="mb-1 small text-muted">Imagen actual:</p>
+                        <img src="{{ producto.imagen.url }}" alt="Imagen de {{ producto.nombre }}" class="img-thumbnail" style="width: 200px; height: 200px; object-fit: contain;">
+                    </div>
+                    <p class="mb-1 small text-muted">Cambiar imagen:</p>
+                {% endif %}
+                {{ form.imagen }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_stock" class="form-label">Stock</label>
+                {{ form.stock }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_sku" class="form-label">SKU</label>
+                {{ form.sku }}
+            </div>
+            
+            <hr class="my-4">
+
+            <div class="form-check mb-3">
+                {{ form.perecedero }} 
+                <label for="id_perecedero" class="form-check-label">Producto perecedero</label>
+            </div>
+            
+            <div class="form-check mb-3">
+                {{ form.activo }}
+                <label for="id_activo" class="form-check-label">Producto activo</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-success px-4 mr-3">
+            <i class="fas fa-save"></i> Guardar Cambios
+        </button>
+        <a href="{% url 'admin_productos' %}" class="btn btn-secondary px-4">
+            Cancelar
+        </a>
+    </div>
+</form>
+
+<style>
+    .form-label {
+        font-weight: 600; 
+    }
+</style>
+{% endblock %}

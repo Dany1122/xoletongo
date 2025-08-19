@@ -4,7 +4,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm, ProductoForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm, ProductoForm, CategoriaProductoForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -19,6 +19,7 @@ from django.urls import reverse
 from django.http import HttpResponseForbidden
 
 
+
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -27,6 +28,7 @@ from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from django.http import FileResponse
+from reportlab.lib.pagesizes import letter
 import io
 
 def _user_is_admin(user):
@@ -465,15 +467,39 @@ def configuracion_empresa(request):
     )
 
 def admin_productos(request):
-    productos = Producto.objects.all()
-    categorias = CategoriaProducto.objects.all()
-    return render(request, 'lista_productos.html', {
-        'productos': productos,
-        'categorias': categorias,
-    })
+    # --- La lógica de filtrado y búsqueda se mantiene igual ---
+    query = request.GET.get('q', '')
+    categoria_id = request.GET.get('categoria', None)
 
-def admin_agregar_producto(request):
-    return render(request, 'agregar_producto.html', {})
+    productos_list = Producto.objects.all().order_by('-creado_en') # Ordenamos por fecha de creación
+
+    if query:
+        productos_list = productos_list.filter(
+            Q(nombre__icontains=query) |
+            Q(descripcion__icontains=query) |
+            Q(sku__icontains=query)
+        )
+    if categoria_id:
+        productos_list = productos_list.filter(categoria__id=categoria_id)
+
+    # --- Lógica de Paginación para la tabla principal ---
+    paginator = Paginator(productos_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # --- ✨ NUEVO: Obtener los últimos 10 productos para la galería ---
+    ultimos_productos = Producto.objects.all().order_by('-creado_en')[:10]
+
+    categorias = CategoriaProducto.objects.all()
+
+    context = {
+        'page_obj': page_obj,                          # Para la tabla paginada
+        'ultimos_productos': ultimos_productos,        # ¡NUEVA VARIABLE para la galería!
+        'categorias': categorias,
+        'query_actual': query,
+        'categoria_actual_id': int(categoria_id) if categoria_id else None,
+    }
+    return render(request, 'lista_productos.html', context)
 
 
 def admin_agregar_producto(request):
@@ -495,5 +521,132 @@ def crear_categoria_producto(request):
             CategoriaProducto.objects.create(nombre=nombre, descripcion=descripcion)
     return redirect('admin_productos')
 
+@login_required
+def editar_producto(request, pk):
+    # Usamos 'pk' como en tus urls.py de usuarios y servicios
+    producto = get_object_or_404(Producto, pk=pk)
+    
+    if request.method == 'POST':
+        # Pasamos request.FILES para manejar la subida de imágenes
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
+        if form.is_valid():
+            form.save()
+            registrar_novedad(request.user, f"Editó el producto: {producto.nombre}")
+            # Redirigimos al listado de productos
+            return redirect('admin_productos')
+    else:
+        form = ProductoForm(instance=producto)
+    
+    return render(request, 'editar_producto.html', {'form': form, 'producto': producto})
 
 
+@login_required
+def eliminar_producto(request, pk):
+    producto = get_object_or_404(Producto, pk=pk)
+    
+    if request.method == 'POST':
+        nombre_producto = producto.nombre
+        producto.delete()
+        registrar_novedad(request.user, f"Eliminó el producto: {nombre_producto}")
+        return redirect('admin_productos')
+    
+    return render(request, 'eliminar_producto_confirmar.html', {'producto': producto})
+
+def lista_categorias(request):
+    """
+    Vista para listar, crear, editar y eliminar categorías.
+    """
+    categorias = CategoriaProducto.objects.all().order_by('nombre')
+    context = {
+        'categorias': categorias
+    }
+    return render(request, 'lista_categorias.html', context)
+
+@login_required
+def editar_categoria(request, pk):
+    categoria = get_object_or_404(CategoriaProducto, pk=pk)
+    # Esta vista ahora solo necesita manejar peticiones POST del modal
+    if request.method == 'POST':
+        form = CategoriaProductoForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            return redirect('admin_categorias')
+    # Si alguien intenta acceder por GET, simplemente lo regresamos
+    return redirect('admin_categorias')
+
+@login_required
+def eliminar_categoria(request, pk):
+    categoria = get_object_or_404(CategoriaProducto, pk=pk)
+    if request.method == 'POST':
+        categoria.delete()
+        return redirect('admin_categorias')
+    # Si no es POST, redirigir por seguridad (la confirmación se hace en el modal)
+    return redirect('admin_categorias')
+
+
+@login_required
+def exportar_productos_pdf(request):
+    # 1. Replicar la lógica de filtrado de la vista principal
+    query = request.GET.get('q', '')
+    categoria_id = request.GET.get('categoria', None)
+
+    productos = Producto.objects.all().order_by('nombre') # Ordenamos por nombre para el reporte
+
+    if query:
+        productos = productos.filter(
+            Q(nombre__icontains=query) |
+            Q(descripcion__icontains=query) |
+            Q(sku__icontains=query)
+        )
+    if categoria_id:
+        productos = productos.filter(categoria__id=categoria_id)
+
+    # 2. Crear el buffer de memoria para el PDF
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # 3. Escribir el contenido del PDF
+    y = height - 50 # Margen superior
+
+    # Título
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(40, y, "Listado de Productos")
+    y -= 30
+
+    # Encabezados de la tabla
+    pdf.setFont("Helvetica-Bold", 10)
+    columnas = ["Nombre", "SKU", "Precio", "Stock", "Categoría"]
+    x_pos = [40, 250, 320, 380, 440] # Posiciones X para cada columna
+    
+    for i, columna in enumerate(columnas):
+        pdf.drawString(x_pos[i], y, columna)
+    
+    y -= 15
+    pdf.line(40, y, width - 40, y) # Línea separadora
+    y -= 15
+    
+    # Filas de datos
+    pdf.setFont("Helvetica", 9)
+    for producto in productos:
+        # Salto de página si llegamos al final
+        if y < 60:
+            pdf.showPage()
+            pdf.setFont("Helvetica", 9)
+            y = height - 50
+
+        pdf.drawString(x_pos[0], y, producto.nombre[:40]) # Acortamos el nombre si es muy largo
+        pdf.drawString(x_pos[1], y, producto.sku or "-")
+        pdf.drawString(x_pos[2], y, f"${producto.precio}")
+        pdf.drawString(x_pos[3], y, str(producto.stock))
+        pdf.drawString(x_pos[4], y, producto.categoria.nombre if producto.categoria else "Sin categoría")
+        
+        y -= 18
+
+    # 4. Finalizar y guardar el PDF
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+
+    # 5. Devolver el archivo como una descarga
+    return FileResponse(buffer, as_attachment=True, filename="listado_de_productos.pdf")

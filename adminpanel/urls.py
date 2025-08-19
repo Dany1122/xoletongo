@@ -20,6 +20,13 @@ urlpatterns = [
     path('productos/', views.admin_productos, name='admin_productos'),
     path('productos/agregar/', views.admin_agregar_producto, name='admin_agregar_producto'),
     path('categorias/crear/', views.crear_categoria_producto, name='crear_categoria_producto'),
+    path('productos/editar/<int:pk>/', views.editar_producto, name='admin_editar_producto'),
+    path('productos/eliminar/<int:pk>/', views.eliminar_producto, name='admin_eliminar_producto'),
+
+        path('categorias/', views.lista_categorias, name='admin_categorias'),
+        path('categorias/editar/<int:pk>/', views.editar_categoria, name='admin_editar_categoria'),
+        path('categorias/eliminar/<int:pk>/', views.eliminar_categoria, name='admin_eliminar_categoria'),
+    path('productos/exportar/pdf/', views.exportar_productos_pdf, name='admin_exportar_productos_pdf'),
     
     path('ventas/', views.kanban_ventas, name='admin_ventas'),
     path('ventas/exportar/pdf/', views.exportar_ventas_pdf, name='admin_exportar_pdf'),
