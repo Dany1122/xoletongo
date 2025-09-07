@@ -16,7 +16,7 @@ from datetime import datetime
 from adminpanel.utils import registrar_novedad
 from adminpanel.models import Novedad, Producto, CategoriaProducto
 from django.urls import reverse
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 
 
 
@@ -357,6 +357,14 @@ def lista_reservaciones(request):
     return render(request, 'lista_reservaciones.html', {
         'reservaciones': reservaciones_con_servicio
     })
+
+def exportar_reservas_pdf(request):
+    # Ejemplo mínimo: PDF vacío (header correcto)
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = 'inline; filename="reservas.pdf"'
+    # Contenido PDF real: usa ReportLab/WeasyPrint más adelante
+    response.write(b"%PDF-1.4\n%...\n")  # placeholder
+    return response
 
 @login_required
 def exportar_ventas_pdf(request):

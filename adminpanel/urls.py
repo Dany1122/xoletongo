@@ -33,6 +33,7 @@ urlpatterns = [
 
 
     path('reservaciones/', views.lista_reservaciones, name='admin_reservaciones'),
+     path("reservas/exportar/pdf/", views.exportar_reservas_pdf, name="admin_exportar_reservas_pdf"),
 
     path('configuracion/', views.configuracion_empresa, name='configuracion_empresa'),
 ]
