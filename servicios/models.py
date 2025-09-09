@@ -2,6 +2,11 @@ from django.db import models
 from empresas.models import Empresa
 
 # Create your models here.
+def upload_to_service_gallery(instance, filename):
+    # Guarda las imágenes en: servicios/<id_servicio>/galeria/<archivo>
+    servicio_id = instance.servicio_id or 'sin-id'
+    return f"servicios/{servicio_id}/galeria/{filename}"
+
 class TipoServicio(models.Model):
     TIPOS = [
         ('porDia', 'Por día'),
@@ -24,14 +29,19 @@ class Servicio(models.Model):
     imagen_principal = models.ImageField(upload_to='servicios/')
     duracion = models.PositiveIntegerField(null=True, blank=True)
     restricciones = models.TextField(null=True, blank=True)
-    galeria = models.ManyToManyField('ImagenServicio', blank=True)
     empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.titulo
 
 class ImagenServicio(models.Model):
-    imagen = models.ImageField(upload_to='servicios/galeria/')
+    servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='imagenes')
+    imagen = models.ImageField(upload_to=upload_to_service_gallery)
     descripcion = models.CharField(max_length=150, blank=True)
+    orden = models.PositiveIntegerField(default=0,blank=True, help_text="Orden en la galería (0 arriba).")
+
+    class Meta:
+        ordering = ['orden', 'id']
+
     def __str__(self):
-        return self.descripcion
+        return self.descripcion or f"Imagen de {self.servicio.titulo} #{self.pk}"

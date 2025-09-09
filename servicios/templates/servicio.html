@@ -21,7 +21,7 @@
             </div>
             <div class="col-md-6">
                 <p>{{ servicio.descripcion }}</p>
-                <h4 class="mt-20">Costo por persona</h4>
+                <h4 class="mt-20">Costo por adulto</h4>
                 <p><strong>${{ servicio.costo_por_persona }}</strong></p>
                 <h4 class="mt-20">Costo por niño</h4>
                 <p><strong>${{ servicio.costo_niño }}</strong></p>
@@ -38,12 +38,17 @@
         <div class="section-top-border">
             <h3 class="mb-30">Galería</h3>
             <div class="row gallery-item">
-                {% for img in servicio.galeria.all %}
+                {% for img in servicio.imagenes.all %}
                 <div class="col-md-4">
-                    <a href="{{ img.imagen.url }}" class="img-pop-up">
-                        <div class="single-gallery-image" style="background: url('{{ img.imagen.url }}');"></div>
+                    <a href="{{ img.imagen.url }}" class="img-pop-up" title="{{ img.descripcion|default:servicio.titulo }}">
+                    <div class="single-gallery-image" style="background-image: url('{{ img.imagen.url }}');"></div>
                     </a>
+                    {% if img.descripcion %}
+                    <small class="text-muted d-block mt-2">{{ img.descripcion }}</small>
+                    {% endif %}
                 </div>
+                {% empty %}
+                <div class="col-12"><em>No hay imágenes en la galería.</em></div>
                 {% endfor %}
             </div>
         </div>

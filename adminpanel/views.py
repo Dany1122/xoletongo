@@ -4,7 +4,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio
 from reservaciones.models import Reservacion, Reservacion_servicio
 from empresas.models import Empresa
-from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm, ProductoForm, CategoriaProductoForm
+from adminpanel.forms import CustomUserForm, ServicioForm, CustomUserEditForm, EmpresaForm, ProductoForm, CategoriaProductoForm, TipoServicioForm, ImagenFormSet 
 from django.core.paginator import Paginator
 from django.db.models import Q
 from collections import defaultdict
@@ -16,7 +16,9 @@ from datetime import datetime
 from adminpanel.utils import registrar_novedad
 from adminpanel.models import Novedad, Producto, CategoriaProducto
 from django.urls import reverse
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
+from decimal import Decimal
+from django.db import transaction
 
 
 
@@ -296,27 +298,62 @@ def lista_servicios(request):
     })
 
 def agregar_servicio(request):
+    # Obtenemos la empresa activa
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    if not empresa_activa:
+        messages.error(request, "No hay una empresa activa configurada.")
+        form = ServicioForm(request.POST or None, request.FILES or None)
+        formset = ImagenFormSet(request.POST or None, request.FILES or None)
+        return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
+
     if request.method == 'POST':
-        form = ServicioForm(request.POST)
+        form = ServicioForm(request.POST, request.FILES)
+        formset = ImagenFormSet(request.POST, request.FILES)  # sin instance hasta guardar el servicio
+
         if form.is_valid():
-            servicio = form.save()
-            registrar_novedad(request.user, f"Agregó un servicio: {servicio.titulo}")
-            return redirect('/adminpanel/servicios/?creado=1')
+            with transaction.atomic():
+                servicio = form.save(commit=False)
+                servicio.empresa = empresa_activa            # ✅ empresa activa
+                servicio.save()
+
+                # Ligamos la galería al servicio recién creado
+                formset = ImagenFormSet(request.POST, request.FILES, instance=servicio)
+                if formset.is_valid():
+                    formset.save()
+                    registrar_novedad(request.user, f"Agregó un servicio: {servicio.titulo}")
+                    return redirect('/adminpanel/servicios/?creado=1')
+                else:
+                    # ❗ Si la galería falla, borra el servicio y rearmar formset sin instance
+                    servicio.delete()
+                    messages.error(request, "Revisa los campos de la galería.")
+                    formset = ImagenFormSet(request.POST, request.FILES)  # ← agregado
+            # si el formset NO es válido, seguimos a render con errores
+        # si el form NO es válido, caemos a render con errores
     else:
         form = ServicioForm()
-    return render(request, 'agregar_servicio.html', {'form': form})
+        formset = ImagenFormSet()
+
+    return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
 
 def editar_servicio(request, id):
     servicio = get_object_or_404(Servicio, id=id)
+
     if request.method == 'POST':
-        form = ServicioForm(request.POST, instance=servicio)
-        if form.is_valid():
-            form.save()
-            registrar_novedad(request.user, f"Editó el servicio: {servicio.titulo}")
+        form = ServicioForm(request.POST, request.FILES, instance=servicio)
+        formset = ImagenFormSet(request.POST, request.FILES, instance=servicio)
+
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                # No cambiamos la empresa aquí; el servicio ya la tiene
+                form.save()
+                formset.save()
+                registrar_novedad(request.user, f"Editó el servicio: {servicio.titulo}")
             return redirect('/adminpanel/servicios/?editado=1')
     else:
         form = ServicioForm(instance=servicio)
-    return render(request, 'editar_servicio.html', {'form': form})
+        formset = ImagenFormSet(instance=servicio)
+
+    return render(request, 'editar_servicio.html', {'form': form, 'formset': formset, 'servicio': servicio})
 
 def eliminar_servicio(request, id):
     servicio = get_object_or_404(Servicio, id=id)
@@ -658,3 +695,194 @@ def exportar_productos_pdf(request):
 
     # 5. Devolver el archivo como una descarga
     return FileResponse(buffer, as_attachment=True, filename="listado_de_productos.pdf")
+
+
+def admin_reservaciones(request):
+    """
+    Lista de reservaciones con filtros GET y paginación,
+    mapeando tus nombres reales de campos:
+      - Reservacion_servicio.id_reservacion -> Reservacion
+      - Servicio.servicio.tipo -> 'porHora' | 'porDia'
+    """
+    q = (request.GET.get("q") or "").strip()
+    tipo = (request.GET.get("tipo") or "").strip()  # 'porHora' | 'porDia' | ''
+    page = request.GET.get("page")
+
+    # select_related con los NOMBRES DE CAMPO reales (no related_name del reverso)
+    rs_qs = (
+        Reservacion_servicio.objects
+        .select_related("id_reservacion", "servicio", "servicio__servicio")
+        .order_by("-id")
+    )
+
+    # Filtro por texto (cliente o email) usando el nombre DEL CAMPO FK: id_reservacion
+    if q:
+        rs_qs = rs_qs.filter(
+            Q(id_reservacion__nombre_cliente__icontains=q) |
+            Q(id_reservacion__email_cliente__icontains=q)
+        )
+
+    # Filtro por tipo de servicio: Servicio.servicio.tipo (FK a TipoServicio con campo 'tipo')
+    if tipo in ("porHora", "porDia"):
+        rs_qs = rs_qs.filter(servicio__servicio__tipo=tipo)
+
+    # Armar items consumibles por el template
+    items = []
+    for rs in rs_qs:
+        r = rs.id_reservacion     # <- ojo: tu FK se llama id_reservacion
+        s = rs.servicio
+        ts = getattr(s, "servicio", None)  # FK a TipoServicio (mal-nombrado pero así está)
+        tipo_servicio = getattr(ts, "tipo", None) or "no"
+
+        total_pagado = getattr(r, "total_pagado", Decimal("0.00"))
+        pago_realizado = bool(getattr(r, "pago_realizado", False))
+
+        items.append({
+            "reservacion": r,
+            "servicio": s,
+            "tipo_servicio": tipo_servicio,                   # 'porHora'/'porDia'/'no'
+            "titulo_servicio": getattr(s, "titulo", "Servicio"),
+            "total_pagado": total_pagado,
+            "pago_realizado": pago_realizado,
+        })
+
+    paginator = Paginator(items, 12)
+    page_obj = paginator.get_page(page)
+
+    context = {
+        "page_obj": page_obj,
+        "query_actual": q,
+        "tipo_actual": tipo,
+        "ESTADOS_GLOBALES": Reservacion.ESTADOS,  # ('pendiente','aprobada','finalizada')
+    }
+    return render(request, "lista_reservaciones.html", context)
+
+
+# ---------- ACTUALIZAR ESTADO (desde modal) ----------
+def admin_actualizar_estado_reservacion(request):
+    if request.method != "POST":
+        return HttpResponseBadRequest("Método no permitido")
+
+    reservacion_id = request.POST.get("reservacion_id")
+    estado = request.POST.get("estado")
+
+    if not reservacion_id or not estado:
+        messages.error(request, "Faltan datos para actualizar el estado.")
+        return redirect(_rebuild_list_url(request))
+
+    reservacion = get_object_or_404(Reservacion, pk=reservacion_id)
+
+    estados_validos = {k for k, _ in Reservacion.ESTADOS}
+    if estado not in estados_validos:
+        messages.error(request, "Estado inválido.")
+        return redirect(_rebuild_list_url(request))
+
+    reservacion.estado = estado
+    reservacion.save(update_fields=["estado"])
+    messages.success(
+        request,
+        f"Reservación #{reservacion.id} actualizada a '{reservacion.get_estado_display()}'."
+    )
+    return redirect(_rebuild_list_url(request))
+
+
+# ---------- EXPORTAR PDF (stub en TXT para probar) ----------
+def admin_exportar_reservas_pdf(request):
+    q = (request.GET.get("q") or "").strip()
+    tipo = (request.GET.get("tipo") or "").strip()
+
+    rs_qs = (
+        Reservacion_servicio.objects
+        .select_related("id_reservacion", "servicio", "servicio__servicio")
+        .order_by("-id")
+    )
+
+    if q:
+        rs_qs = rs_qs.filter(
+            Q(id_reservacion__nombre_cliente__icontains=q) |
+            Q(id_reservacion__email_cliente__icontains=q)
+        )
+    if tipo in ("porHora", "porDia"):
+        rs_qs = rs_qs.filter(servicio__servicio__tipo=tipo)
+
+    lines = [f"Listado de reservaciones (q='{q}', tipo='{tipo}')\n"]
+    for rs in rs_qs[:200]:
+        r = rs.id_reservacion
+        s = rs.servicio
+        lines.append(f"- #{r.id} {r.nombre_cliente} / {getattr(s, 'titulo', 'Servicio')}")
+
+    content = "\n".join(lines)
+    response = HttpResponse(content, content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="reservas.txt"'
+    return response
+
+
+# ---------- util ----------
+def _rebuild_list_url(request):
+    base = reverse("admin_reservaciones")
+    q = request.GET.get("q", "")
+    tipo = request.GET.get("tipo", "")
+    page = request.GET.get("page", "")
+    params = []
+    if q:
+        params.append(f"q={q}")
+    if tipo:
+        params.append(f"tipo={tipo}")
+    if page:
+        params.append(f"page={page}")
+    return base + (("?" + "&".join(params)) if params else "")
+
+
+# Página de gestión (lista, crear rápido, links a editar/eliminar)
+@login_required
+def admin_tipos_servicio(request):
+    tipos = TipoServicio.objects.annotate(num_servicios=Count("subservicios"))
+    form = TipoServicioForm()
+    return render(request, "admin_tipos_servicio.html", {
+        "tipos": tipos,
+        "form": form,
+    })
+
+# Crear desde el modal (y redirige a donde estabas)
+@login_required
+def crear_tipo_servicio(request):
+    if request.method != "POST":
+        return redirect("admin_TipoServicios")
+
+    form = TipoServicioForm(request.POST)
+    next_url = request.POST.get("next") or reverse("admin_TipoServicios")
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Tipo de servicio creado correctamente.")
+        return redirect(next_url)
+
+    # Si hubo errores, guarda mensajes y regresa
+    for field, errs in form.errors.items():
+        for e in errs:
+            messages.error(request, f"{field}: {e}")
+    return redirect(next_url)
+
+@login_required
+def editar_tipo_servicio(request, pk):
+    tipo = get_object_or_404(TipoServicio, pk=pk)
+    if request.method == "POST":
+        form = TipoServicioForm(request.POST, instance=tipo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tipo de servicio actualizado.")
+            return redirect("admin_TipoServicios")
+    else:
+        form = TipoServicioForm(instance=tipo)
+
+    return render(request, "editar_tipo_servicio.html", {"form": form, "tipo": tipo})
+
+@login_required
+def eliminar_tipo_servicio(request, pk):
+    tipo = get_object_or_404(TipoServicio, pk=pk)
+    if request.method == "POST":
+        tipo.delete()
+        messages.success(request, "Tipo de servicio eliminado.")
+        return redirect("admin_TipoServicios")
+    # Confirmación simple (puedes usar modal también)
+    return render(request, "confirmar_eliminar_tipo.html", {"tipo": tipo})

@@ -19,21 +19,31 @@ urlpatterns = [
 
     path('productos/', views.admin_productos, name='admin_productos'),
     path('productos/agregar/', views.admin_agregar_producto, name='admin_agregar_producto'),
-    path('categorias/crear/', views.crear_categoria_producto, name='crear_categoria_producto'),
     path('productos/editar/<int:pk>/', views.editar_producto, name='admin_editar_producto'),
     path('productos/eliminar/<int:pk>/', views.eliminar_producto, name='admin_eliminar_producto'),
-
-        path('categorias/', views.lista_categorias, name='admin_categorias'),
-        path('categorias/editar/<int:pk>/', views.editar_categoria, name='admin_editar_categoria'),
-        path('categorias/eliminar/<int:pk>/', views.eliminar_categoria, name='admin_eliminar_categoria'),
     path('productos/exportar/pdf/', views.exportar_productos_pdf, name='admin_exportar_productos_pdf'),
+
+    path('categorias/', views.lista_categorias, name='admin_categorias'),
+    path('categorias/editar/<int:pk>/', views.editar_categoria, name='admin_editar_categoria'),
+    path('categorias/eliminar/<int:pk>/', views.eliminar_categoria, name='admin_eliminar_categoria'),
+    path('categorias/crear/', views.crear_categoria_producto, name='crear_categoria_producto'),
     
     path('ventas/', views.kanban_ventas, name='admin_ventas'),
     path('ventas/exportar/pdf/', views.exportar_ventas_pdf, name='admin_exportar_pdf'),
 
+    path("tipos/", views.admin_tipos_servicio, name="admin_TipoServicios"),
+    path("tipos/crear/", views.crear_tipo_servicio, name="crear_tipo_servicio"),
+    path("tipos/<int:pk>/editar/", views.editar_tipo_servicio, name="editar_tipo_servicio"),
+    path("tipos/<int:pk>/eliminar/", views.eliminar_tipo_servicio, name="eliminar_tipo_servicio"),
+    
 
     path('reservaciones/', views.lista_reservaciones, name='admin_reservaciones'),
-     path("reservas/exportar/pdf/", views.exportar_reservas_pdf, name="admin_exportar_reservas_pdf"),
+    path("reservas/exportar/pdf/", views.exportar_reservas_pdf, name="admin_exportar_reservas_pdf"),
+    path("admin/reservaciones/", views.admin_reservaciones, name="admin_reservaciones"),
+    path("admin/reservaciones/actualizar-estado/", views.admin_actualizar_estado_reservacion, name="admin_actualizar_estado_reservacion"),
+    path("admin/reservaciones/exportar-pdf/", views.admin_exportar_reservas_pdf, name="admin_exportar_reservas_pdf"),
 
     path('configuracion/', views.configuracion_empresa, name='configuracion_empresa'),
+
+    
 ]
