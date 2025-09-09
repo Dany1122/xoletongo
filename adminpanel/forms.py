@@ -111,13 +111,19 @@ from .models import Producto, CategoriaProducto
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        fields = ['nombre', 'descripcion', 'precio', 'categoria', 'perecedero', 'imagen', 'stock', 'sku', 'activo']
+        fields = ['nombre', 'descripcion', 'precio', 'categoria', 'perecedero','fecha_caducidad', 'imagen', 'stock', 'sku', 'activo']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'perecedero': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'fecha_caducidad': forms.DateInput(
+                attrs={
+                    'class': 'form-control',
+                    'type': 'date'  
+                }
+            ),
             'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'sku': forms.TextInput(attrs={'class': 'form-control'}),

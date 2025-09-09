@@ -30,6 +30,11 @@
         <label for="id_perecedero" class="form-check-label">Producto perecedero</label>
     </div>
 
+    <div class="mb-3" id="campo-fecha-caducidad" style="display: none;">
+        <label for="id_fecha_caducidad" class="form-label">Fecha de Caducidad</label>
+        {{ form.fecha_caducidad }}
+    </div>
+
     <div class="mb-3">
         <label for="id_imagen" class="form-label">Imagen</label>
         {{ form.imagen }}
@@ -59,4 +64,27 @@
             </a>
         </div>
 </form>
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var perecederoCheckbox = $('#id_perecedero');
+    var fechaCaducidadCampo = $('#campo-fecha-caducidad');
+
+    function toggleFechaCaducidad() {
+        if (perecederoCheckbox.is(':checked')) {
+            fechaCaducidadCampo.slideDown(); 
+        } else {
+            fechaCaducidadCampo.slideUp();   
+        }
+    }
+
+    toggleFechaCaducidad();
+
+    perecederoCheckbox.on('change', function() {
+        toggleFechaCaducidad();
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}
