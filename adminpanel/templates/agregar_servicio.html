@@ -23,9 +23,35 @@
 
             <!-- Cuerpo de la tarjeta -->
             <div class="card-body">
-                <form method="post" novalidate>
+                <!-- 🔸 IMPORTANTE para subir archivos -->
+                <form method="post" novalidate enctype="multipart/form-data">
                     {% csrf_token %}
-
+                    {% if form.errors or form.non_field_errors or formset.errors or formset.non_form_errors %}
+                        <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for field in form %}
+                            {% for err in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ err }}</li>
+                            {% endfor %}
+                            {% endfor %}
+                            {% for err in form.non_field_errors %}
+                            <li>{{ err }}</li>
+                            {% endfor %}
+                            {% if formset %}
+                            {% for f in formset.forms %}
+                                {% for name, errs in f.errors.items %}
+                                {% for e in errs %}
+                                    <li><strong>Galería – {{ name }}:</strong> {{ e }}</li>
+                                {% endfor %}
+                                {% endfor %}
+                            {% endfor %}
+                            {% for err in formset.non_form_errors %}
+                                <li>{{ err }}</li>
+                            {% endfor %}
+                            {% endif %}
+                        </ul>
+                        </div>
+                     {% endif %}
                     <!-- Grid Bootstrap para dos columnas en pantallas medianas -->
                     <div class="form-row">
                         <div class="form-group col-md-6">
@@ -68,8 +94,24 @@
 
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            <label>Imagen principal</label>
-                            {{ form.imagen_principal|add_class:"form-control" }}
+                            <label for="{{ form.imagen_principal.id_for_label }}">Imagen principal</label>
+                            {{ form.imagen_principal|add_class:"form-control-file" }}
+
+                            {# miniatura actual #}
+                            {% if servicio.imagen_principal %}
+                                <div class="mt-2">
+                                <img src="{{ servicio.imagen_principal.url }}"
+                                    alt="Imagen principal actual"
+                                    class="img-thumbnail"
+                                    style="max-width:220px; height:auto;">
+                                </div>
+                            {% endif %}
+
+                            {# preview del archivo nuevo seleccionado #}
+                            <div class="mt-2">
+                                <img class="img-thumbnail js-preview-main d-none"
+                                    style="max-width:220px; height:auto;">
+                            </div>
                         </div>
                     </div>
 
@@ -87,12 +129,75 @@
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label>Galeria</label>
-                            {{ form.galeria|add_class:"form-control" }}
-                        </div>
+                    <!-- 🔸 GALERÍA (formset) -->
+                    <hr class="my-4">
+                    <h6 class="m-0 font-weight-bold text-primary mb-3">
+                        <i class="fas fa-images mr-1"></i> Galería de imágenes
+                    </h6>
+
+                    {{ formset.management_form }}
+                    <div id="gallery-forms">
+                        {% for f in formset %}
+                            {{ f.id }} {# necesario en ediciones; no estorba al crear #}
+                            <div class="border rounded p-3 mb-3">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="{{ f.imagen.id_for_label }}">Imagen</label>
+                                        {{ f.imagen|add_class:"form-control-file" }}
+
+                                        {# preview de la imagen seleccionada #}
+                                        <div class="mt-2">
+                                            <img class="img-thumbnail js-preview d-none" style="max-width:180px; height:auto;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label for="{{ f.descripcion.id_for_label }}">Descripción</label>
+                                        {{ f.descripcion|add_class:"form-control" }}
+                                    </div>
+
+                                    {# ✅ Campo ORDEN para evitar errores de validación #}
+                                    <div class="form-group col-md-2">
+                                        <label for="{{ f.orden.id_for_label }}">Orden</label>
+                                        {{ f.orden|add_class:"form-control" }}
+                                    </div>
+                                </div>
+
+                                {% if f.DELETE %}
+                                <div class="form-group form-check mb-0">
+                                    {{ f.DELETE|add_class:"form-check-input" }}
+                                    <label class="form-check-label" for="{{ f.DELETE.id_for_label }}">Eliminar</label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                     </div>
+
+                    <!-- plantilla del formulario vacío para añadir más filas -->
+                    <template id="empty-form-template">
+                        <div class="border rounded p-3 mb-3">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="{{ formset.empty_form.imagen.id_for_label }}">Imagen</label>
+                                    {{ formset.empty_form.imagen|add_class:"form-control-file" }}
+                                    <div class="mt-2">
+                                        <img class="img-thumbnail js-preview d-none" style="max-width:180px; height:auto;">
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="{{ formset.empty_form.descripcion.id_for_label }}">Descripción</label>
+                                    {{ formset.empty_form.descripcion|add_class:"form-control" }}
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="{{ formset.empty_form.orden.id_for_label }}">Orden</label>
+                                    {{ formset.empty_form.orden|add_class:"form-control" }}
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="add-image-row">
+                        <i class="fas fa-plus mr-1"></i> Añadir imagen
+                    </button>
 
                     <!-- Botones -->
                     <button type="submit" class="btn btn-success">
@@ -107,4 +212,60 @@
     </div>
 
 </div>
+
+<!-- JS mínimo para duplicar filas del formset -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const totalInput = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
+  const container = document.getElementById('gallery-forms');
+  const tpl = document.getElementById('empty-form-template');
+  const addBtn = document.getElementById('add-image-row');
+
+  if (!totalInput || !container || !tpl || !addBtn) return;
+
+  addBtn.addEventListener('click', function () {
+    const index = parseInt(totalInput.value, 10);
+    const html = tpl.innerHTML.replace(/__prefix__/g, index);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html.trim();
+    container.appendChild(tmp.firstElementChild);
+    totalInput.value = index + 1;
+  });
+});
+
+document.addEventListener('change', function (e) {
+  // Preview para la imagen principal
+  if (e.target.matches('input[type="file"][name="imagen_principal"]')) {
+    const file = e.target.files && e.target.files[0];
+    const group = e.target.closest('.form-group');
+    const preview = group ? group.querySelector('.js-preview-main') : null;
+    if (!preview) return;
+
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.classList.remove('d-none');
+      preview.onload = function () { URL.revokeObjectURL(preview.src); };
+    } else {
+      preview.src = '';
+      preview.classList.add('d-none');
+    }
+  }
+
+   if (e.target.matches('input[type="file"][name$="-imagen"]')) {
+    const file = e.target.files && e.target.files[0];
+    const row = e.target.closest('.border.rounded.p-3.mb-3');
+    const preview = row ? row.querySelector('.js-preview') : null;
+    if (!preview) return;
+
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.classList.remove('d-none');
+      preview.onload = function () { URL.revokeObjectURL(preview.src); };
+    } else {
+      preview.src = '';
+      preview.classList.add('d-none');
+    }
+  }
+});
+</script>
 {% endblock %}

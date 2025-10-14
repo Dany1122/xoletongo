@@ -1,7 +1,8 @@
 from django import forms
 from usuarios.models import CustomUser
-from servicios.models import Servicio
+from servicios.models import Servicio, TipoServicio, ImagenServicio
 from empresas.models import Empresa
+from django.forms import inlineformset_factory
 
 class CustomUserForm(forms.ModelForm):
     password = forms.CharField(
@@ -43,8 +44,7 @@ class ServicioForm(forms.ModelForm):
                   'costo_con_descuento', 
                   'imagen_principal',
                   'duracion', 
-                  'restricciones', 
-                  'galeria'
+                  'restricciones'
         ]
 
     
@@ -65,8 +65,7 @@ class ServicioForm(forms.ModelForm):
                   'costo_con_descuento', 
                   'imagen_principal',
                   'duracion', 
-                  'restricciones', 
-                  'galeria'
+                  'restricciones'
         ]
 
 
@@ -138,3 +137,34 @@ class CategoriaProductoForm(forms.ModelForm):
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+
+
+class TipoServicioForm(forms.ModelForm):
+    class Meta:
+        model = TipoServicio
+        fields = ["nombre", "descripcion", "tipo"]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": "form-control", "required": True}),
+            "descripcion": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "tipo": forms.Select(attrs={"class": "form-control"}),
+        }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data["nombre"].strip()
+        if TipoServicio.objects.filter(nombre__iexact=nombre).exists():
+            raise forms.ValidationError("Ya existe un tipo de servicio con ese nombre.")
+        return nombre
+    
+    
+ImagenFormSet = inlineformset_factory(
+    Servicio,
+    ImagenServicio,
+    fields=("imagen", "descripcion", "orden"),
+    widgets={
+        "imagen": forms.ClearableFileInput(attrs={"class": "form-control-file"}),
+        "descripcion": forms.TextInput(attrs={"class": "form-control"}),
+        "orden": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+    },
+    extra=3,          # número inicial de filas vacías
+    can_delete=True,  # permitir eliminar imágenes existentes
+)
