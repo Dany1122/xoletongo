@@ -24,5 +24,6 @@ urlpatterns = [
     path('usuarios/', include('usuarios.urls')), 
     path('', include('reservaciones.urls')),
     path('adminpanel/', include('adminpanel.urls')),
+    path('dev/', include('devpanel.urls')),
 ]
 
