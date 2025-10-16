@@ -3,7 +3,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Panel de Desarrollador: Gestionar Empresas</h1>
-    <a href="#" class="btn btn-primary disabled">
+    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalNuevaEmpresa">
         <i class="fas fa-plus"></i> Nueva Empresa
     </a>
 </div>
@@ -56,4 +56,35 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalNuevaEmpresa" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_crear_empresa' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalLabel">Crear Nueva Empresa</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+            {{ form.nombre }}
+          </div>
+          <div class="form-check">
+            {{ form.activa }}
+            <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+              {{ form.activa.label }}
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Empresa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}

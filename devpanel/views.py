@@ -18,7 +18,20 @@ def gestion_empresas(request):
     # Apuntamos a la nueva ruta de la plantilla
     return render(request, 'devpanel/gestion_empresas.html', context)
 
+@login_required
+def crear_empresa(request):
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
 
+    if request.method == 'POST':
+        form = EmpresaForm(request.POST)
+        if form.is_valid():
+            nueva_empresa = form.save()
+            messages.success(request, f"La empresa '{nueva_empresa.nombre}' ha sido creada exitosamente.")
+        else:
+            messages.error(request, "Hubo un error al crear la empresa. Revisa los datos.")
+    
+    return redirect('dev_gestion_empresas')
 
 @login_required
 def activar_empresa_dev(request, pk):
