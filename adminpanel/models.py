@@ -50,6 +50,8 @@ class Producto(models.Model):
     activo = models.BooleanField(default=True)
     creado_en = models.DateTimeField(auto_now_add=True)
 
+    atributos_personalizados = models.JSONField(default=dict, blank=True)
+
     def __str__(self):
         return self.nombre
 

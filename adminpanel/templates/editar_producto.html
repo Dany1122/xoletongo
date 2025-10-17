@@ -1,4 +1,5 @@
 {% extends 'base_admin.html' %}
+{% load form_tags %}
 {% block content %}
 
 <h1 class="h3 mb-4 text-gray-800"><strong>Editar Producto:</strong> {{ producto.nombre }}</h1>
@@ -63,6 +64,17 @@
                 <label for="id_fecha_caducidad" class="form-label">Fecha de Caducidad</label>
                 {{ form.fecha_caducidad }}
             </div>
+
+            {% if form.custom_fields %}
+                <hr class="my-4">
+                <h5 class="mb-3">Atributos Personalizados</h5>
+                {% for field_name in form.custom_fields %}
+                    <div class="mb-3">
+                        <label for="{{ form|get_field:field_name.auto_id }}" class="form-label">{{ form|get_field:field_name.label }}</label>
+                        {{ form|get_field:field_name }}
+                    </div>
+                {% endfor %}
+            {% endif %}
             
             <div class="form-check mb-3">
                 {{ form.activo }}

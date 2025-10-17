@@ -3,7 +3,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
 from empresas.models import Empresa
-from .forms import EmpresaForm
+from .models import CustomAttribute
+from .forms import EmpresaForm, CustomAttributeForm
 
 @login_required
 def gestion_empresas(request):
@@ -72,3 +73,48 @@ def editar_empresa(request, pk):
     
     # After processing, always redirect back to the list
     return redirect('dev_gestion_empresas')
+
+@login_required
+def gestion_modelos(request):
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+
+    # Verificamos si hay una empresa activa en la sesión
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.warning(request, "Por favor, activa una empresa para poder gestionar sus modelos.")
+        return redirect('dev_gestion_empresas')
+
+    # Obtenemos solo los atributos de la empresa activa
+    empresa_activa = Empresa.objects.get(id=empresa_activa_id)
+    atributos = CustomAttribute.objects.filter(empresa=empresa_activa)
+
+    form = CustomAttributeForm()
+
+    context = {
+        'empresa_activa': empresa_activa,
+        'atributos': atributos,
+        'form': form
+    }
+    return render(request, 'devpanel/gestion_modelos.html', context)
+
+def crear_atributo(request):
+    if not request.user.is_superuser:
+        return redirect('dev_gestion_empresas')
+
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.error(request, "No hay una empresa activa para asignarle el atributo.")
+        return redirect('dev_gestion_empresas')
+
+    if request.method == 'POST':
+        form = CustomAttributeForm(request.POST)
+        if form.is_valid():
+            nuevo_atributo = form.save(commit=False)
+            nuevo_atributo.empresa_id = empresa_activa_id
+            nuevo_atributo.save()
+            messages.success(request, f"Se ha creado el atributo '{nuevo_atributo.name}'.")
+        else:
+            messages.error(request, "Error al crear el atributo. Revisa los datos.")
+    
+    return redirect('dev_gestion_modelos')
