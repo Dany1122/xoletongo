@@ -39,7 +39,6 @@ class ImagenServicio(models.Model):
     imagen = models.ImageField(upload_to=upload_to_service_gallery)
     descripcion = models.CharField(max_length=150, blank=True)
     orden = models.PositiveIntegerField(default=0,blank=True, help_text="Orden en la galería (0 arriba).")
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['orden', 'id']

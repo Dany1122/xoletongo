@@ -36,7 +36,6 @@ class Reservacion(models.Model):
         verbose_name_plural='Reservaciones'
 
 class Reservacion_servicio(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     id_reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE, related_name='reservacion')
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='tipoServicio')
 
