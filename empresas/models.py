@@ -20,6 +20,7 @@ class Empresa(models.Model):
     smtp_password = models.CharField(max_length=100, blank=True, null=True, help_text="Contraseña SMTP (o contraseña de aplicación)")
     smtp_use_tls = models.BooleanField(default=True, help_text="Activar TLS al enviar correo")
     smtp_use_ssl = models.BooleanField(default=False, help_text="Activar SSL al enviar correo")
+    creado_en = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name_plural = "Empresas"

@@ -40,9 +40,14 @@
                             <a href="{% url 'dev_activar_empresa' empresa.pk %}" class="btn btn-sm btn-info">
                                 <i class="fas fa-power-off"></i> Activar
                             </a>
-                            <a href="#" class="btn btn-sm btn-secondary disabled">
-                                <i class="fas fa-edit"></i> Editar
-                            </a>
+                            <button type="button" class="btn btn-sm btn-primary"
+                                data-toggle="modal"
+                                data-target="#modalEditarEmpresa"
+                                data-url="{% url 'dev_editar_empresa' empresa.pk %}"
+                                data-nombre="{{ empresa.nombre }}"
+                                data-activa="{{ empresa.activa|yesno:'true,false' }}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -87,4 +92,59 @@
     </div>
   </div>
 </div>
+
+
+<div class="modal fade" id="modalEditarEmpresa" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form id="formEditarEmpresa" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Empresa</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="editNombreEmpresa" class="font-weight-bold">Nombre de la Empresa</label>
+            <input type="text" id="editNombreEmpresa" name="nombre" class="form-control" required>
+          </div>
+          <div class="form-check mt-3">
+            <input type="checkbox" id="editActivaEmpresa" name="activa" class="form-check-input">
+            <label class="form-check-label" for="editActivaEmpresa">¿Empresa activa?</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Lógica para el modal de Nueva Empresa (si tienes alguna) ---
+    // (Aquí iría cualquier script para el modal de creación)
+
+    // --- Lógica para el modal de Editar Empresa ---
+    $('#modalEditarEmpresa').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var url = button.data('url');
+        var nombre = button.data('nombre');
+        // Corrige la conversión a booleano, ya que el atributo data-activa es texto
+        var activa = button.data('activa') === 'True'; 
+
+        var modal = $(this);
+        modal.find('#formEditarEmpresa').attr('action', url);
+        modal.find('#editNombreEmpresa').val(nombre);
+        modal.find('#editActivaEmpresa').prop('checked', activa);
+    });
+
+
+});
+</script>
+{% endblock %}
 {% endblock %}
