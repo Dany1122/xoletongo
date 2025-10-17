@@ -3,6 +3,7 @@ from usuarios.models import CustomUser
 from servicios.models import Servicio, TipoServicio, ImagenServicio
 from empresas.models import Empresa
 from django.forms import inlineformset_factory
+from devpanel.models import CustomAttribute
 
 class CustomUserForm(forms.ModelForm):
     password = forms.CharField(
@@ -108,27 +109,71 @@ from django import forms
 from .models import Producto, CategoriaProducto
 
 class ProductoForm(forms.ModelForm):
+    # Campos base que no cambian
     class Meta:
         model = Producto
-        fields = ['nombre', 'descripcion', 'precio', 'categoria', 'perecedero','fecha_caducidad', 'imagen', 'stock', 'sku', 'activo']
+        fields = ['nombre', 'descripcion', 'precio', 'categoria', 'perecedero', 
+                  'fecha_caducidad', 'stock', 'sku', 'activo', 'imagen']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control'}),
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'perecedero': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'fecha_caducidad': forms.DateInput(
-                attrs={
-                    'class': 'form-control',
-                    'type': 'date'  
-                }
-            ),
-            'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'fecha_caducidad': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'stock': forms.NumberInput(attrs={'class': 'form-control'}),
             'sku': forms.TextInput(attrs={'class': 'form-control'}),
             'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'imagen': forms.FileInput(attrs={'class': 'form-control-file'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        # 1. Extraemos la 'empresa' que pasaremos desde la vista
+        empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
+        self.custom_fields = [] # Guardaremos los nombres de los campos personalizados aquí
+
+        if empresa:
+            # 2. Buscamos todos los atributos definidos para el modelo 'Producto' de esta empresa
+            custom_attributes = CustomAttribute.objects.filter(
+                empresa=empresa, 
+                target_model='Producto'
+            )
+
+            # 3. Creamos un campo de formulario para cada atributo definido
+            for attr in custom_attributes:
+                field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+                self.custom_fields.append(field_name)
+                
+                # Asignamos el valor inicial si estamos editando un producto
+                initial_value = None
+                if self.instance and self.instance.pk and self.instance.atributos_personalizados:
+                    initial_value = self.instance.atributos_personalizados.get(attr.name)
+
+                # Creamos el tipo de campo correcto
+                if attr.attribute_type == 'TEXT':
+                    self.fields[field_name] = forms.CharField(label=attr.name, required=False, initial=initial_value, widget=forms.TextInput(attrs={'class': 'form-control'}))
+                elif attr.attribute_type == 'NUMBER':
+                    self.fields[field_name] = forms.IntegerField(label=attr.name, required=False, initial=initial_value, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+                elif attr.attribute_type == 'TEXTAREA':
+                    self.fields[field_name] = forms.CharField(label=attr.name, required=False, initial=initial_value, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+                # Puedes añadir más tipos aquí (DATE, BOOLEAN, etc.)
+
+    def save(self, commit=True):
+        # 4. Sobreescribimos el método save para manejar los datos personalizados
+        instance = super().save(commit=False)
+        
+        custom_data = {}
+        for attr in CustomAttribute.objects.filter(empresa=instance.empresa, target_model='Producto'):
+            field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+            custom_data[attr.name] = self.cleaned_data.get(field_name)
+        
+        instance.atributos_personalizados = custom_data
+        
+        if commit:
+            instance.save()
+        return instance
 class CategoriaProductoForm(forms.ModelForm):
     class Meta:
         model = CategoriaProducto

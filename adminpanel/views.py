@@ -547,15 +547,17 @@ def admin_productos(request):
     return render(request, 'lista_productos.html', context)
 
 
+@login_required
 def admin_agregar_producto(request):
+    empresa_usuario = request.user.empresa # Obtenemos la empresa
     if request.method == 'POST':
-        form = ProductoForm(request.POST, request.FILES)
+        form = ProductoForm(request.POST, request.FILES, empresa=empresa_usuario)
         if form.is_valid():
+            # El nuevo método save() del formulario se encargará de todo
             form.save()
-            return redirect('admin_productos')  # vuelve al listado
+            return redirect('admin_productos')
     else:
-        form = ProductoForm()
-
+        form = ProductoForm(empresa=empresa_usuario)
     return render(request, 'agregar_producto.html', {'form': form})
 
 def crear_categoria_producto(request):
@@ -568,20 +570,17 @@ def crear_categoria_producto(request):
 
 @login_required
 def editar_producto(request, pk):
-    # Usamos 'pk' como en tus urls.py de usuarios y servicios
-    producto = get_object_or_404(Producto, pk=pk)
-    
+    empresa_usuario = request.user.empresa
+    producto = get_object_or_404(Producto, pk=pk, empresa=empresa_usuario)
     if request.method == 'POST':
-        # Pasamos request.FILES para manejar la subida de imágenes
-        form = ProductoForm(request.POST, request.FILES, instance=producto)
+        # 👇 Pasamos la empresa al formulario
+        form = ProductoForm(request.POST, request.FILES, instance=producto, empresa=empresa_usuario)
         if form.is_valid():
             form.save()
-            registrar_novedad(request.user, f"Editó el producto: {producto.nombre}")
-            # Redirigimos al listado de productos
             return redirect('admin_productos')
     else:
-        form = ProductoForm(instance=producto)
-    
+        # 👇 Pasamos la empresa también aquí
+        form = ProductoForm(instance=producto, empresa=empresa_usuario)
     return render(request, 'editar_producto.html', {'form': form, 'producto': producto})
 
 

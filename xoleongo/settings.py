@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+    
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'empresas',
     'adminpanel',
+    'devpanel',
 ]
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 
@@ -73,6 +74,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'adminpanel.context_processors.empresa_context',
+                'devpanel.context_processors.empresa_activa_processor',
             ],
         },
     },
