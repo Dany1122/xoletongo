@@ -1,6 +1,8 @@
 from django import forms
 from usuarios.models import CustomUser
-from servicios.models import Servicio
+from servicios.models import Servicio, TipoServicio, ImagenServicio
+from empresas.models import Empresa
+from django.forms import inlineformset_factory
 
 class CustomUserForm(forms.ModelForm):
     password = forms.CharField(
@@ -42,8 +44,7 @@ class ServicioForm(forms.ModelForm):
                   'costo_con_descuento', 
                   'imagen_principal',
                   'duracion', 
-                  'restricciones', 
-                  'galeria'
+                  'restricciones'
         ]
 
     
@@ -64,7 +65,106 @@ class ServicioForm(forms.ModelForm):
                   'costo_con_descuento', 
                   'imagen_principal',
                   'duracion', 
-                  'restricciones', 
-                  'galeria'
+                  'restricciones'
         ]
 
+
+class EmpresaForm(forms.ModelForm):
+    class Meta:
+        model = Empresa
+        fields = [
+            "nombre", "nombre_titular", "correo_contacto", "telefono", "ubicacion",
+            "cuenta_bancaria", "clabe", "numero_terjeta", "logotipo", "sitio_web",
+            "activa", "smtp_host", "smtp_port", "smtp_user", "smtp_password",
+            "smtp_use_tls", "smtp_use_ssl",
+        ]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": "form-control"}),
+            "nombre_titular": forms.TextInput(attrs={"class": "form-control"}),
+            "correo_contacto": forms.EmailInput(attrs={"class": "form-control"}),
+            "telefono": forms.TextInput(attrs={"class": "form-control"}),
+            "ubicacion": forms.TextInput(attrs={"class": "form-control"}),
+            "cuenta_bancaria": forms.TextInput(attrs={"class": "form-control", "maxlength": 18}),
+            "clabe": forms.TextInput(attrs={"class": "form-control", "maxlength": 18}),
+            "numero_terjeta": forms.TextInput(attrs={"class": "form-control", "maxlength": 16}),
+            "sitio_web": forms.URLInput(attrs={"class": "form-control"}),
+            "activa": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "smtp_host": forms.TextInput(attrs={"class": "form-control"}),
+            "smtp_port": forms.NumberInput(attrs={"class": "form-control"}),
+            "smtp_user": forms.TextInput(attrs={"class": "form-control"}),
+            "smtp_password": forms.PasswordInput(render_value=True, attrs={"class": "form-control"}),
+            "smtp_use_tls": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "smtp_use_ssl": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def clean(self):
+        data = super().clean()
+        # Evitar TLS y SSL a la vez
+        if data.get("smtp_use_tls") and data.get("smtp_use_ssl"):
+            self.add_error("smtp_use_ssl", "No puedes activar TLS y SSL al mismo tiempo.")
+        return data
+    
+from django import forms
+from .models import Producto, CategoriaProducto
+
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['nombre', 'descripcion', 'precio', 'categoria', 'perecedero','fecha_caducidad', 'imagen', 'stock', 'sku', 'activo']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'perecedero': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'fecha_caducidad': forms.DateInput(
+                attrs={
+                    'class': 'form-control',
+                    'type': 'date'  
+                }
+            ),
+            'imagen': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'sku': forms.TextInput(attrs={'class': 'form-control'}),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class CategoriaProductoForm(forms.ModelForm):
+    class Meta:
+        model = CategoriaProducto
+        fields = ['nombre', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+
+class TipoServicioForm(forms.ModelForm):
+    class Meta:
+        model = TipoServicio
+        fields = ["nombre", "descripcion", "tipo"]
+        widgets = {
+            "nombre": forms.TextInput(attrs={"class": "form-control", "required": True}),
+            "descripcion": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "tipo": forms.Select(attrs={"class": "form-control"}),
+        }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data["nombre"].strip()
+        if TipoServicio.objects.filter(nombre__iexact=nombre).exists():
+            raise forms.ValidationError("Ya existe un tipo de servicio con ese nombre.")
+        return nombre
+    
+    
+ImagenFormSet = inlineformset_factory(
+    Servicio,
+    ImagenServicio,
+    fields=("imagen", "descripcion", "orden"),
+    widgets={
+        "imagen": forms.ClearableFileInput(attrs={"class": "form-control-file"}),
+        "descripcion": forms.TextInput(attrs={"class": "form-control"}),
+        "orden": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+    },
+    extra=3,          # número inicial de filas vacías
+    can_delete=True,  # permitir eliminar imágenes existentes
+)

@@ -1,0 +1,169 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<a href="{% url 'admin_productos' %}" class="btn btn-sm btn-light mb-2">
+    <i class="fas fa-arrow-left"></i> Volver    
+</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Gestionar Categorías</h1>
+    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalNuevaCategoria">
+        <i class="fas fa-plus"></i> Nueva Categoría
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th style="width: 150px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td><strong>{{ categoria.nombre }}</strong></td>
+                        <td>{{ categoria.descripcion|default:"-"|truncatechars:80 }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-primary"
+                                    data-toggle="modal"
+                                    data-target="#editarCategoriaModal"
+                                    data-url="{% url 'admin_editar_categoria' categoria.pk %}"
+                                    data-nombre="{{ categoria.nombre }}"
+                                    data-descripcion="{{ categoria.descripcion|default:'' }}">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" 
+                                    data-toggle="modal" 
+                                    data-target="#confirmarEliminarCategoriaModal"
+                                    data-url="{% url 'admin_eliminar_categoria' categoria.pk %}"
+                                    data-nombre="{{ categoria.nombre }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Aún no hay categorías registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNuevaCategoria" tabindex="-1" role="dialog" aria-labelledby="modalCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-primary">
+            <form method="POST" action="{% url 'crear_categoria_producto' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="modalCategoriaLabel">
+                        <i class="fas fa-folder-plus"></i> Nueva Categoría
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="nombre_categoria">Nombre de la categoría</label>
+                        <input type="text" name="nombre" id="nombre_categoria" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion_categoria">Descripción</label>
+                        <textarea name="descripcion" id="descripcion_categoria" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="confirmarEliminarCategoriaModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Estás seguro de que quieres eliminar la categoría "<strong id="nombreCategoriaModal"></strong>"?</p>
+        <p class="text-danger small">Todos los productos asociados a esta categoría quedarán sin categoría.</p>
+      </div>
+      <div class="modal-footer">
+        <form id="formEliminarCategoria" method="POST" action="">
+            {% csrf_token %}
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="editarCategoriaModal" tabindex="-1" role="dialog" aria-labelledby="editarCategoriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form id="formEditarCategoria" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editarCategoriaLabel">Editar Categoría</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="editCategoriaNombre" class="form-label">Nombre</label>
+                <input type="text" id="editCategoriaNombre" name="nombre" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="editCategoriaDescripcion" class="form-label">Descripción</label>
+                <textarea id="editCategoriaDescripcion" name="descripcion" class="form-control" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    $('#confirmarEliminarCategoriaModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); 
+        var nombre = button.data('nombre');
+        var url = button.data('url');
+        
+        var modal = $(this);
+        modal.find('#nombreCategoriaModal').text(nombre);
+        modal.find('#formEliminarCategoria').attr('action', url);
+    });
+
+    $('#editarCategoriaModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var nombre = button.data('nombre');
+    var descripcion = button.data('descripcion');
+    var url = button.data('url');
+
+    var modal = $(this);
+    // Llenar el formulario con los datos actuales
+    modal.find('#formEditarCategoria').attr('action', url);
+    modal.find('#editCategoriaNombre').val(nombre);
+    modal.find('#editCategoriaDescripcion').val(descripcion);
+});
+});
+</script>
+{% endblock %}

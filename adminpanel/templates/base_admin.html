@@ -46,11 +46,19 @@
                 </a>
             </li>
 
-            <!-- Servicios/Productos -->
+            <!-- Servicios -->
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'admin_servicios' %}">
                     <i class="fas fa-tasks"></i>
-                    <span>Servicios/Productos</span>
+                    <span>Servicios</span>
+                </a>
+            </li>
+
+            <!--Productos-->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin_productos' %}">
+                    <i class="fas fa-fw fa-box-open"></i>
+                    <span>Productos</span>
                 </a>
             </li>
 
@@ -67,6 +75,14 @@
                 <a class="nav-link" href="{% url 'admin_reservaciones' %}">
                     <i class="fas fa-address-book"></i>
                     <span>Reservaciones</span>
+                </a>
+            </li>
+
+            <!-- Configuración -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'configuracion_empresa' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuracion</span>
                 </a>
             </li>
 

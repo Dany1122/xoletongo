@@ -1,57 +1,283 @@
+{# templates/admin/reservaciones_lista.html #}
 {% extends 'base_admin.html' %}
-{% load static %}
-
+{% load humanize %}
 {% block content %}
-<h2>Lista de Reservaciones</h2>
 
-{% for item in reservaciones %}
-    {% with reservacion=item.reservacion servicio=item.servicio tipo=item.tipo_servicio titulo=item.titulo_servicio total=item.total_pagado pago_realizado=item.pago_realizado %}
-        <div class="card my-3 p-3">
-            <p><strong>Cliente:</strong> {{ reservacion.nombre_cliente }}</p>
-            <p><strong>Correo:</strong> {{ reservacion.email_cliente }}</p>
-            <p><strong>Servicio:</strong> {{ titulo }}</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="h3 text-gray-800 mb-0">Reservaciones</h2>
+  <div class="btn-group">
+    <a href="{% url 'admin_reservaciones' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-sync"></i> Actualizar
+    </a>
+    <a href="{% url 'admin_exportar_reservas_pdf' %}?q={{ query_actual }}&tipo={{ tipo_actual|default:'' }}"
+       class="btn btn-sm btn-outline-danger">
+      <i class="fas fa-file-pdf"></i> Exportar PDF
+    </a>
+  </div>
+</div>
 
-            {% if pago_realizado %}
-                <p><strong>Pago realizado:</strong> Sí</p>
-            {% else %}
-                <p><strong>Pago realizado:</strong> No</p>
-                {% if reservacion.comprobante_pago %}
-                    <p>
-                        <strong>Comprobante de pago:</strong>
-                        <a href="{{ reservacion.comprobante_pago.url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
-                            Ver comprobante
-                        </a>
-                    </p>
+{# --- Barra de filtros (GET) --- #}
+<form method="GET" action="{% url 'admin_reservaciones' %}" class="mb-4">
+  <div class="input-group">
+    <input type="text" name="q" class="form-control"
+           placeholder="Buscar por nombre de cliente o email..."
+           value="{{ query_actual }}">
+    <select name="tipo" class="form-control" style="max-width:220px;">
+      <option value="">Todos los tipos</option>
+      <option value="porHora" {% if tipo_actual == 'porHora' %}selected{% endif %}>Por hora</option>
+      <option value="porDia"  {% if tipo_actual == 'porDia' %}selected{% endif %}>Por día</option>
+    </select>
+    <button class="btn btn-primary ml-2" type="submit">
+      <i class="fas fa-filter"></i> Filtrar
+    </button>
+  </div>
+</form>
+
+{# --- Tabla de reservaciones --- #}
+<div class="card shadow mb-4">
+  <div class="card-body table-responsive">
+    <table class="table table-hover">
+      <thead class="thead-light">
+        <tr>
+          <th style="width:90px;">ID</th>
+          <th>Cliente</th>
+          <th>Servicio</th>
+          <th style="width:120px;">Tipo</th>
+          <th style="width:220px;">Fecha(s)</th>
+          <th style="width:140px;">Total</th>
+          <th style="width:110px;">Pago</th>
+          <th style="width:160px;">Estado</th>
+          <th style="width:160px;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in page_obj %}
+          {% with reservacion=item.reservacion tipo=item.tipo_servicio titulo=item.titulo_servicio total=item.total_pagado pago_realizado=item.pago_realizado %}
+          <tr>
+            <td>#{{ reservacion.id }}</td>
+
+            <td>
+              <div class="font-weight-bold">{{ reservacion.nombre_cliente|default:"Cliente" }}</div>
+              <div class="small text-muted">
+                <i class="fas fa-envelope mr-1"></i>{{ reservacion.email_cliente|default:"sin-correo@ejemplo.com" }}
+              </div>
+            </td>
+
+            <td>
+              <span class="text-body">{{ titulo|default:"Servicio" }}</span>
+            </td>
+
+            <td>
+              {% if tipo == "porHora" %}
+                <span class="badge badge-info">Por hora</span>
+              {% elif tipo == "porDia" %}
+                <span class="badge badge-primary">Por día</span>
+              {% else %}
+                <span class="badge badge-light">N/D</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if tipo == "porHora" %}
+                <i class="far fa-clock mr-1"></i>{{ reservacion.fecha_reserva|date:"d/m/Y H:i" }}
+              {% elif tipo == "porDia" %}
+                <i class="far fa-calendar-alt mr-1"></i>
+                {{ reservacion.fecha_inicio|date:"d/m/Y" }} → {{ reservacion.fecha_fin|date:"d/m/Y" }}
+                {% if reservacion.hora_recepcion %}
+                  <div class="small text-muted mt-1">
+                    <i class="far fa-clock mr-1"></i>Recepción: {{ reservacion.hora_recepcion|time:"H:i" }}
+                  </div>
                 {% endif %}
-            {% endif %}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
 
-            {% if tipo == "porHora" %}
-                <p><strong>Fecha de reserva:</strong> {{ reservacion.fecha_reserva|date:"d/m/Y H:i" }}</p>
-            {% elif tipo == "porDia" %}
-                <p><strong>Del:</strong> {{ reservacion.fecha_inicio }} <strong>al</strong> {{ reservacion.fecha_fin }}</p>
-            {% else %}
-                <p><em>Tipo de servicio no especificado.</em></p>
-            {% endif %}
+            <td>
+              <strong>${{ total|default:0|floatformat:2|intcomma }}</strong>
+            </td>
 
-            <p><strong>Total pagado:</strong> ${{ total|floatformat:2 }}</p>
-            <p><strong>Estado actual:</strong> {{ reservacion.get_estado_display }}</p>
+            <td>
+              {% if pago_realizado %}
+                <span class="badge badge-success">Pagado</span>
+              {% else %}
+                <span class="badge badge-warning">Pendiente</span>
+              {% endif %}
+            </td>
 
-            <form method="post" action="">
-                {% csrf_token %}
-                <input type="hidden" name="reservacion_id" value="{{ reservacion.id }}">
-                <select name="estado" class="form-select w-auto d-inline">
-                    {% for clave, texto in reservacion.ESTADOS %}
-                        <option value="{{ clave }}" {% if reservacion.estado == clave %}selected{% endif %}>
-                            {{ texto }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
-            </form>
+            <td>
+              {% if reservacion.get_estado_display %}
+                {% with e=reservacion.estado %}
+                  {% if e == 'pendiente' %}
+                    <span class="badge badge-info">{{ reservacion.get_estado_display }}</span>
+                  {% elif e == 'aprobada' %}
+                    <span class="badge badge-primary">{{ reservacion.get_estado_display }}</span>
+                  {% elif e == 'finalizada' %}
+                    <span class="badge badge-success">{{ reservacion.get_estado_display }}</span>
+                  {% else %}
+                    <span class="badge badge-light">{{ reservacion.get_estado_display }}</span>
+                  {% endif %}
+                {% endwith %}
+              {% else %}
+                <span class="badge badge-light">Sin estado</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="btn-group btn-group-sm" role="group">
+                {% if reservacion.comprobante_pago %}
+                  <button type="button" class="btn btn-outline-secondary"
+                          data-toggle="modal" data-target="#comprobanteModal"
+                          data-url="{{ reservacion.comprobante_pago.url }}">
+                    <i class="far fa-file-alt"></i>
+                  </button>
+                {% endif %}
+
+                <button type="button" class="btn btn-outline-primary"
+                        data-toggle="modal" data-target="#estadoModal"
+                        data-id="{{ reservacion.id }}"
+                        data-estado="{{ reservacion.estado }}">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
+              <div class="small text-muted mt-1">
+                <i class="far fa-clock mr-1"></i>{{ reservacion.fecha_reserva|date:"d/m/Y H:i" }}
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+        {% empty %}
+          <tr>
+            <td colspan="9" class="text-center text-muted">No hay reservaciones que coincidan con tu búsqueda.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# --- Paginación --- #}
+{% if page_obj.has_other_pages %}
+<nav aria-label="Navegación de reservaciones">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query_actual }}&tipo={{ tipo_actual|default:'' }}" aria-label="Anterior">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <li class="page-item active" aria-current="page"><span class="page-link">{{ num }}</span></li>
+      {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}&q={{ query_actual }}&tipo={{ tipo_actual|default:'' }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query_actual }}&tipo={{ tipo_actual|default:'' }}" aria-label="Siguiente">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+{# --- Modal: Ver comprobante (imagen o PDF) --- #}
+<div class="modal fade" id="comprobanteModal" tabindex="-1" role="dialog" aria-labelledby="comprobanteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-secondary text-white">
+        <h5 class="modal-title" id="comprobanteLabel"><i class="far fa-file-alt mr-1"></i> Comprobante de pago</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="embed-responsive embed-responsive-16by9">
+          <iframe id="comprobanteFrame" class="embed-responsive-item" src="" title="Comprobante" loading="lazy"></iframe>
         </div>
-    {% endwith %}
-{% empty %}
-    <p>No hay reservaciones.</p>
-{% endfor %}
+      </div>
+      <div class="modal-footer">
+        <a id="comprobanteLink" href="#" target="_blank" rel="noopener" class="btn btn-outline-secondary">
+          <i class="fas fa-external-link-alt"></i> Abrir en pestaña
+        </a>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# --- Modal: Cambiar estado --- #}
+<div class="modal fade" id="estadoModal" tabindex="-1" role="dialog" aria-labelledby="estadoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-primary">
+      <form method="POST" action="{% url 'admin_actualizar_estado_reservacion' %}">
+        {% csrf_token %}
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="estadoLabel"><i class="fas fa-edit"></i> Actualizar estado</h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="reservacion_id" id="estadoReservacionId">
+          <div class="form-group">
+            <label for="estadoSelect">Estado</label>
+            <select id="estadoSelect" name="estado" class="form-control">
+              {% for clave, texto in ESTADOS_GLOBALES %}
+                <option value="{{ clave }}">{{ texto }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .table td, .table th { vertical-align: middle; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Comprobante
+  $('#comprobanteModal').on('show.bs.modal', function (event) {
+    var btn = $(event.relatedTarget);
+    var url = btn.data('url') || '';
+    var modal = $(this);
+    modal.find('#comprobanteFrame').attr('src', url);
+    modal.find('#comprobanteLink').attr('href', url);
+  });
+  $('#comprobanteModal').on('hidden.bs.modal', function () {
+    $(this).find('#comprobanteFrame').attr('src', '');
+  });
+
+  // Estado
+  $('#estadoModal').on('show.bs.modal', function (event) {
+    var btn = $(event.relatedTarget);
+    var id = btn.data('id');
+    var estado = btn.data('estado');
+    var modal = $(this);
+    modal.find('#estadoReservacionId').val(id);
+    modal.find('#estadoSelect').val(estado);
+  });
+});
+</script>
 
 {% endblock %}
