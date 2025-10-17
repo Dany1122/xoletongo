@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from empresas.models import Empresa 
 
 # Create your models here.
 class Venta(models.Model):
@@ -30,11 +31,13 @@ class Novedad(models.Model):
 class CategoriaProducto(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     descripcion = models.TextField(blank=True, null=True)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.nombre
 
 class Producto(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField(blank=True, null=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)

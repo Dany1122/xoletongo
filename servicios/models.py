@@ -29,7 +29,7 @@ class Servicio(models.Model):
     imagen_principal = models.ImageField(upload_to='servicios/')
     duracion = models.PositiveIntegerField(null=True, blank=True)
     restricciones = models.TextField(null=True, blank=True)
-    empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.titulo
