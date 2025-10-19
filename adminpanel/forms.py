@@ -129,15 +129,15 @@ class ProductoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         # 1. Extraemos la 'empresa' que pasaremos desde la vista
-        empresa = kwargs.pop('empresa', None)
+        self.empresa = kwargs.pop('empresa', None)
         super().__init__(*args, **kwargs)
 
         self.custom_fields = [] # Guardaremos los nombres de los campos personalizados aquí
 
-        if empresa:
+        if self.empresa:
             # 2. Buscamos todos los atributos definidos para el modelo 'Producto' de esta empresa
             custom_attributes = CustomAttribute.objects.filter(
-                empresa=empresa, 
+                empresa=self.empresa, 
                 target_model='Producto'
             )
 
@@ -161,19 +161,31 @@ class ProductoForm(forms.ModelForm):
                 # Puedes añadir más tipos aquí (DATE, BOOLEAN, etc.)
 
     def save(self, commit=True):
-        # 4. Sobreescribimos el método save para manejar los datos personalizados
+        # 1. Create the product instance in memory WITHOUT saving it to the DB yet.
+        # The view will have already assigned the empresa to this instance.
         instance = super().save(commit=False)
         
+        if self.empresa:
+            instance.empresa = self.empresa
+
+
+        # 2. Now that we have the instance and its company, gather the custom attributes.
         custom_data = {}
         for attr in CustomAttribute.objects.filter(empresa=instance.empresa, target_model='Producto'):
             field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+            # Get the value from the form's cleaned data
             custom_data[attr.name] = self.cleaned_data.get(field_name)
         
+        # 3. Assign the collected custom data to the JSONField.
         instance.atributos_personalizados = custom_data
         
+        # 4. If commit is True, save the completed instance to the database.
         if commit:
             instance.save()
+            # self.save_m2m() # Use this if you have many-to-many fields
+            
         return instance
+
 class CategoriaProductoForm(forms.ModelForm):
     class Meta:
         model = CategoriaProducto
