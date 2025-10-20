@@ -27,10 +27,36 @@
                 <p><strong>${{ servicio.costo_niño }}</strong></p>
                 <h4 class="mt-20">Costo con descuento</h4>
                 <p><strong>${{ servicio.costo_con_descuento }}</strong></p>
+                
                 {% if servicio.restricciones %}
                 <p><strong>Restricciones:</strong> {{ servicio.restricciones }}</p>
                 {% endif %}
-                <a href="{% url 'crear_reservacion' servicio.id %}" class="btn-reserva">Reservar ahora</a>
+                
+                {# Mostrar atributos personalizados de forma orgánica #}
+                {% if servicio.atributos_personalizados %}
+                    {% for nombre, valor in servicio.atributos_personalizados.items %}
+                        {% if valor %}  {# Solo mostrar si tiene valor #}
+                            <div class="mt-3">
+                                <h4>{{ nombre }}</h4>
+                                <p>
+                                    {% if valor == True %}
+                                        <i class="fa fa-check-circle text-success"></i> Sí
+                                    {% elif valor == False %}
+                                        <i class="fa fa-times-circle text-danger"></i> No
+                                    {% else %}
+                                        <strong>{{ valor }}</strong>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                
+                <div class="mt-4 mb-4">
+                    <a href="{% url 'crear_reservacion' servicio.id %}" class="btn-reserva" style="display: inline-block; text-decoration: none;">
+                        <i class="fa fa-calendar-check-o mr-2"></i> Reservar ahora
+                    </a>
+                </div>
             </div>
         </div>
 

@@ -36,9 +36,13 @@ class Reservacion(models.Model):
         verbose_name_plural='Reservaciones'
 
 class Reservacion_servicio(models.Model):
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     id_reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE, related_name='reservacion')
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='tipoServicio')
+
+    @property
+    def empresa(self):
+        """Obtiene la empresa a través de la reservación (evita FK redundante)"""
+        return self.id_reservacion.empresa
 
     def __str__(self):
         return f"Reserva de {self.id_reservacion} - {self.servicio}"

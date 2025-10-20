@@ -1,5 +1,5 @@
 # devpanel/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
 from empresas.models import Empresa
@@ -85,15 +85,17 @@ def gestion_modelos(request):
         messages.warning(request, "Por favor, activa una empresa para poder gestionar sus modelos.")
         return redirect('dev_gestion_empresas')
 
-    # Obtenemos solo los atributos de la empresa activa
+    # Obtenemos los atributos de la empresa activa separados por modelo
     empresa_activa = Empresa.objects.get(id=empresa_activa_id)
-    atributos = CustomAttribute.objects.filter(empresa=empresa_activa)
+    atributos_producto = CustomAttribute.objects.filter(empresa=empresa_activa, target_model='Producto')
+    atributos_servicio = CustomAttribute.objects.filter(empresa=empresa_activa, target_model='Servicio')
 
     form = CustomAttributeForm()
 
     context = {
         'empresa_activa': empresa_activa,
-        'atributos': atributos,
+        'atributos_producto': atributos_producto,
+        'atributos_servicio': atributos_servicio,
         'form': form
     }
     return render(request, 'devpanel/gestion_modelos.html', context)
@@ -116,5 +118,48 @@ def crear_atributo(request):
             messages.success(request, f"Se ha creado el atributo '{nuevo_atributo.name}'.")
         else:
             messages.error(request, "Error al crear el atributo. Revisa los datos.")
+    
+    return redirect('dev_gestion_modelos')
+
+@login_required
+def editar_atributo(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dev_gestion_empresas')
+
+    atributo = get_object_or_404(CustomAttribute, pk=pk)
+    
+    # Verificar que el atributo pertenece a la empresa activa
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id or atributo.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para editar este atributo.")
+        return redirect('dev_gestion_modelos')
+
+    if request.method == 'POST':
+        form = CustomAttributeForm(request.POST, instance=atributo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"El atributo '{atributo.name}' ha sido actualizado.")
+        else:
+            messages.error(request, "Error al actualizar el atributo.")
+    
+    return redirect('dev_gestion_modelos')
+
+@login_required
+def eliminar_atributo(request, pk):
+    if not request.user.is_superuser:
+        return redirect('dev_gestion_empresas')
+
+    atributo = get_object_or_404(CustomAttribute, pk=pk)
+    
+    # Verificar que el atributo pertenece a la empresa activa
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id or atributo.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para eliminar este atributo.")
+        return redirect('dev_gestion_modelos')
+
+    if request.method == 'POST':
+        nombre_atributo = atributo.name
+        atributo.delete()
+        messages.success(request, f"El atributo '{nombre_atributo}' ha sido eliminado.")
     
     return redirect('dev_gestion_modelos')

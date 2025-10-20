@@ -10,4 +10,6 @@ urlpatterns = [
 
     path('modelos/', views.gestion_modelos, name='dev_gestion_modelos'),
     path('modelos/crear/', views.crear_atributo, name='dev_crear_atributo'),
+    path('modelos/editar/<int:pk>/', views.editar_atributo, name='dev_editar_atributo'),
+    path('modelos/eliminar/<int:pk>/', views.eliminar_atributo, name='dev_eliminar_atributo'),
 ]

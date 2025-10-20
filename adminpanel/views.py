@@ -302,12 +302,12 @@ def agregar_servicio(request):
     empresa_activa = Empresa.objects.filter(activa=True).first()
     if not empresa_activa:
         messages.error(request, "No hay una empresa activa configurada.")
-        form = ServicioForm(request.POST or None, request.FILES or None)
+        form = ServicioForm(request.POST or None, request.FILES or None, empresa=None)
         formset = ImagenFormSet(request.POST or None, request.FILES or None)
         return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
 
     if request.method == 'POST':
-        form = ServicioForm(request.POST, request.FILES)
+        form = ServicioForm(request.POST, request.FILES, empresa=empresa_activa)
         formset = ImagenFormSet(request.POST, request.FILES)  # sin instance hasta guardar el servicio
 
         if form.is_valid():
@@ -330,7 +330,7 @@ def agregar_servicio(request):
             # si el formset NO es válido, seguimos a render con errores
         # si el form NO es válido, caemos a render con errores
     else:
-        form = ServicioForm()
+        form = ServicioForm(empresa=empresa_activa)
         formset = ImagenFormSet()
 
     return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
@@ -339,7 +339,7 @@ def editar_servicio(request, id):
     servicio = get_object_or_404(Servicio, id=id)
 
     if request.method == 'POST':
-        form = ServicioForm(request.POST, request.FILES, instance=servicio)
+        form = ServicioForm(request.POST, request.FILES, instance=servicio, empresa=servicio.empresa)
         formset = ImagenFormSet(request.POST, request.FILES, instance=servicio)
 
         if form.is_valid() and formset.is_valid():
@@ -350,7 +350,7 @@ def editar_servicio(request, id):
                 registrar_novedad(request.user, f"Editó el servicio: {servicio.titulo}")
             return redirect('/adminpanel/servicios/?editado=1')
     else:
-        form = ServicioForm(instance=servicio)
+        form = ServicioForm(instance=servicio, empresa=servicio.empresa)
         formset = ImagenFormSet(instance=servicio)
 
     return render(request, 'editar_servicio.html', {'form': form, 'formset': formset, 'servicio': servicio})
@@ -835,8 +835,17 @@ def _rebuild_list_url(request):
 # Página de gestión (lista, crear rápido, links a editar/eliminar)
 @login_required
 def admin_tipos_servicio(request):
-    tipos = TipoServicio.objects.annotate(num_servicios=Count("subservicios"))
-    form = TipoServicioForm()
+    # Obtener empresa activa y filtrar tipos de servicio
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
+    if empresa_activa:
+        tipos = TipoServicio.objects.filter(empresa=empresa_activa).annotate(num_servicios=Count("subservicios"))
+        form = TipoServicioForm(empresa=empresa_activa)
+    else:
+        tipos = TipoServicio.objects.none()
+        form = TipoServicioForm()
+        messages.warning(request, "No hay una empresa activa configurada.")
+    
     return render(request, "admin_tipos_servicio.html", {
         "tipos": tipos,
         "form": form,
@@ -848,11 +857,19 @@ def crear_tipo_servicio(request):
     if request.method != "POST":
         return redirect("admin_TipoServicios")
 
-    form = TipoServicioForm(request.POST)
+    # Obtener la empresa activa
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    if not empresa_activa:
+        messages.error(request, "No hay una empresa activa configurada.")
+        return redirect("admin_TipoServicios")
+
+    form = TipoServicioForm(request.POST, empresa=empresa_activa)
     next_url = request.POST.get("next") or reverse("admin_TipoServicios")
 
     if form.is_valid():
-        form.save()
+        tipo_servicio = form.save(commit=False)
+        tipo_servicio.empresa = empresa_activa  # Asignar empresa activa
+        tipo_servicio.save()
         messages.success(request, "Tipo de servicio creado correctamente.")
         return redirect(next_url)
 
@@ -866,13 +883,13 @@ def crear_tipo_servicio(request):
 def editar_tipo_servicio(request, pk):
     tipo = get_object_or_404(TipoServicio, pk=pk)
     if request.method == "POST":
-        form = TipoServicioForm(request.POST, instance=tipo)
+        form = TipoServicioForm(request.POST, instance=tipo, empresa=tipo.empresa)
         if form.is_valid():
             form.save()
             messages.success(request, "Tipo de servicio actualizado.")
             return redirect("admin_TipoServicios")
     else:
-        form = TipoServicioForm(instance=tipo)
+        form = TipoServicioForm(instance=tipo, empresa=tipo.empresa)
 
     return render(request, "editar_tipo_servicio.html", {"form": form, "tipo": tipo})
 
