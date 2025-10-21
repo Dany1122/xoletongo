@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
     )
     
     # Nuevo sistema de roles dinámicos
-    rol_nuevo = models.ForeignKey(
+    rol = models.ForeignKey(
         'devpanel.Rol',
         on_delete=models.SET_NULL,
         null=True,
@@ -49,6 +49,6 @@ class CustomUser(AbstractUser):
     
     def get_rol_nombre(self):
         """Retorna el nombre del rol actual (compatible con ambos sistemas)"""
-        if self.rol_nuevo:
-            return self.rol_nuevo.nombre
+        if self.rol:
+            return self.rol.nombre
         return self.rol_legacy if self.rol_legacy else 'Sin Rol'

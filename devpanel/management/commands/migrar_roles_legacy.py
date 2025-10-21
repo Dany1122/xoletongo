@@ -114,8 +114,8 @@ class Command(BaseCommand):
                 rol_nuevo = roles_creados.get(usuario.empresa.id, {}).get(usuario.rol_legacy)
                 
                 if rol_nuevo:
-                    usuario.rol_nuevo = rol_nuevo
-                    usuario.save(update_fields=['rol_nuevo'])
+                    usuario.rol = rol_nuevo
+                    usuario.save(update_fields=['rol'])
                     migrados += 1
                     self.stdout.write(f'  ✓ {usuario.username} → {rol_nuevo.nombre}')
                 else:
