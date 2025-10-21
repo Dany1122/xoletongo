@@ -14,6 +14,16 @@ class CustomUserForm(forms.ModelForm):
         label='Confirmar contraseña',
         widget=forms.PasswordInput,
     )
+    
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar roles por empresa activa
+        if self.empresa:
+            from devpanel.models import Rol
+            self.fields['rol'].queryset = Rol.objects.filter(empresa=self.empresa, activo=True)
+        
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'rol', 'is_active', 'telefono']
@@ -145,6 +155,15 @@ class ServicioForm(forms.ModelForm):
 
     
 class CustomUserEditForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar roles por empresa activa
+        if self.empresa:
+            from devpanel.models import Rol
+            self.fields['rol'].queryset = Rol.objects.filter(empresa=self.empresa, activo=True)
+    
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'telefono', 'rol', 'is_active']

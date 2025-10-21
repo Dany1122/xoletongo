@@ -1,7 +1,7 @@
 # devpanel/forms.py
 from django import forms
 from empresas.models import Empresa
-from .models import CustomAttribute, Seccion, Pagina
+from .models import CustomAttribute, Seccion, Pagina, Rol
 import json
 
 class EmpresaForm(forms.ModelForm):
@@ -83,3 +83,109 @@ class SeccionConfigForm(forms.Form):
             return parsed
         except json.JSONDecodeError as e:
             raise forms.ValidationError(f'JSON inválido: {e}')
+
+
+# ==================== FORMULARIOS PARA ROLES ====================
+
+class RolForm(forms.ModelForm):
+    """Formulario para crear/editar roles"""
+    class Meta:
+        model = Rol
+        fields = ['nombre', 'descripcion', 'activo']
+        labels = {
+            'nombre': 'Nombre del Rol',
+            'descripcion': 'Descripción',
+            'activo': 'Rol activo',
+        }
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Guía Turístico, Chef, Contador'
+            }),
+            'descripcion': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Describe las responsabilidades de este rol...'
+            }),
+            'activo': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+        
+    def clean_nombre(self):
+        """Validar que el nombre del rol sea único dentro de la empresa"""
+        nombre = self.cleaned_data['nombre'].strip()
+        
+        # Filtrar por empresa
+        queryset = Rol.objects.filter(nombre__iexact=nombre)
+        
+        # Excluir la instancia actual si es una edición
+        if self.instance and self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        
+        # Filtrar por empresa
+        if self.empresa:
+            queryset = queryset.filter(empresa=self.empresa)
+        
+        if queryset.exists():
+            raise forms.ValidationError("Ya existe un rol con ese nombre en esta empresa.")
+        
+        return nombre
+
+
+class AtributoSchemaForm(forms.Form):
+    """Formulario para agregar un atributo al schema de un rol"""
+    TIPO_CHOICES = [
+        ('texto', 'Texto'),
+        ('numero', 'Número'),
+        ('email', 'Email'),
+        ('telefono', 'Teléfono'),
+        ('fecha', 'Fecha'),
+        ('booleano', 'Sí/No'),
+        ('seleccion', 'Selección (lista)'),
+        ('texto_largo', 'Texto largo'),
+    ]
+    
+    nombre = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej: Certificación, Idiomas, RFC'
+        }),
+        label='Nombre del campo'
+    )
+    
+    tipo = forms.ChoiceField(
+        choices=TIPO_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        label='Tipo de dato'
+    )
+    
+    requerido = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='Campo obligatorio'
+    )
+    
+    opciones = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Separadas por comas: Español, Inglés, Francés'
+        }),
+        label='Opciones (solo para tipo "Selección")',
+        help_text='Ingresa las opciones separadas por comas'
+    )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        opciones = cleaned_data.get('opciones')
+        
+        # Si es tipo selección, las opciones son obligatorias
+        if tipo == 'seleccion' and not opciones:
+            raise forms.ValidationError('Debes especificar opciones para el tipo "Selección"')
+        
+        return cleaned_data

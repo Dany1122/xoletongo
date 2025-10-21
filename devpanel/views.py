@@ -3,9 +3,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
 from empresas.models import Empresa
-from .models import CustomAttribute, Pagina, Seccion
-from .forms import EmpresaForm, CustomAttributeForm, SeccionBaseForm, SeccionConfigForm
-from django.db.models import F
+from .models import CustomAttribute, Pagina, Seccion, Rol
+from .forms import EmpresaForm, CustomAttributeForm, SeccionBaseForm, SeccionConfigForm, RolForm, AtributoSchemaForm
+from django.db.models import F, Count
+from django.http import JsonResponse
 
 @login_required
 def gestion_empresas(request):
@@ -356,3 +357,202 @@ def toggle_seccion_activa(request, pk):
     messages.success(request, f"Sección '{seccion.titulo or seccion.get_tipo_display()}' {estado}.")
     
     return redirect('dev_gestion_secciones_pagina', slug_pagina=seccion.pagina.slug)
+
+
+# ==================== GESTIÓN DE ROLES ====================
+
+@login_required
+def gestion_roles(request):
+    """Vista principal de gestión de roles"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.warning(request, "Por favor, activa una empresa para poder gestionar sus roles.")
+        return redirect('dev_gestion_empresas')
+    
+    empresa_activa = Empresa.objects.get(id=empresa_activa_id)
+    roles = Rol.objects.filter(empresa=empresa_activa).annotate(
+        num_usuarios=Count('usuarios')
+    ).order_by('nombre')
+    
+    context = {
+        'empresa_activa': empresa_activa,
+        'roles': roles,
+    }
+    return render(request, 'devpanel/gestion_roles.html', context)
+
+
+@login_required
+def crear_rol(request):
+    """Crear un nuevo rol"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.error(request, "No hay una empresa activa.")
+        return redirect('dev_gestion_empresas')
+    
+    empresa_activa = Empresa.objects.get(id=empresa_activa_id)
+    
+    if request.method == 'POST':
+        form = RolForm(request.POST, empresa=empresa_activa)
+        if form.is_valid():
+            rol = form.save(commit=False)
+            rol.empresa = empresa_activa
+            rol.atributos_schema = []  # Inicializar vacío
+            rol.save()
+            messages.success(request, f"Rol '{rol.nombre}' creado exitosamente.")
+            return redirect('dev_gestion_roles')
+        else:
+            messages.error(request, "Error al crear el rol. Verifica los datos.")
+    
+    return redirect('dev_gestion_roles')
+
+
+@login_required
+def editar_rol(request, pk):
+    """Editar un rol existente"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    rol = get_object_or_404(Rol, pk=pk)
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    
+    if not empresa_activa_id or rol.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para editar este rol.")
+        return redirect('dev_gestion_roles')
+    
+    if request.method == 'POST':
+        form = RolForm(request.POST, instance=rol, empresa=rol.empresa)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Rol '{rol.nombre}' actualizado exitosamente.")
+            return redirect('dev_gestion_roles')
+        else:
+            messages.error(request, "Error al actualizar el rol.")
+    
+    return redirect('dev_gestion_roles')
+
+
+@login_required
+def eliminar_rol(request, pk):
+    """Eliminar un rol"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    rol = get_object_or_404(Rol, pk=pk)
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    
+    if not empresa_activa_id or rol.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para eliminar este rol.")
+        return redirect('dev_gestion_roles')
+    
+    # Verificar que no tenga usuarios asignados
+    if rol.usuarios.count() > 0:
+        messages.error(request, f"No se puede eliminar el rol '{rol.nombre}' porque tiene {rol.usuarios.count()} usuarios asignados.")
+        return redirect('dev_gestion_roles')
+    
+    if request.method == 'POST':
+        nombre_rol = rol.nombre
+        rol.delete()
+        messages.success(request, f"Rol '{nombre_rol}' eliminado exitosamente.")
+        return redirect('dev_gestion_roles')
+    
+    return redirect('dev_gestion_roles')
+
+
+@login_required
+def toggle_rol_activo(request, pk):
+    """Activar/desactivar un rol"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    rol = get_object_or_404(Rol, pk=pk)
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    
+    if not empresa_activa_id or rol.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para modificar este rol.")
+        return redirect('dev_gestion_roles')
+    
+    rol.activo = not rol.activo
+    rol.save()
+    estado = "activado" if rol.activo else "desactivado"
+    messages.success(request, f"Rol '{rol.nombre}' {estado} exitosamente.")
+    
+    return redirect('dev_gestion_roles')
+
+
+@login_required
+def agregar_atributo_rol(request, pk):
+    """Agregar un atributo al schema del rol"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    rol = get_object_or_404(Rol, pk=pk)
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    
+    if not empresa_activa_id or rol.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para modificar este rol.")
+        return redirect('dev_gestion_roles')
+    
+    if request.method == 'POST':
+        form = AtributoSchemaForm(request.POST)
+        if form.is_valid():
+            # Construir el nuevo atributo
+            nuevo_atributo = {
+                'nombre': form.cleaned_data['nombre'],
+                'tipo': form.cleaned_data['tipo'],
+                'requerido': form.cleaned_data['requerido'],
+            }
+            
+            # Si es tipo selección, agregar las opciones
+            if form.cleaned_data['tipo'] == 'seleccion' and form.cleaned_data['opciones']:
+                opciones = [op.strip() for op in form.cleaned_data['opciones'].split(',')]
+                nuevo_atributo['opciones'] = opciones
+            
+            # Agregar al schema (inicializar si está vacío)
+            if not isinstance(rol.atributos_schema, list):
+                rol.atributos_schema = []
+            
+            rol.atributos_schema.append(nuevo_atributo)
+            rol.save()
+            
+            messages.success(request, f"Atributo '{nuevo_atributo['nombre']}' agregado al rol '{rol.nombre}'.")
+            return redirect('dev_gestion_roles')
+        else:
+            messages.error(request, "Error al agregar el atributo. Verifica los datos.")
+    
+    return redirect('dev_gestion_roles')
+
+
+@login_required
+def eliminar_atributo_rol(request, pk, atributo_nombre):
+    """Eliminar un atributo del schema del rol"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    rol = get_object_or_404(Rol, pk=pk)
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    
+    if not empresa_activa_id or rol.empresa_id != empresa_activa_id:
+        messages.error(request, "No tienes permiso para modificar este rol.")
+        return redirect('dev_gestion_roles')
+    
+    if request.method == 'POST':
+        # Buscar y eliminar el atributo
+        if isinstance(rol.atributos_schema, list):
+            rol.atributos_schema = [
+                attr for attr in rol.atributos_schema 
+                if attr.get('nombre') != atributo_nombre
+            ]
+            rol.save()
+            messages.success(request, f"Atributo '{atributo_nombre}' eliminado del rol '{rol.nombre}'.")
+        else:
+            messages.error(request, "El rol no tiene atributos definidos.")
+        
+        return redirect('dev_gestion_roles')
+    
+    return redirect('dev_gestion_roles')

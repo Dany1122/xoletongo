@@ -20,4 +20,13 @@ urlpatterns = [
     path('secciones/eliminar/<int:pk>/', views.eliminar_seccion, name='dev_eliminar_seccion'),
     path('secciones/orden/<int:pk>/<str:direccion>/', views.cambiar_orden_seccion, name='dev_cambiar_orden_seccion'),
     path('secciones/toggle/<int:pk>/', views.toggle_seccion_activa, name='dev_toggle_seccion'),
+
+    # Gestión de Roles
+    path('roles/', views.gestion_roles, name='dev_gestion_roles'),
+    path('roles/crear/', views.crear_rol, name='dev_crear_rol'),
+    path('roles/editar/<int:pk>/', views.editar_rol, name='dev_editar_rol'),
+    path('roles/eliminar/<int:pk>/', views.eliminar_rol, name='dev_eliminar_rol'),
+    path('roles/toggle/<int:pk>/', views.toggle_rol_activo, name='dev_toggle_rol'),
+    path('roles/<int:pk>/atributos/agregar/', views.agregar_atributo_rol, name='dev_agregar_atributo_rol'),
+    path('roles/<int:pk>/atributos/eliminar/<str:atributo_nombre>/', views.eliminar_atributo_rol, name='dev_eliminar_atributo_rol'),
 ]

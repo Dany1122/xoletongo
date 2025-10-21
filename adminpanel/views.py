@@ -119,14 +119,16 @@ def lista_usuarios(request):
 
 def editar_usuario(request, id):
     usuario = get_object_or_404(CustomUser, id=id)
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
     if request.method == 'POST':
-        form = CustomUserEditForm(request.POST, instance=usuario)
+        form = CustomUserEditForm(request.POST, instance=usuario, empresa=empresa_activa)
         if form.is_valid():
             form.save()
             registrar_novedad(request.user, f"Editó el usuario: {usuario.username}")
             return redirect('/adminpanel/usuarios/?editado=1')
     else:
-        form = CustomUserEditForm(instance=usuario)
+        form = CustomUserEditForm(instance=usuario, empresa=empresa_activa)
     return render(request, 'editar_usuario.html', {'form': form})
 
 def eliminar_usuario(request, id):
@@ -136,14 +138,19 @@ def eliminar_usuario(request, id):
     return redirect('/adminpanel/usuarios/?eliminado=1')
 
 def agregar_usuario(request):
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
     if request.method == 'POST':
-        form = CustomUserForm(request.POST)
+        form = CustomUserForm(request.POST, empresa=empresa_activa)
         if form.is_valid():
-            usuario=form.save()
+            usuario = form.save(commit=False)
+            if empresa_activa:
+                usuario.empresa = empresa_activa
+            usuario.save()
             registrar_novedad(request.user, f"Agregó un usuario: {usuario.username}")
             return redirect('/adminpanel/usuarios/?creado=1')
     else:
-        form = CustomUserForm()
+        form = CustomUserForm(empresa=empresa_activa)
     return render(request, 'agregar_usuario.html', {'form': form})
 
 def kanban_ventas(request):

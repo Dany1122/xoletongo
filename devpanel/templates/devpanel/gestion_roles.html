@@ -1,0 +1,421 @@
+{% extends 'base_dev.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-user-tag mr-2"></i>
+        Gestión de Roles
+    </h1>
+    <button class="btn btn-success" data-toggle="modal" data-target="#modalNuevoRol">
+        <i class="fas fa-plus"></i> Nuevo Rol
+    </button>
+</div>
+
+<p class="mb-4 text-muted">
+    Los roles definen categorías de usuarios con atributos específicos. Por ejemplo: "Guía Turístico", "Chef", "Contador", etc.
+</p>
+
+<!-- Lista de Roles -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list"></i> Roles Definidos
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Usuarios Asignados</th>
+                        <th>Atributos Personalizados</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rol in roles %}
+                    <tr>
+                        <td class="align-middle">
+                            <strong>{{ rol.nombre }}</strong>
+                        </td>
+                        <td class="align-middle">
+                            {{ rol.descripcion|truncatewords:10|default:"Sin descripción" }}
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="badge badge-info">{{ rol.num_usuarios }}</span>
+                        </td>
+                        <td class="align-middle text-center">
+                            <span class="badge badge-secondary">{{ rol.atributos_schema|length }}</span>
+                        </td>
+                        <td class="align-middle">
+                            {% if rol.activo %}
+                            <span class="badge badge-success">Activo</span>
+                            {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center align-middle">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#modalVerRol{{ rol.id }}" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalEditarRol{{ rol.id }}" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#modalAtributosRol{{ rol.id }}" title="Gestionar atributos">
+                                    <i class="fas fa-cogs"></i>
+                                </button>
+                                {% if rol.num_usuarios == 0 %}
+                                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalEliminarRol{{ rol.id }}" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">
+                            No hay roles definidos para esta empresa. Crea uno para empezar.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nuevo Rol -->
+<div class="modal fade" id="modalNuevoRol" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'dev_crear_rol' %}">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus"></i> Crear Nuevo Rol
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="nombre">Nombre del Rol *</label>
+                        <input type="text" name="nombre" id="nombre" class="form-control" placeholder="Ej: Guía Turístico" required>
+                        <small class="form-text text-muted">Nombre que identifica este rol</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcion">Descripción</label>
+                        <textarea name="descripcion" id="descripcion" class="form-control" rows="3" placeholder="Describe las responsabilidades de este rol..."></textarea>
+                        <small class="form-text text-muted">Explica para qué sirve este rol</small>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" name="activo" id="activo" class="form-check-input" checked>
+                        <label class="form-check-label" for="activo">
+                            Rol activo (puede ser asignado a usuarios)
+                        </label>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle"></i> <strong>Nota:</strong> Después de crear el rol, podrás agregar atributos personalizados (campos adicionales específicos de este rol).
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Crear Rol
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modales de Ver Rol -->
+{% for rol in roles %}
+<div class="modal fade" id="modalVerRol{{ rol.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Detalles del Rol: {{ rol.nombre }}
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ rol.nombre }}</p>
+                        <p><strong>Estado:</strong> 
+                            {% if rol.activo %}
+                            <span class="badge badge-success">Activo</span>
+                            {% else %}
+                            <span class="badge badge-danger">Inactivo</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Usuarios asignados:</strong> {{ rol.num_usuarios }}</p>
+                        <p><strong>Usuarios activos:</strong> {{ rol.usuarios_activos }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <p><strong>Descripción:</strong></p>
+                <p>{{ rol.descripcion|default:"Sin descripción" }}</p>
+                
+                <hr>
+                
+                <p><strong>Atributos Personalizados ({{ rol.atributos_schema|length }}):</strong></p>
+                {% if rol.atributos_schema %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Campo</th>
+                                <th>Tipo</th>
+                                <th>Requerido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attr in rol.atributos_schema %}
+                            <tr>
+                                <td>{{ attr.nombre }}</td>
+                                <td>
+                                    <span class="badge badge-light">{{ attr.tipo }}</span>
+                                </td>
+                                <td>
+                                    {% if attr.requerido %}
+                                    <i class="fas fa-check text-success"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">Este rol no tiene atributos personalizados definidos.</p>
+                {% endif %}
+                
+                <hr>
+                
+                <p class="text-muted small">
+                    <strong>Creado:</strong> {{ rol.creado_en|date:"d/m/Y H:i" }}<br>
+                    <strong>Última actualización:</strong> {{ rol.actualizado_en|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Rol -->
+<div class="modal fade" id="modalEditarRol{{ rol.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'dev_editar_rol' rol.id %}">
+                {% csrf_token %}
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit"></i> Editar Rol: {{ rol.nombre }}
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="nombre_edit_{{ rol.id }}">Nombre del Rol *</label>
+                        <input type="text" name="nombre" id="nombre_edit_{{ rol.id }}" class="form-control" value="{{ rol.nombre }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcion_edit_{{ rol.id }}">Descripción</label>
+                        <textarea name="descripcion" id="descripcion_edit_{{ rol.id }}" class="form-control" rows="3">{{ rol.descripcion }}</textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input type="checkbox" name="activo" id="activo_edit_{{ rol.id }}" class="form-check-input" {% if rol.activo %}checked{% endif %}>
+                        <label class="form-check-label" for="activo_edit_{{ rol.id }}">
+                            Rol activo
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Rol -->
+<div class="modal fade" id="modalEliminarRol{{ rol.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'dev_eliminar_rol' rol.id %}">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-trash"></i> Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el rol <strong>{{ rol.nombre }}</strong>?</p>
+                    
+                    {% if rol.num_usuarios > 0 %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>No se puede eliminar:</strong> Este rol tiene {{ rol.num_usuarios }} usuario(s) asignado(s). Primero debes reasignar estos usuarios a otro rol.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Advertencia:</strong> Esta acción no se puede deshacer. Se eliminarán también los atributos personalizados definidos para este rol.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    {% if rol.num_usuarios == 0 %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Rol
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Gestionar Atributos -->
+<div class="modal fade" id="modalAtributosRol{{ rol.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs"></i> Atributos Personalizados: {{ rol.nombre }}
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Los atributos personalizados son campos adicionales que se solicitarán a los usuarios con este rol.</p>
+                
+                <!-- Lista de atributos existentes -->
+                {% if rol.atributos_schema %}
+                <h6>Atributos actuales:</h6>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Campo</th>
+                                <th>Tipo</th>
+                                <th>Requerido</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attr in rol.atributos_schema %}
+                            <tr>
+                                <td>{{ attr.nombre }}</td>
+                                <td><span class="badge badge-light">{{ attr.tipo }}</span></td>
+                                <td>
+                                    {% if attr.requerido %}
+                                    <i class="fas fa-check text-success"></i>
+                                    {% else %}
+                                    <i class="fas fa-times text-danger"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <form method="POST" action="{% url 'dev_eliminar_atributo_rol' rol.id attr.nombre %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este atributo?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Este rol aún no tiene atributos personalizados.
+                </div>
+                {% endif %}
+                
+                <hr>
+                
+                <!-- Formulario para agregar nuevo atributo -->
+                <h6>Agregar nuevo atributo:</h6>
+                <form method="POST" action="{% url 'dev_agregar_atributo_rol' rol.id %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="nombre_attr_{{ rol.id }}">Nombre *</label>
+                            <input type="text" name="nombre" id="nombre_attr_{{ rol.id }}" class="form-control" placeholder="Ej: Certificación" required>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="tipo_attr_{{ rol.id }}">Tipo *</label>
+                            <select name="tipo" id="tipo_attr_{{ rol.id }}" class="form-control" required>
+                                <option value="texto">Texto</option>
+                                <option value="numero">Número</option>
+                                <option value="email">Email</option>
+                                <option value="telefono">Teléfono</option>
+                                <option value="fecha">Fecha</option>
+                                <option value="booleano">Sí/No</option>
+                                <option value="seleccion">Selección (lista)</option>
+                                <option value="texto_largo">Texto largo</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="opciones_attr_{{ rol.id }}">Opciones</label>
+                            <input type="text" name="opciones" id="opciones_attr_{{ rol.id }}" class="form-control" placeholder="Op1, Op2, Op3">
+                            <small class="form-text text-muted">Solo para tipo "Selección"</small>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="requerido" id="requerido_attr_{{ rol.id }}" class="form-check-input">
+                        <label class="form-check-label" for="requerido_attr_{{ rol.id }}">
+                            Campo obligatorio
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Agregar Atributo
+                    </button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
