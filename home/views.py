@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.views import View
 from servicios.models import ImagenServicio
+from empresas.models import Empresa
+from devpanel.models import Pagina, Seccion
 
 # Create your views here.
 class HomeView(View):
@@ -9,7 +11,22 @@ class HomeView(View):
 
 # Home
 def index(request):
-    return render(request, 'home/index.html')
+    # Obtener empresa activa y sus secciones
+    empresa = Empresa.objects.filter(activa=True).first()
+    secciones = []
+    
+    if empresa:
+        try:
+            pagina_home = Pagina.objects.get(empresa=empresa, slug='home')
+            secciones = Seccion.objects.filter(pagina=pagina_home, activa=True).order_by('orden')
+        except Pagina.DoesNotExist:
+            pass
+    
+    context = {
+        'secciones': secciones,
+        'empresa': empresa,
+    }
+    return render(request, 'index.html', context)
 
 def nosotros(request):
     return render(request, 'nosotros.html')

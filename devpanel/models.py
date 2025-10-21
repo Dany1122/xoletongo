@@ -3,6 +3,77 @@ from empresas.models import Empresa
 
 # Create your models here.
 
+class Pagina(models.Model):
+    """
+    Representa una página del sitio web (Home, Servicios, Productos, etc.)
+    """
+    PAGINA_CHOICES = [
+        ('home', 'Inicio'),
+        ('servicios', 'Servicios'),
+        ('productos', 'Productos'),
+        ('nosotros', 'Nosotros'),
+        ('galeria', 'Galería'),
+        ('contacto', 'Contacto'),
+    ]
+    
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='paginas')
+    slug = models.CharField(max_length=50, choices=PAGINA_CHOICES)
+    titulo = models.CharField(max_length=200)
+    activa = models.BooleanField(default=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('empresa', 'slug')
+        ordering = ['slug']
+        verbose_name = 'Página'
+        verbose_name_plural = 'Páginas'
+    
+    def __str__(self):
+        return f"{self.empresa.nombre} - {self.get_slug_display()}"
+
+
+class Seccion(models.Model):
+    """
+    Representa una sección dentro de una página (Hero, Carousel, Texto, etc.)
+    """
+    TIPO_CHOICES = [
+        ('hero', 'Hero (Banner Principal)'),
+        ('texto', 'Bloque de Texto'),
+        ('carousel', 'Carrusel de Imágenes'),
+        ('galeria', 'Galería de Imágenes'),
+        ('features', 'Características/Beneficios'),
+        ('cta', 'Call to Action'),
+        ('testimonios', 'Testimonios'),
+        ('mapa', 'Mapa'),
+    ]
+    
+    pagina = models.ForeignKey(Pagina, on_delete=models.CASCADE, related_name='secciones')
+    tipo = models.CharField(max_length=50, choices=TIPO_CHOICES)
+    titulo = models.CharField(max_length=200, blank=True, help_text="Título interno para identificar la sección")
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición (menor número = más arriba)")
+    activa = models.BooleanField(default=True)
+    
+    # JSONField para guardar toda la configuración específica de cada tipo de sección
+    configuracion = models.JSONField(
+        default=dict, 
+        blank=True,
+        help_text="Configuración específica de la sección (título, subtítulo, imágenes, etc.)"
+    )
+    
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['orden', 'creado_en']
+        verbose_name = 'Sección'
+        verbose_name_plural = 'Secciones'
+    
+    def __str__(self):
+        titulo_display = self.titulo or self.get_tipo_display()
+        return f"{self.pagina.slug} - {titulo_display} (Orden: {self.orden})"
+
+
 class CustomAttribute(models.Model):
     """
     Define un atributo personalizado para un modelo específico de una empresa.

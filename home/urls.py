@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
+    path('', views.index, name='home'),  # Usando la función index con secciones dinámicas
    # Acerca de Nosotros
     path('nosotros/', views.nosotros, name='nosotros'),
 

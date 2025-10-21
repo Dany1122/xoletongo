@@ -1,0 +1,59 @@
+{% load static %}
+<!-- about_area -->
+<div class="about_area" {% if seccion.configuracion.fondo_color %}style="background-color: {{ seccion.configuracion.fondo_color }};"{% endif %}>
+    <div class="container">
+        <div class="row">
+            {% if seccion.configuracion.layout == 'text-left-images-right' %}
+            <!-- Texto a la izquierda, imágenes a la derecha -->
+            <div class="col-xl-5 col-lg-5">
+                <div class="about_info">
+                    <div class="section_title mb-20px">
+                        <span>{{ seccion.configuracion.subtitulo }}</span>
+                        <h3>{{ seccion.configuracion.titulo|safe }}</h3>
+                    </div>
+                    <p>{{ seccion.configuracion.contenido }}</p>
+                    {% if seccion.configuracion.boton_texto %}
+                    <a href="{{ seccion.configuracion.boton_url }}" class="line-button">{{ seccion.configuracion.boton_texto }}</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-xl-7 col-lg-7">
+                <div class="about_thumb d-flex">
+                    {% if seccion.configuracion.imagen_1 %}
+                    <div class="img_1"><img src="{% static seccion.configuracion.imagen_1 %}" alt=""></div>
+                    {% endif %}
+                    {% if seccion.configuracion.imagen_2 %}
+                    <div class="img_2"><img src="{% static seccion.configuracion.imagen_2 %}" alt=""></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <!-- Imágenes a la izquierda, texto a la derecha -->
+            <div class="col-xl-7 col-lg-7">
+                <div class="about_thumb2 d-flex">
+                    {% if seccion.configuracion.imagen_1 %}
+                    <div class="img_1"><img src="{% static seccion.configuracion.imagen_1 %}" alt=""></div>
+                    {% endif %}
+                    {% if seccion.configuracion.imagen_2 %}
+                    <div class="img_2"><img src="{% static seccion.configuracion.imagen_2 %}" alt=""></div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-xl-5 col-lg-5">
+                <div class="about_info">
+                    <div class="section_title mb-20px">
+                        <span>{{ seccion.configuracion.subtitulo }}</span>
+                        <h3>{{ seccion.configuracion.titulo|safe }}</h3>
+                    </div>
+                    <p>{{ seccion.configuracion.contenido }}</p>
+                    {% if seccion.configuracion.boton_texto %}
+                    <a href="{{ seccion.configuracion.boton_url }}" class="line-button">{{ seccion.configuracion.boton_texto }}</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- about_area_end -->
+
