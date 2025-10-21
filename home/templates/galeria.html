@@ -6,6 +6,22 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Secciones dinámicas desde la BD -->
+{% for seccion in secciones %}
+    {% if seccion.tipo == 'hero' %}
+        {% include 'secciones/hero.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'galeria' %}
+        {% include 'secciones/galeria_dinamica.html' with seccion=seccion imagenes=imagenes %}
+    {% elif seccion.tipo == 'carousel' %}
+        {% include 'secciones/carousel.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'texto' %}
+        {% include 'secciones/texto.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'cta' %}
+        {% include 'secciones/cta.html' with seccion=seccion %}
+    {% endif %}
+{% empty %}
+<!-- Fallback: Galería por defecto con imágenes de servicios -->
 <link rel="stylesheet" href="{% static 'css/galeria.css' %}">
 
 <div class="bradcam_area breadcam_bg_2">
@@ -46,4 +62,6 @@
         document.getElementById("modal").style.display = "none";
     }
 </script>
+{% endfor %}
+
 {% endblock %}

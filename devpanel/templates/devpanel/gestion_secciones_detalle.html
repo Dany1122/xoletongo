@@ -70,6 +70,26 @@
                                 <span class="badge badge-danger">
                                     <i class="fas fa-bullhorn"></i> {{ seccion.get_tipo_display }}
                                 </span>
+                            {% elif seccion.tipo == 'galeria' %}
+                                <span class="badge badge-dark">
+                                    <i class="fas fa-images"></i> {{ seccion.get_tipo_display }}
+                                </span>
+                            {% elif seccion.tipo == 'mapa' %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-map-marker-alt"></i> {{ seccion.get_tipo_display }}
+                                </span>
+                            {% elif seccion.tipo == 'instagram' %}
+                                <span class="badge badge-light" style="color: #E1306C; border: 1px solid #E1306C;">
+                                    <i class="fab fa-instagram"></i> {{ seccion.get_tipo_display }}
+                                </span>
+                            {% elif seccion.tipo == 'contacto_form' %}
+                                <span class="badge badge-primary">
+                                    <i class="fas fa-envelope"></i> {{ seccion.get_tipo_display }}
+                                </span>
+                            {% elif seccion.tipo == 'servicios_accordion' %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-th-large"></i> {{ seccion.get_tipo_display }}
+                                </span>
                             {% else %}
                                 <span class="badge badge-secondary">
                                     {{ seccion.get_tipo_display }}
@@ -185,6 +205,9 @@
                             <option value="cta">📢 Call to Action</option>
                             <option value="galeria">🖼️ Galería de Imágenes</option>
                             <option value="mapa">🗺️ Mapa</option>
+                            <option value="instagram">📷 Instagram Feed</option>
+                            <option value="contacto_form">📧 Formulario de Contacto</option>
+                            <option value="servicios_accordion">🎴 Tarjetas de Servicios</option>
                         </select>
                         <small class="form-text text-muted">Elige el tipo de contenido que quieres mostrar</small>
                     </div>
@@ -255,6 +278,9 @@
                                     <option value="cta" {% if seccion.tipo == 'cta' %}selected{% endif %}>📢 Call to Action</option>
                                     <option value="galeria" {% if seccion.tipo == 'galeria' %}selected{% endif %}>🖼️ Galería de Imágenes</option>
                                     <option value="mapa" {% if seccion.tipo == 'mapa' %}selected{% endif %}>🗺️ Mapa</option>
+                                    <option value="instagram" {% if seccion.tipo == 'instagram' %}selected{% endif %}>📷 Instagram Feed</option>
+                                    <option value="contacto_form" {% if seccion.tipo == 'contacto_form' %}selected{% endif %}>📧 Formulario de Contacto</option>
+                                    <option value="servicios_accordion" {% if seccion.tipo == 'servicios_accordion' %}selected{% endif %}>🎴 Tarjetas de Servicios</option>
                                 </select>
                             </div>
                             

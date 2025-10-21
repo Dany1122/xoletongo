@@ -5,250 +5,44 @@
     Nosotros
 {% endblock %}
 
-
 {% block content %}
-    <!-- bradcam_area_start -->
-    <div class="bradcam_area breadcam_bg">
-        <div class="overlay"></div>
-        <h3>Sobre nosotros</h3>
-    </div>
-    <!-- bradcam_area_end -->
 
-    <!-- about_main_info_start -->
-    <div class="about_main_info">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-6 col-md-6">
-                    <div class="single_about_info">
-                        <h3>Objetivo</h3>
-                            <p>Cuidar y mantener el medio ambiente del entorno natural de la flora y fauna en condiciones óptimas,
-                               para la conservación de nuestros bosques y aprovecharlos de manera no extractiva para el disfrute de
-                               quien guste de la naturaleza.
-                            </p>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-md-6">
-                    <div class="single_about_info">
-                        <h3>Visión</h3>
-                            <p>Ofrecer experiencias vivas de calidad bajo normas sustentables, y que los visitantes se lleven un bonito recuerdo.</p>
-                    </div>
-                </div>
-                <div class="col-xl-6 col-md-6">
-                    <div class="single_about_info">
-                        <h3>Misión</h3>
-                            <p>Rescatar y conservar las tradiciones y costumbres de nuestros Pueblos, bajo una base de sustentabilidad amigable con el medio ambiente.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- about_main_info_end -->
+<!-- Secciones dinámicas desde la BD -->
+{% for seccion in secciones %}
+    {% if seccion.tipo == 'hero' %}
+        {% include 'secciones/hero.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'features' %}
+        {% if seccion.configuracion.estilo == 'cards' %}
+            {% include 'secciones/features_cards.html' with seccion=seccion %}
+        {% else %}
+            {% include 'secciones/features.html' with seccion=seccion %}
+        {% endif %}
+    {% elif seccion.tipo == 'texto' %}
+        {% include 'secciones/texto.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'carousel' %}
+        {% if seccion.configuracion.estilo == 'simple' %}
+            {% include 'secciones/carousel_simple.html' with seccion=seccion %}
+        {% else %}
+            {% include 'secciones/carousel.html' with seccion=seccion %}
+        {% endif %}
+    {% elif seccion.tipo == 'cta' %}
+        {% include 'secciones/cta.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'testimonios' %}
+        {% include 'secciones/testimonios.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'galeria' %}
+        {% include 'secciones/galeria_imagenes.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'mapa' %}
+        {% include 'secciones/mapa.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'instagram' %}
+        {% include 'secciones/instagram.html' with seccion=seccion %}
+    {% endif %}
+{% empty %}
+<!-- Fallback: Si no hay secciones, mostrar contenido por defecto -->
+<div class="alert alert-info text-center m-5">
+    <h3>Esta página aún no tiene contenido configurado</h3>
+    <p>Por favor, configura las secciones desde el Panel de Desarrollo</p>
+    <a href="/dev/secciones/nosotros/" class="btn btn-primary">Ir a configurar</a>
+</div>
+{% endfor %}
 
-    <!-- about_area_start -->
-    <div class="about_area">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-5 col-lg-5">
-                    <div class="about_info">
-                        <div class="section_title mb-20px">
-                            <span>Xoletongo</span>
-                            <h3>DESDE EL CORAZÓN</h3>
-                        </div>
-                        <p>En el espolón de la sierra nevada del Ixtapopo, en el municipio de Nanacamilpa de Mariano Arista estado de Tlaxcala, en los bosques de coníferas en la comunidad de San Felipe Hidalgo encontrarás un lugar que te ofrece las mejores experiencias en Turismo de Naturaleza y Gastro Turismo, sobre todo en los meses de junio, julio y agosto; en donde la oscuridad en el bosque se llena de magia con miles de destellos bioluminiscentes que emiten las luciérnagas, en un ritual lleno de misticismo.</p>
-                        <a href="#" class="line-button">Learn More</a>
-                    </div>
-                </div>
-                <div class="col-xl-7 col-lg-7">
-                    <div class="about_thumb d-flex">
-                        <div class="img_1">
-                            <img src="{% static 'img/about/about_1.png' %}" alt="">
-                        </div>
-                        <div class="img_2">
-                            <img src="{% static 'img/about/about_2.png' %}" alt="">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- about_area_end -->
-
-    <!-- about_info_area_start -->
-    <div class="about_info_area">
-        <div class="about_active owl-carousel">
-            <div class="single_slider about_bg_1"></div>
-            <div class="single_slider about_bg_1"></div>
-            <div class="single_slider about_bg_1"></div>
-            <div class="single_slider about_bg_1"></div>
-        </div>
-    </div>
-    <!-- about_info_area_start -->
-
-    
-
-    <!-- forQuery_start -->
-    <div class="forQuery">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-10 offset-xl-1 col-md-12">
-                    <div class="Query_border">
-                        <div class="row align-items-center justify-content-center">
-                            <div class="col-xl-6 col-md-6">
-                                <div class="Query_text">
-                                    <p>¿Tienes alguna pregunta? ¡Contáctanos!</p>
-                                </div>
-                            </div>
-                            <div class="col-xl-6 col-md-6">
-                                <div class="phone_num">
-                                    <a href="https://wa.me/5211234567890" target="_blank" class="whatsapp-btn">
-                                        <i class="fa fa-whatsapp"></i>
-                                        +52 748 106 5103
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- forQuery_end-->
-
-    <!-- instragram_area_start -->
-    <div class="instragram_area">
-        <div class="single_instagram">
-            <img src="img/instragram/1.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/2.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/3.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/4.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-        <div class="single_instagram">
-            <img src="img/instragram/5.png" alt="">
-            <div class="ovrelay">
-                <a href="#">
-                    <i class="fa fa-instagram"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    <!-- instragram_area_end -->
-
-    <!-- form itself end-->
-    <form id="test-form" class="white-popup-block mfp-hide">
-        <div class="popup_box ">
-                <div class="popup_inner">
-                    <h3>Check Availability</h3>
-                    <form action="#">
-                        <div class="row">
-                            <div class="col-xl-6">
-                                <input id="datepicker" placeholder="Check in date">
-                            </div>
-                            <div class="col-xl-6">
-                                <input id="datepicker2" placeholder="Check out date">
-                            </div>
-                            <div class="col-xl-6">
-                                <select class="form-select wide" id="default-select" class="">
-                                    <option data-display="Adult">1</option>
-                                    <option value="1">2</option>
-                                    <option value="2">3</option>
-                                    <option value="3">4</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-6">
-                                <select class="form-select wide" id="default-select" class="">
-                                    <option data-display="Children">1</option>
-                                    <option value="1">2</option>
-                                    <option value="2">3</option>
-                                    <option value="3">4</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-12">
-                                <select class="form-select wide" id="default-select" class="">
-                                    <option data-display="Room type">Room type</option>
-                                    <option value="1">Laxaries Rooms</option>
-                                    <option value="2">Deluxe Room</option>
-                                    <option value="3">Signature Room</option>
-                                    <option value="4">Couple Room</option>
-                                </select>
-                            </div>
-                            <div class="col-xl-12">
-                                <button type="submit" class="boxed-btn3">Check Availability</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-    </form>
-<!-- form itself end -->
-
-
-    <!-- JS here -->
-    <script src="js/vendor/modernizr-3.5.0.min.js"></script>
-    <script src="js/vendor/jquery-1.12.4.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/owl.carousel.min.js"></script>
-    <script src="js/isotope.pkgd.min.js"></script>
-    <script src="js/ajax-form.js"></script>
-    <script src="js/waypoints.min.js"></script>
-    <script src="js/jquery.counterup.min.js"></script>
-    <script src="js/imagesloaded.pkgd.min.js"></script>
-    <script src="js/scrollIt.js"></script>
-    <script src="js/jquery.scrollUp.min.js"></script>
-    <script src="js/wow.min.js"></script>
-    <script src="js/nice-select.min.js"></script>
-    <script src="js/jquery.slicknav.min.js"></script>
-    <script src="js/jquery.magnific-popup.min.js"></script>
-    <script src="js/plugins.js"></script>
-    <script src="js/gijgo.min.js"></script>
-
-    <!--contact js-->
-    <script src="js/contact.js"></script>
-    <script src="js/jquery.ajaxchimp.min.js"></script>
-    <script src="js/jquery.form.js"></script>
-    <script src="js/jquery.validate.min.js"></script>
-    <script src="js/mail-script.js"></script>
-
-    <script src="js/main.js"></script>
-    <script>
-        $('#datepicker').datepicker({
-            iconsLibrary: 'fontawesome',
-            icons: {
-             rightIcon: '<span class="fa fa-caret-down"></span>'
-         }
-        });
-        $('#datepicker2').datepicker({
-            iconsLibrary: 'fontawesome',
-            icons: {
-             rightIcon: '<span class="fa fa-caret-down"></span>'
-         }
-
-        });
-    </script>
 {% endblock %}

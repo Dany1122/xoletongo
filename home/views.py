@@ -4,6 +4,25 @@ from servicios.models import ImagenServicio
 from empresas.models import Empresa
 from devpanel.models import Pagina, Seccion
 
+def get_pagina_secciones(slug_pagina):
+    """
+    Helper function para obtener las secciones de una página
+    """
+    empresa = Empresa.objects.filter(activa=True).first()
+    secciones = []
+    
+    if empresa:
+        try:
+            pagina = Pagina.objects.get(empresa=empresa, slug=slug_pagina)
+            secciones = Seccion.objects.filter(pagina=pagina, activa=True).order_by('orden')
+        except Pagina.DoesNotExist:
+            pass
+    
+    return {
+        'secciones': secciones,
+        'empresa': empresa,
+    }
+
 # Create your views here.
 class HomeView(View):
     def get(self, request):
@@ -11,25 +30,12 @@ class HomeView(View):
 
 # Home
 def index(request):
-    # Obtener empresa activa y sus secciones
-    empresa = Empresa.objects.filter(activa=True).first()
-    secciones = []
-    
-    if empresa:
-        try:
-            pagina_home = Pagina.objects.get(empresa=empresa, slug='home')
-            secciones = Seccion.objects.filter(pagina=pagina_home, activa=True).order_by('orden')
-        except Pagina.DoesNotExist:
-            pass
-    
-    context = {
-        'secciones': secciones,
-        'empresa': empresa,
-    }
+    context = get_pagina_secciones('home')
     return render(request, 'index.html', context)
 
 def nosotros(request):
-    return render(request, 'nosotros.html')
+    context = get_pagina_secciones('nosotros')
+    return render(request, 'nosotros.html', context)
 
 # Servicios
 def avistamiento(request):
@@ -78,16 +84,15 @@ def luciernagas_visita(request):
 
 # Galería
 def galeria(request):
-    return render(request, 'galeria.html')
+    context = get_pagina_secciones('galeria')
+    # Mantener funcionalidad de imágenes
+    imagenes = ImagenServicio.objects.all()
+    context['imagenes'] = imagenes
+    return render(request, 'galeria.html', context)
 
 # Contacto
 def contacto(request):
-    return render(request, 'contacto.html')
-
-
-
-def galeria(request):
-    imagenes = ImagenServicio.objects.all()  # Obtener todas las imágenes almacenadas
-    return render(request, 'galeria.html', {'imagenes': imagenes})
+    context = get_pagina_secciones('contacto')
+    return render(request, 'contacto.html', context)
 
 

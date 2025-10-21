@@ -1,0 +1,16 @@
+{% load static %}
+<!-- instragram_area_start -->
+<div class="instragram_area">
+    {% for item in seccion.configuracion.imagenes %}
+    <div class="single_instagram">
+        <img src="{% static item.imagen %}" alt="{{ item.alt|default:'' }}">
+        <div class="ovrelay">
+            <a href="{% if item.url %}{{ item.url }}{% else %}#{% endif %}" {% if item.url %}target="_blank"{% endif %}>
+                <i class="fa fa-instagram"></i>
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<!-- instragram_area_end -->
+

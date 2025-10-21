@@ -46,6 +46,9 @@ class Seccion(models.Model):
         ('cta', 'Call to Action'),
         ('testimonios', 'Testimonios'),
         ('mapa', 'Mapa'),
+        ('instagram', 'Instagram Feed'),
+        ('contacto_form', 'Formulario de Contacto'),
+        ('servicios_accordion', 'Tarjetas de Servicios'),
     ]
     
     pagina = models.ForeignKey(Pagina, on_delete=models.CASCADE, related_name='secciones')

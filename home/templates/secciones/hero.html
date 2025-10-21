@@ -1,0 +1,13 @@
+{% load static %}
+<!-- Hero/Breadcrumb area -->
+<div class="bradcam_area {% if seccion.configuracion.bg_class %}{{ seccion.configuracion.bg_class }}{% else %}breadcam_bg{% endif %}">
+    <div class="overlay"></div>
+    {% if seccion.configuracion.titulo %}
+    <h3>{{ seccion.configuracion.titulo }}</h3>
+    {% endif %}
+    {% if seccion.configuracion.subtitulo %}
+    <p>{{ seccion.configuracion.subtitulo }}</p>
+    {% endif %}
+</div>
+<!-- Hero end -->
+

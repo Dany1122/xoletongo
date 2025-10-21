@@ -1,0 +1,50 @@
+{% load static %}
+<!-- Galería dinámica desde BD (ImagenServicio) -->
+<link rel="stylesheet" href="{% static 'css/galeria.css' %}">
+
+<section class="galeria-container">
+    {% if imagenes %}
+        {% for imagen in imagenes %}
+        <div class="imagen-box">
+            <img src="{{ imagen.imagen.url }}" alt="{{ imagen.descripcion }}" onclick="abrirModal(this)">
+            {% if imagen.descripcion %}
+                <div class="descripcion">{{ imagen.descripcion }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% elif seccion.configuracion.imagenes %}
+        {% for img in seccion.configuracion.imagenes %}
+        <div class="imagen-box">
+            <img src="{% static img.src %}" alt="{{ img.alt }}" onclick="abrirModal(this)">
+            {% if img.descripcion %}
+                <div class="descripcion">{{ img.descripcion }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+</section>
+
+<!-- Modal para imágenes -->
+<div id="modal" class="modal">
+    <span class="cerrar" onclick="cerrarModal()">&times;</span>
+    <img class="modal-contenido" id="imgModal">
+    <div id="caption"></div>
+</div>
+
+<script>
+    function abrirModal(imagen) {
+        var modal = document.getElementById("modal");
+        var modalImg = document.getElementById("imgModal");
+        var caption = document.getElementById("caption");
+
+        modal.style.display = "block";
+        modalImg.src = imagen.src;
+        caption.innerHTML = imagen.alt;
+    }
+
+    function cerrarModal() {
+        document.getElementById("modal").style.display = "none";
+    }
+</script>
+<!-- Galería end -->
+
