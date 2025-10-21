@@ -29,4 +29,14 @@ urlpatterns = [
     path('roles/toggle/<int:pk>/', views.toggle_rol_activo, name='dev_toggle_rol'),
     path('roles/<int:pk>/atributos/agregar/', views.agregar_atributo_rol, name='dev_agregar_atributo_rol'),
     path('roles/<int:pk>/atributos/eliminar/<str:atributo_nombre>/', views.eliminar_atributo_rol, name='dev_eliminar_atributo_rol'),
+    
+    # Ajustes Gráficos
+    path('ajustes-graficos/', views.ajustes_graficos, name='dev_ajustes_graficos'),
+    
+    # Gestión de Staff
+    path('staff/', views.gestion_staff, name='dev_gestion_staff'),
+    path('staff/crear/', views.crear_staff, name='dev_crear_staff'),
+    path('staff/editar/<int:pk>/', views.editar_staff, name='dev_editar_staff'),
+    path('staff/eliminar/<int:pk>/', views.eliminar_staff, name='dev_eliminar_staff'),
+    path('staff/toggle/<int:pk>/', views.toggle_staff_activo, name='dev_toggle_staff'),
 ]

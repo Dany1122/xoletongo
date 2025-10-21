@@ -64,6 +64,19 @@ class Tema(models.Model):
     ]
     estilo_layout = models.CharField(max_length=20, choices=ESTILO_CHOICES, default='moderno')
     
+    # Estilo de navbar
+    NAVBAR_ESTILO_CHOICES = [
+        ('transparente_scroll', 'Transparente con scroll'),
+        ('color_primario', 'Siempre color primario'),
+        ('negro', 'Siempre negro'),
+    ]
+    navbar_estilo = models.CharField(
+        max_length=30,
+        choices=NAVBAR_ESTILO_CHOICES,
+        default='color_primario',
+        help_text='Estilo de la barra de navegación'
+    )
+    
     # Imágenes del tema
     logo_header = models.ImageField(upload_to='temas/logos/', null=True, blank=True, help_text="Logo para el header")
     imagen_hero = models.ImageField(upload_to='temas/hero/', null=True, blank=True, help_text="Imagen principal del home")

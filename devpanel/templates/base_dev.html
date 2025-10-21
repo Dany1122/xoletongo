@@ -30,6 +30,13 @@
                     <span>Gestionar Empresas</span>
                 </a>
             </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dev_gestion_staff' %}">
+                    <i class="fas fa-fw fa-user-shield"></i>
+                    <span>Staff del Sistema</span>
+                </a>
+            </li>
 
             {% if request.session.empresa_activa_id %}
             <hr class="sidebar-divider">
@@ -53,8 +60,8 @@
                     <span>Roles</span>
                 </a>
             </li>
-            <li class="nav-item disabled">
-                <a class="nav-link" href="#">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dev_ajustes_graficos' %}">
                     <i class="fas fa-fw fa-palette"></i>
                     <span>Ajustes Gráficos</span>
                 </a>

@@ -4,9 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
 from empresas.models import Empresa
 from .models import CustomAttribute, Pagina, Seccion, Rol
-from .forms import EmpresaForm, CustomAttributeForm, SeccionBaseForm, SeccionConfigForm, RolForm, AtributoSchemaForm
+from .forms import EmpresaForm, CustomAttributeForm, SeccionBaseForm, SeccionConfigForm, RolForm, AtributoSchemaForm, TemaForm, SuperuserForm, SuperuserEditForm
 from django.db.models import F, Count
 from django.http import JsonResponse
+from empresas.models import Tema
+from usuarios.models import CustomUser
 
 @login_required
 def gestion_empresas(request):
@@ -556,3 +558,169 @@ def eliminar_atributo_rol(request, pk, atributo_nombre):
         return redirect('dev_gestion_roles')
     
     return redirect('dev_gestion_roles')
+
+
+# ==================== AJUSTES GRÁFICOS ====================
+
+@login_required
+def ajustes_graficos(request):
+    """Vista para gestionar ajustes gráficos (editar tema de la empresa activa)"""
+    if not request.user.is_superuser:
+        return redirect('admin_dashboard')
+    
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.warning(request, "Por favor, activa una empresa para poder gestionar sus ajustes gráficos.")
+        return redirect('dev_gestion_empresas')
+    
+    empresa_activa = Empresa.objects.get(id=empresa_activa_id)
+    
+    # Obtener o crear tema para la empresa
+    tema = empresa_activa.tema
+    if not tema:
+        # Crear tema por defecto si no existe
+        tema = Tema.objects.create(
+            nombre=f"Tema {empresa_activa.nombre}",
+            color_primario='#4CAF50',
+            color_secundario='#2196F3',
+            color_acento='#FF9800',
+            color_texto='#333333',
+            color_fondo='#FFFFFF',
+            activo=True
+        )
+        empresa_activa.tema = tema
+        empresa_activa.save()
+    
+    if request.method == 'POST':
+        form = TemaForm(request.POST, request.FILES, instance=tema)
+        if form.is_valid():
+            tema = form.save()
+            messages.success(request, "✅ Ajustes gráficos guardados exitosamente.")
+            return redirect('dev_ajustes_graficos')
+        else:
+            messages.error(request, "❌ Error al guardar los ajustes. Verifica los datos.")
+    else:
+        form = TemaForm(instance=tema)
+    
+    context = {
+        'empresa_activa': empresa_activa,
+        'form': form,
+        'tema': tema,
+    }
+    return render(request, 'devpanel/ajustes_graficos.html', context)
+
+
+# ==================== GESTIÓN DE STAFF (SUPERUSUARIOS) ====================
+
+@login_required
+def gestion_staff(request):
+    """Vista para gestionar staff (superusuarios) del DevPanel"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para acceder a esta sección.")
+        return redirect('admin_dashboard')
+    
+    # Listar solo superusuarios
+    superusers = CustomUser.objects.filter(is_superuser=True).order_by('-date_joined')
+    
+    context = {
+        'superusers': superusers,
+    }
+    return render(request, 'devpanel/gestion_staff.html', context)
+
+
+@login_required
+def crear_staff(request):
+    """Crear un nuevo superusuario"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('admin_dashboard')
+    
+    if request.method == 'POST':
+        form = SuperuserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"✅ Superusuario '{user.username}' creado exitosamente.")
+            return redirect('dev_gestion_staff')
+        else:
+            messages.error(request, "❌ Error al crear el superusuario. Verifica los datos.")
+    
+    return redirect('dev_gestion_staff')
+
+
+@login_required
+def editar_staff(request, pk):
+    """Editar un superusuario existente"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('admin_dashboard')
+    
+    usuario = get_object_or_404(CustomUser, pk=pk, is_superuser=True)
+    
+    if request.method == 'POST':
+        form = SuperuserEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"✅ Superusuario '{usuario.username}' actualizado exitosamente.")
+            return redirect('dev_gestion_staff')
+        else:
+            messages.error(request, "❌ Error al actualizar el superusuario.")
+    
+    return redirect('dev_gestion_staff')
+
+
+@login_required
+def eliminar_staff(request, pk):
+    """Eliminar un superusuario"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('admin_dashboard')
+    
+    usuario = get_object_or_404(CustomUser, pk=pk, is_superuser=True)
+    
+    # Evitar que el usuario se elimine a sí mismo
+    if usuario.id == request.user.id:
+        messages.error(request, "❌ No puedes eliminarte a ti mismo.")
+        return redirect('dev_gestion_staff')
+    
+    # Verificar que haya al menos otro superusuario activo
+    otros_superusers = CustomUser.objects.filter(is_superuser=True, is_active=True).exclude(pk=pk).count()
+    if otros_superusers == 0:
+        messages.error(request, "❌ No puedes eliminar el último superusuario activo del sistema.")
+        return redirect('dev_gestion_staff')
+    
+    if request.method == 'POST':
+        username = usuario.username
+        usuario.delete()
+        messages.success(request, f"✅ Superusuario '{username}' eliminado exitosamente.")
+        return redirect('dev_gestion_staff')
+    
+    return redirect('dev_gestion_staff')
+
+
+@login_required
+def toggle_staff_activo(request, pk):
+    """Activar/desactivar un superusuario"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('admin_dashboard')
+    
+    usuario = get_object_or_404(CustomUser, pk=pk, is_superuser=True)
+    
+    # Evitar que el usuario se desactive a sí mismo
+    if usuario.id == request.user.id:
+        messages.error(request, "❌ No puedes desactivarte a ti mismo.")
+        return redirect('dev_gestion_staff')
+    
+    # Si va a desactivar, verificar que haya al menos otro activo
+    if usuario.is_active:
+        otros_activos = CustomUser.objects.filter(is_superuser=True, is_active=True).exclude(pk=pk).count()
+        if otros_activos == 0:
+            messages.error(request, "❌ No puedes desactivar el último superusuario activo del sistema.")
+            return redirect('dev_gestion_staff')
+    
+    usuario.is_active = not usuario.is_active
+    usuario.save()
+    estado = "activado" if usuario.is_active else "desactivado"
+    messages.success(request, f"✅ Superusuario '{usuario.username}' {estado} exitosamente.")
+    
+    return redirect('dev_gestion_staff')

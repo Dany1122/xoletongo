@@ -157,12 +157,20 @@
             color: var(--color-primario);
         }
         
-        /* Sobrescribir navbar con colores del tema */
-        {% if tema.nombre == 'Xoletongo Verde' %}
+        /* Sobrescribir navbar con colores del tema según estilo */
+        {% if tema.navbar_estilo == 'transparente_scroll' %}
         .main-header-area.scrolled {
             background-color: #000000 !important;
         }
+        {% elif tema.navbar_estilo == 'negro' %}
+        .main-header-area {
+            background-color: #000000 !important;
+        }
         {% else %}
+        /* color_primario o default */
+        .main-header-area {
+            background-color: var(--color-primario) !important;
+        }
         .main-header-area.scrolled {
             background-color: var(--color-primario) !important;
         }
