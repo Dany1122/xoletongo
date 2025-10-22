@@ -724,3 +724,47 @@ def toggle_staff_activo(request, pk):
     messages.success(request, f"✅ Superusuario '{usuario.username}' {estado} exitosamente.")
     
     return redirect('dev_gestion_staff')
+
+
+# ==================== GESTIÓN DE MÓDULOS ====================
+
+@login_required
+def gestion_modulos(request):
+    """Gestionar módulos habilitados para la empresa activa"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para acceder a esta sección.")
+        return redirect('admin_dashboard')
+    
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.warning(request, "Selecciona una empresa primero.")
+        return redirect('dev_gestion_empresas')
+    
+    empresa = get_object_or_404(Empresa, id=empresa_activa_id)
+    
+    context = {
+        'empresa': empresa,
+    }
+    return render(request, 'devpanel/gestion_modulos.html', context)
+
+
+@login_required
+def toggle_modulo_productos(request):
+    """Activar/desactivar módulo de productos"""
+    if not request.user.is_superuser:
+        messages.error(request, "No tienes permiso para realizar esta acción.")
+        return redirect('admin_dashboard')
+    
+    empresa_activa_id = request.session.get('empresa_activa_id')
+    if not empresa_activa_id:
+        messages.warning(request, "Selecciona una empresa primero.")
+        return redirect('dev_gestion_empresas')
+    
+    empresa = get_object_or_404(Empresa, id=empresa_activa_id)
+    empresa.productos_habilitado = not empresa.productos_habilitado
+    empresa.save()
+    
+    estado = "habilitado" if empresa.productos_habilitado else "deshabilitado"
+    messages.success(request, f"✅ Módulo de Productos {estado} exitosamente.")
+    
+    return redirect('dev_gestion_modulos')

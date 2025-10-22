@@ -35,6 +35,14 @@ urlpatterns = [
     # Contacto
     path('contacto/', views.contacto, name='contacto'),
 
-
+    # E-commerce / Tienda
+    path('productos/', views.productos, name='productos'),
+    path('producto/<int:producto_id>/', views.producto_detalle, name='producto_detalle'),
+    path('carrito/', views.ver_carrito, name='ver_carrito'),
+    path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
+    path('carrito/actualizar/<int:producto_id>/', views.actualizar_carrito, name='actualizar_carrito'),
+    path('checkout/', views.checkout, name='checkout'),
+    path('procesar-pedido/', views.procesar_pedido, name='procesar_pedido'),
+    path('confirmacion/<int:pedido_id>/', views.confirmacion_pedido, name='confirmacion_pedido'),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

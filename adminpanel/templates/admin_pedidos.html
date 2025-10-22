@@ -1,0 +1,253 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-shopping-cart"></i> Gestión de Pedidos
+        </h1>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendientes</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pendientes }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Confirmados</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.confirmados }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">En Proceso</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.en_proceso }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Entregados</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.entregados }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Cancelados</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.cancelados }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <form method="GET" class="form-inline">
+                        <input type="text" name="q" class="form-control form-control-sm mr-2" placeholder="Buscar pedido..." value="{{ query_actual }}" style="width: 300px;">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        {% if query_actual %}
+                        <a href="{% url 'admin_pedidos' %}" class="btn btn-sm btn-secondary ml-2">
+                            <i class="fas fa-times"></i> Limpiar
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+                <div class="col-md-6 text-right">
+                    <div class="btn-group">
+                        <a href="{% url 'admin_pedidos' %}" class="btn btn-sm {% if not estado_actual %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                            Todos
+                        </a>
+                        {% for codigo, nombre in estados %}
+                        <a href="?estado={{ codigo }}" class="btn btn-sm {% if estado_actual == codigo %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                            {{ nombre }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in page_obj %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin_pedido_detalle' pedido.id %}" class="text-primary font-weight-bold">
+                                    #{{ pedido.numero_pedido }}
+                                </a>
+                            </td>
+                            <td>{{ pedido.nombre_cliente }}</td>
+                            <td>{{ pedido.email_cliente }}</td>
+                            <td class="font-weight-bold text-success">${{ pedido.total }}</td>
+                            <td>
+                                {% if pedido.estado == 'pendiente' %}
+                                <span class="badge badge-warning">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'confirmado' %}
+                                <span class="badge badge-info">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'en_proceso' %}
+                                <span class="badge badge-primary">{{ pedido.get_estado_display }}</span>
+                                {% elif pedido.estado == 'entregado' %}
+                                <span class="badge badge-success">{{ pedido.get_estado_display }}</span>
+                                {% else %}
+                                <span class="badge badge-danger">{{ pedido.get_estado_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'admin_pedido_detalle' pedido.id %}" class="btn btn-sm btn-info" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">
+                                {% if query_actual %}
+                                No se encontraron pedidos que coincidan con "{{ query_actual }}"
+                                {% else %}
+                                No hay pedidos registrados
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginación">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if query_actual %}&q={{ query_actual }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if query_actual %}&q={{ query_actual }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}{% if query_actual %}&q={{ query_actual }}{% endif %}">
+                            Siguiente
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Siguiente</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

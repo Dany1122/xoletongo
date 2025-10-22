@@ -135,6 +135,12 @@ class Empresa(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     
+    # Módulos habilitados
+    productos_habilitado = models.BooleanField(
+        default=False, 
+        help_text="Habilitar tienda/catálogo de productos para esta empresa"
+    )
+    
     # Configuración SMTP
     smtp_host = models.CharField(max_length=150, blank=True, null=True, help_text="Servidor SMTP (p. ej. smtp.gmail.com)")
     smtp_port = models.PositiveIntegerField(default=587, help_text="Puerto SMTP (p. ej. 587 para TLS, 465 para SSL)")

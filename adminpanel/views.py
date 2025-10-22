@@ -14,7 +14,7 @@ from itertools import chain
 from django.db.models import Sum,Count
 from datetime import datetime
 from adminpanel.utils import registrar_novedad
-from adminpanel.models import Novedad, Producto, CategoriaProducto
+from adminpanel.models import Novedad, Producto, CategoriaProducto, Pedido, ItemPedido
 from django.urls import reverse
 from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from decimal import Decimal
@@ -909,3 +909,115 @@ def eliminar_tipo_servicio(request, pk):
         return redirect("admin_TipoServicios")
     # Confirmación simple (puedes usar modal también)
     return render(request, "confirmar_eliminar_tipo.html", {"tipo": tipo})
+
+
+# ==================== GESTIÓN DE PEDIDOS ====================
+
+@login_required
+def admin_pedidos(request):
+    """Lista de todos los pedidos"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Obtener pedidos de la empresa activa
+    pedidos = Pedido.objects.filter(empresa=empresa).select_related('usuario').prefetch_related('items').order_by('-fecha_pedido')
+    
+    # Filtro por estado
+    estado = request.GET.get('estado')
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+    
+    # Búsqueda
+    q = request.GET.get('q', '').strip()
+    if q:
+        pedidos = pedidos.filter(
+            Q(numero_pedido__icontains=q) | 
+            Q(nombre_cliente__icontains=q) | 
+            Q(email_cliente__icontains=q) | 
+            Q(telefono_cliente__icontains=q)
+        )
+    
+    # Paginación
+    paginator = Paginator(pedidos, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Estadísticas
+    stats = {
+        'total': pedidos.count(),
+        'pendientes': pedidos.filter(estado='pendiente').count(),
+        'confirmados': pedidos.filter(estado='confirmado').count(),
+        'en_proceso': pedidos.filter(estado='en_proceso').count(),
+        'entregados': pedidos.filter(estado='entregado').count(),
+        'cancelados': pedidos.filter(estado='cancelado').count(),
+    }
+    
+    context = {
+        'page_obj': page_obj,
+        'query_actual': q,
+        'estado_actual': estado,
+        'estados': Pedido.ESTADO_CHOICES,
+        'stats': stats,
+    }
+    return render(request, 'admin_pedidos.html', context)
+
+
+@login_required
+def admin_pedido_detalle(request, pedido_id):
+    """Detalle de un pedido específico"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+    
+    context = {
+        'pedido': pedido,
+        'estados': Pedido.ESTADO_CHOICES,
+    }
+    return render(request, 'admin_pedido_detalle.html', context)
+
+
+@login_required
+def admin_cambiar_estado_pedido(request, pedido_id):
+    """Cambiar el estado de un pedido"""
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    
+    empresa = Empresa.objects.filter(activa=True).first()
+    pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+    
+    nuevo_estado = request.POST.get('estado')
+    if nuevo_estado in dict(Pedido.ESTADO_CHOICES):
+        pedido.estado = nuevo_estado
+        pedido.save()
+        
+        # Registrar novedad
+        registrar_novedad(
+            request.user,
+            f"Cambió el estado del pedido #{pedido.numero_pedido} a {pedido.get_estado_display()}"
+        )
+        
+        messages.success(request, f'Estado del pedido actualizado a {pedido.get_estado_display()}')
+    else:
+        messages.error(request, 'Estado inválido')
+    
+    return redirect('admin_pedido_detalle', pedido_id=pedido.id)
+
+
+@login_required
+def admin_eliminar_pedido(request, pedido_id):
+    """Eliminar un pedido (cancelar)"""
+    if request.method == 'POST':
+        empresa = Empresa.objects.filter(activa=True).first()
+        pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+        
+        numero_pedido = pedido.numero_pedido
+        pedido.delete()
+        
+        # Registrar novedad
+        registrar_novedad(
+            request.user,
+            f"Eliminó el pedido #{numero_pedido}"
+        )
+        
+        messages.success(request, f'Pedido #{numero_pedido} eliminado exitosamente')
+        return redirect('admin_pedidos')
+    
+    return HttpResponseBadRequest('Método no permitido')
