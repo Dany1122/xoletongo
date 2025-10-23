@@ -179,29 +179,40 @@ def producto_detalle(request, producto_id):
     carrito = request.session.get('carrito', {})
     total_items = sum(item['cantidad'] for item in carrito.values())
     
-    # Obtener ContentType de Producto
-    content_type = ContentType.objects.get_for_model(Producto)
+    # Verificar si el módulo de reseñas está habilitado
+    resenas_habilitado = empresa.resenas_habilitado
     
-    # Obtener reseñas aprobadas
-    resenas = Resena.objects.filter(
-        content_type=content_type,
-        object_id=producto_id,
-        aprobada=True
-    ).select_related('usuario').order_by('-fecha_creacion')
-    
-    # Calcular promedio de calificaciones
-    estadisticas = resenas.aggregate(
-        promedio=Avg('calificacion'),
-        total=Count('id')
-    )
-    
-    # Verificar si el usuario ya dejó una reseña
+    # Inicializar variables de reseñas
+    resenas = []
+    estadisticas = {'promedio': None, 'total': 0}
     usuario_resena = None
-    if request.user.is_authenticated:
-        usuario_resena = resenas.filter(usuario=request.user).first()
+    form = None
+    content_type = None
     
-    # Crear formulario para nueva reseña
-    form = ResenaForm()
+    # Solo cargar reseñas si el módulo está habilitado
+    if resenas_habilitado:
+        # Obtener ContentType de Producto
+        content_type = ContentType.objects.get_for_model(Producto)
+        
+        # Obtener reseñas aprobadas
+        resenas = Resena.objects.filter(
+            content_type=content_type,
+            object_id=producto_id,
+            aprobada=True
+        ).select_related('usuario').order_by('-fecha_creacion')
+        
+        # Calcular promedio de calificaciones
+        estadisticas = resenas.aggregate(
+            promedio=Avg('calificacion'),
+            total=Count('id')
+        )
+        
+        # Verificar si el usuario ya dejó una reseña
+        if request.user.is_authenticated:
+            usuario_resena = resenas.filter(usuario=request.user).first()
+        
+        # Crear formulario para nueva reseña
+        form = ResenaForm()
     
     context = {
         'empresa': empresa,
@@ -213,6 +224,7 @@ def producto_detalle(request, producto_id):
         'usuario_resena': usuario_resena,
         'form_resena': form,
         'content_type': content_type,
+        'resenas_habilitado': resenas_habilitado,
     }
     return render(request, 'tienda/producto_detalle.html', context)
 

@@ -79,7 +79,9 @@
         </div>
 
         <!-- Sección de Reseñas -->
-        {% include 'resenas_partial.html' with object=servicio content_type=content_type tipo_objeto="servicio" %}
+        {% if resenas_habilitado %}
+            {% include 'resenas_partial.html' with object=servicio content_type=content_type tipo_objeto="servicio" %}
+        {% endif %}
     </div>
 </section>
 {% endblock %}

@@ -151,11 +151,13 @@
         {% endif %}
 
         <!-- Sección de Reseñas -->
+        {% if resenas_habilitado %}
         <div class="row mt-5">
             <div class="col-12">
                 {% include 'resenas_partial.html' with object=producto content_type=content_type tipo_objeto="producto" %}
             </div>
         </div>
+        {% endif %}
     </div>
 </section>
 

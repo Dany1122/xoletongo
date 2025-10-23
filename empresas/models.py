@@ -140,6 +140,10 @@ class Empresa(models.Model):
         default=False, 
         help_text="Habilitar tienda/catálogo de productos para esta empresa"
     )
+    resenas_habilitado = models.BooleanField(
+        default=True,
+        help_text="Habilitar sistema de reseñas para productos y servicios"
+    )
     
     # Configuración SMTP
     smtp_host = models.CharField(max_length=150, blank=True, null=True, help_text="Servidor SMTP (p. ej. smtp.gmail.com)")

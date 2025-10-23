@@ -21,29 +21,43 @@ def detalle_servicio(request, servicio_id):
         .get(pk=servicio_id)
     )
     
-    # Obtener ContentType de Servicio
-    content_type = ContentType.objects.get_for_model(Servicio)
+    # Obtener empresa activa
+    empresa = Empresa.objects.filter(activa=True).first()
     
-    # Obtener reseñas aprobadas
-    resenas = Resena.objects.filter(
-        content_type=content_type,
-        object_id=servicio_id,
-        aprobada=True
-    ).select_related('usuario').order_by('-fecha_creacion')
+    # Verificar si el módulo de reseñas está habilitado
+    resenas_habilitado = empresa and empresa.resenas_habilitado
     
-    # Calcular promedio de calificaciones
-    estadisticas = resenas.aggregate(
-        promedio=Avg('calificacion'),
-        total=Count('id')
-    )
-    
-    # Verificar si el usuario ya dejó una reseña
+    # Inicializar variables de reseñas
+    resenas = []
+    estadisticas = {'promedio': None, 'total': 0}
     usuario_resena = None
-    if request.user.is_authenticated:
-        usuario_resena = resenas.filter(usuario=request.user).first()
+    form = None
+    content_type = None
     
-    # Crear formulario para nueva reseña
-    form = ResenaForm()
+    # Solo cargar reseñas si el módulo está habilitado
+    if resenas_habilitado:
+        # Obtener ContentType de Servicio
+        content_type = ContentType.objects.get_for_model(Servicio)
+        
+        # Obtener reseñas aprobadas
+        resenas = Resena.objects.filter(
+            content_type=content_type,
+            object_id=servicio_id,
+            aprobada=True
+        ).select_related('usuario').order_by('-fecha_creacion')
+        
+        # Calcular promedio de calificaciones
+        estadisticas = resenas.aggregate(
+            promedio=Avg('calificacion'),
+            total=Count('id')
+        )
+        
+        # Verificar si el usuario ya dejó una reseña
+        if request.user.is_authenticated:
+            usuario_resena = resenas.filter(usuario=request.user).first()
+        
+        # Crear formulario para nueva reseña
+        form = ResenaForm()
     
     return render(request, 'servicio.html', {
         'servicio': servicio,
@@ -53,6 +67,7 @@ def detalle_servicio(request, servicio_id):
         'usuario_resena': usuario_resena,
         'form_resena': form,
         'content_type': content_type,
+        'resenas_habilitado': resenas_habilitado,
     })
 
 def servicios_por_tipo(request):
@@ -100,6 +115,12 @@ def servicios_por_tipo(request):
 @login_required
 def crear_resena(request, content_type_id, object_id):
     """Vista genérica para crear reseñas de servicios o productos"""
+    # Verificar si el módulo de reseñas está habilitado
+    empresa = Empresa.objects.filter(activa=True).first()
+    if not empresa or not empresa.resenas_habilitado:
+        messages.error(request, 'El sistema de reseñas no está disponible en este momento.')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
     if request.method == 'POST':
         content_type = get_object_or_404(ContentType, id=content_type_id)
         objeto = content_type.get_object_for_this_type(id=object_id)
@@ -134,6 +155,12 @@ def crear_resena(request, content_type_id, object_id):
 @login_required
 def editar_resena(request, resena_id):
     """Vista para editar una reseña existente"""
+    # Verificar si el módulo de reseñas está habilitado
+    empresa = Empresa.objects.filter(activa=True).first()
+    if not empresa or not empresa.resenas_habilitado:
+        messages.error(request, 'El sistema de reseñas no está disponible en este momento.')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
     resena = get_object_or_404(Resena, id=resena_id)
     
     # Verificar permisos: el autor o usuarios con roles de staff pueden editar
@@ -163,6 +190,12 @@ def editar_resena(request, resena_id):
 @login_required
 def eliminar_resena(request, resena_id):
     """Vista para eliminar una reseña"""
+    # Verificar si el módulo de reseñas está habilitado
+    empresa = Empresa.objects.filter(activa=True).first()
+    if not empresa or not empresa.resenas_habilitado:
+        messages.error(request, 'El sistema de reseñas no está disponible en este momento.')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
     resena = get_object_or_404(Resena, id=resena_id)
     
     # Verificar permisos: el autor o usuarios con roles de staff pueden eliminar
