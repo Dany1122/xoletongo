@@ -59,7 +59,6 @@
                 </div>
             </div>
         </div>
-
        
         <div class="section-top-border">
             <h3 class="mb-30">Galería</h3>
@@ -78,6 +77,9 @@
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Sección de Reseñas -->
+        {% include 'resenas_partial.html' with object=servicio content_type=content_type tipo_objeto="servicio" %}
     </div>
 </section>
 {% endblock %}

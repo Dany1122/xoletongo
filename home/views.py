@@ -2,7 +2,10 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.contrib import messages
 from django.core.paginator import Paginator
-from servicios.models import ImagenServicio
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Avg, Count
+from servicios.models import ImagenServicio, Resena
+from servicios.forms import ResenaForm
 from empresas.models import Empresa
 from devpanel.models import Pagina, Seccion
 from adminpanel.models import Producto, CategoriaProducto, Pedido, ItemPedido
@@ -170,11 +173,40 @@ def producto_detalle(request, producto_id):
     carrito = request.session.get('carrito', {})
     total_items = sum(item['cantidad'] for item in carrito.values())
     
+    # Obtener ContentType de Producto
+    content_type = ContentType.objects.get_for_model(Producto)
+    
+    # Obtener reseñas aprobadas
+    resenas = Resena.objects.filter(
+        content_type=content_type,
+        object_id=producto_id,
+        aprobada=True
+    ).select_related('usuario').order_by('-fecha_creacion')
+    
+    # Calcular promedio de calificaciones
+    estadisticas = resenas.aggregate(
+        promedio=Avg('calificacion'),
+        total=Count('id')
+    )
+    
+    # Verificar si el usuario ya dejó una reseña
+    usuario_resena = None
+    if request.user.is_authenticated:
+        usuario_resena = resenas.filter(usuario=request.user).first()
+    
+    # Crear formulario para nueva reseña
+    form = ResenaForm()
+    
     context = {
         'empresa': empresa,
         'producto': producto,
         'productos_relacionados': productos_relacionados,
         'total_items_carrito': total_items,
+        'resenas': resenas,
+        'estadisticas_resenas': estadisticas,
+        'usuario_resena': usuario_resena,
+        'form_resena': form,
+        'content_type': content_type,
     }
     return render(request, 'tienda/producto_detalle.html', context)
 

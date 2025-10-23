@@ -1,5 +1,10 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Servicio,TipoServicio,ImagenServicio
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Avg, Count
+from .models import Servicio, TipoServicio, ImagenServicio, Resena
+from .forms import ResenaForm
 from collections import defaultdict
 from django.db.models import Prefetch
 from empresas.models import Empresa
@@ -15,9 +20,39 @@ def detalle_servicio(request, servicio_id):
         )
         .get(pk=servicio_id)
     )
+    
+    # Obtener ContentType de Servicio
+    content_type = ContentType.objects.get_for_model(Servicio)
+    
+    # Obtener reseñas aprobadas
+    resenas = Resena.objects.filter(
+        content_type=content_type,
+        object_id=servicio_id,
+        aprobada=True
+    ).select_related('usuario').order_by('-fecha_creacion')
+    
+    # Calcular promedio de calificaciones
+    estadisticas = resenas.aggregate(
+        promedio=Avg('calificacion'),
+        total=Count('id')
+    )
+    
+    # Verificar si el usuario ya dejó una reseña
+    usuario_resena = None
+    if request.user.is_authenticated:
+        usuario_resena = resenas.filter(usuario=request.user).first()
+    
+    # Crear formulario para nueva reseña
+    form = ResenaForm()
+    
     return render(request, 'servicio.html', {
         'servicio': servicio,
-        'opacidad': 0.4
+        'opacidad': 0.4,
+        'resenas': resenas,
+        'estadisticas_resenas': estadisticas,
+        'usuario_resena': usuario_resena,
+        'form_resena': form,
+        'content_type': content_type,
     })
 
 def servicios_por_tipo(request):
@@ -60,3 +95,89 @@ def servicios_por_tipo(request):
         'secciones': secciones,
         'empresa': empresa
     })
+
+
+@login_required
+def crear_resena(request, content_type_id, object_id):
+    """Vista genérica para crear reseñas de servicios o productos"""
+    if request.method == 'POST':
+        content_type = get_object_or_404(ContentType, id=content_type_id)
+        objeto = content_type.get_object_for_this_type(id=object_id)
+        
+        # Verificar si el usuario ya tiene una reseña
+        resena_existente = Resena.objects.filter(
+            usuario=request.user,
+            content_type=content_type,
+            object_id=object_id
+        ).first()
+        
+        if resena_existente:
+            messages.warning(request, 'Ya has dejado una reseña para este elemento.')
+            return redirect(request.META.get('HTTP_REFERER', 'home'))
+        
+        form = ResenaForm(request.POST)
+        if form.is_valid():
+            resena = form.save(commit=False)
+            resena.usuario = request.user
+            resena.content_type = content_type
+            resena.object_id = object_id
+            resena.save()
+            messages.success(request, '¡Gracias por tu reseña!')
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+        
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+    return redirect('home')
+
+
+@login_required
+def editar_resena(request, resena_id):
+    """Vista para editar una reseña existente"""
+    resena = get_object_or_404(Resena, id=resena_id)
+    
+    # Verificar permisos: el autor o usuarios con roles de staff pueden editar
+    rol_usuario = request.user.get_rol_nombre()
+    puede_editar = (
+        request.user == resena.usuario or 
+        rol_usuario in ['Administrador', 'Empleado', 'Encargado']
+    )
+    
+    if not puede_editar:
+        messages.error(request, 'No tienes permiso para editar esta reseña.')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+    if request.method == 'POST':
+        form = ResenaForm(request.POST, instance=resena)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Reseña actualizada exitosamente.')
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+        
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+    return redirect('home')
+
+
+@login_required
+def eliminar_resena(request, resena_id):
+    """Vista para eliminar una reseña"""
+    resena = get_object_or_404(Resena, id=resena_id)
+    
+    # Verificar permisos: el autor o usuarios con roles de staff pueden eliminar
+    rol_usuario = request.user.get_rol_nombre()
+    puede_eliminar = (
+        request.user == resena.usuario or 
+        rol_usuario in ['Administrador', 'Empleado', 'Encargado']
+    )
+    
+    if not puede_eliminar:
+        messages.error(request, 'No tienes permiso para eliminar esta reseña.')
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+    
+    if request.method == 'POST':
+        resena.delete()
+        messages.success(request, 'Reseña eliminada exitosamente.')
+    
+    return redirect(request.META.get('HTTP_REFERER', 'home'))

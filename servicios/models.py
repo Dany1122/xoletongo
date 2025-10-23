@@ -1,5 +1,11 @@
 from django.db import models
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.core.validators import MinValueValidator, MaxValueValidator
 from empresas.models import Empresa
+
+User = get_user_model()
 
 # Create your models here.
 def upload_to_service_gallery(instance, filename):
@@ -52,3 +58,51 @@ class ImagenServicio(models.Model):
 
     def __str__(self):
         return self.descripcion or f"Imagen de {self.servicio.titulo} #{self.pk}"
+
+
+class Resena(models.Model):
+    """
+    Modelo de reseñas que funciona para Servicios y Productos usando ContentTypes
+    """
+    # Usuario que hace la reseña
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='resenas')
+    
+    # Relación genérica con Servicio o Producto
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    # Contenido de la reseña
+    calificacion = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Calificación de 1 a 5 estrellas"
+    )
+    comentario = models.TextField(help_text="Comentario de la reseña")
+    
+    # Metadatos
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    aprobada = models.BooleanField(default=True, help_text="Si está aprobada por el administrador")
+    
+    class Meta:
+        ordering = ['-fecha_creacion']
+        verbose_name = 'Reseña'
+        verbose_name_plural = 'Reseñas'
+        # Un usuario solo puede hacer una reseña por servicio/producto
+        unique_together = ['usuario', 'content_type', 'object_id']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
+    
+    def __str__(self):
+        return f"Reseña de {self.usuario.username} - {self.calificacion} estrellas"
+    
+    @property
+    def estrellas_llenas(self):
+        """Retorna el número de estrellas llenas"""
+        return range(self.calificacion)
+    
+    @property
+    def estrellas_vacias(self):
+        """Retorna el número de estrellas vacías"""
+        return range(5 - self.calificacion)
