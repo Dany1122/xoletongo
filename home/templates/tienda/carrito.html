@@ -6,14 +6,9 @@
 {% block content %}
 
 <!-- Breadcrumb -->
-<div class="bradcam_area breadcam_bg_carrito" style="margin-top: 70px; padding: 60px 0; background: linear-gradient(135deg, var(--color-primario, #4CAF50), var(--color-secundario, #2196F3));">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h3 class="text-white">Carrito de Compras</h3>
-            </div>
-        </div>
-    </div>
+<div class="bradcam_area breadcam_bg_tienda" style="background-image: url('{% static "img/banner/banner.png" %}');">
+    <div class="overlay" style="background-color: rgba(0, 0, 0, 0.4);"></div>
+    <h3>Carrito de Compras</h3>
 </div>
 
 <!-- Carrito -->
@@ -25,7 +20,7 @@
             <div class="col-lg-8 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fa fa-shopping-cart"></i> Productos en tu Carrito</h5>
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-shopping-cart"></i> Productos en tu Carrito</h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -104,9 +99,9 @@
 
             <!-- Resumen del pedido -->
             <div class="col-lg-4">
-                <div class="card shadow-sm sticky-top" style="top: 100px;">
+                <div class="card shadow-sm">
                     <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="fa fa-calculator"></i> Resumen del Pedido</h5>
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-calculator"></i> Resumen del Pedido</h5>
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
@@ -194,6 +189,42 @@
 
     .table tbody tr:hover {
         background-color: #f8f9fa;
+    }
+
+    .bradcam_area {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0 60px;
+        text-align: center;
+        color: white;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .bradcam_bg_tienda {
+        background-image: url('{% static "img/banner/banner.png" %}');
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .bradcam_area h3,
+    .bradcam_area p,
+    .bradcam_area i {
+        position: relative;
+        z-index: 2;
+        color: white;
     }
 </style>
 

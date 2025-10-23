@@ -1,7 +1,8 @@
 {% load static %}
 <!-- Hero/Breadcrumb area -->
-<div class="bradcam_area {% if seccion.configuracion.bg_class %}{{ seccion.configuracion.bg_class }}{% else %}breadcam_bg{% endif %}">
-    <div class="overlay"></div>
+<div class="bradcam_area {% if seccion.configuracion.bg_class %}{{ seccion.configuracion.bg_class }}{% else %}breadcam_bg{% endif %}" 
+     {% if seccion.configuracion.bg_class == 'breadcam_bg_tienda' %}style="background-image: url('{% static "img/banner/banner.png" %}');"{% endif %}>
+    <div class="overlay" {% if seccion.configuracion.opacidad %}style="background-color: rgba(0, 0, 0, {{ seccion.configuracion.opacidad }});"{% endif %}></div>
     {% if seccion.configuracion.titulo %}
     <h3>{{ seccion.configuracion.titulo }}</h3>
     {% endif %}

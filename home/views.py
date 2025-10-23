@@ -107,7 +107,7 @@ def contacto(request):
 # ==================== VISTAS DE E-COMMERCE ====================
 
 def productos(request):
-    """Vista del catálogo de productos"""
+    """Vista del catálogo de productos con secciones personalizables"""
     empresa = Empresa.objects.filter(activa=True).first()
     
     # Verificar si la empresa tiene productos habilitados
@@ -140,6 +140,10 @@ def productos(request):
     carrito = request.session.get('carrito', {})
     total_items = sum(item['cantidad'] for item in carrito.values())
     
+    # Obtener secciones dinámicas (igual que otras páginas)
+    context_secciones = get_pagina_secciones('productos')
+    
+    # Combinar contextos
     context = {
         'empresa': empresa,
         'productos': productos_pagina,
@@ -148,6 +152,8 @@ def productos(request):
         'q': q,
         'total_items_carrito': total_items,
     }
+    context.update(context_secciones)
+    
     return render(request, 'tienda/productos.html', context)
 
 

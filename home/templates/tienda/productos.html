@@ -5,10 +5,42 @@
 
 {% block content %}
 
-<!-- Breadcrumb -->
-<div class="bradcam_area breadcam_bg_tienda">
-    <h3>Nuestros Productos</h3>
-</div>
+<!-- Secciones dinámicas ANTES del catálogo (orden < 50) -->
+{% if secciones %}
+    {% for seccion in secciones %}
+        {% if seccion.orden < 50 %}
+            {% if seccion.tipo == 'hero' %}
+                {% include 'secciones/hero.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'texto' %}
+                {% include 'secciones/texto.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'carousel' %}
+                {% include 'secciones/carousel.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'features' %}
+                {% include 'secciones/features.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'galeria' %}
+                {% include 'secciones/galeria_imagenes.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'cta' %}
+                {% include 'secciones/cta.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'testimonios' %}
+                {% include 'secciones/testimonios.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'contacto_form' %}
+                {% include 'secciones/contacto_form.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'mapa' %}
+                {% include 'secciones/mapa.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'instagram' %}
+                {% include 'secciones/instagram.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'servicios_accordion' %}
+                {% include 'secciones/servicios_accordion.html' with seccion=seccion %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <!-- Breadcrumb por defecto si no hay secciones -->
+    <div class="bradcam_area breadcam_bg_tienda">
+        <div class="overlay"></div>
+        <h3>Nuestros Productos</h3>
+    </div>
+{% endif %}
 
 <!-- Catálogo de Productos -->
 <section class="productos_area" style="padding: 80px 0;">
@@ -176,14 +208,72 @@
     </div>
 </section>
 
+<!-- Secciones dinámicas DESPUÉS del catálogo (orden >= 50) -->
+{% if secciones %}
+    {% for seccion in secciones %}
+        {% if seccion.orden >= 50 %}
+            {% if seccion.tipo == 'hero' %}
+                {% include 'secciones/hero.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'texto' %}
+                {% include 'secciones/texto.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'carousel' %}
+                {% include 'secciones/carousel.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'features' %}
+                {% include 'secciones/features.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'galeria' %}
+                {% include 'secciones/galeria_imagenes.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'cta' %}
+                {% include 'secciones/cta.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'testimonios' %}
+                {% include 'secciones/testimonios.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'contacto_form' %}
+                {% include 'secciones/contacto_form.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'mapa' %}
+                {% include 'secciones/mapa.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'instagram' %}
+                {% include 'secciones/instagram.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'servicios_accordion' %}
+                {% include 'secciones/servicios_accordion.html' with seccion=seccion %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
 <style>
-    .breadcam_bg_tienda {
-        background: linear-gradient(135deg, var(--color-primario, #4CAF50) 0%, var(--color-secundario, #2196F3) 100%);
+    .bradcam_area {
+        position: relative;
+        background-size: cover;
+        background-position: center;
         padding: 120px 0 60px;
         text-align: center;
         color: white;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .bradcam_bg_tienda {
+        background-image: url('{% static "img/banner/banner.png" %}');
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .bradcam_area h3,
+    .bradcam_area p,
+    .bradcam_area i {
         position: relative;
-        margin-top: 70px;
+        z-index: 2;
+        color: white;
     }
 
     .producto-card {
