@@ -216,7 +216,9 @@
                                     <ul id="navigation">
                                         <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}" style="text-decoration: none;">Inicio</a></li>
                                         <li><a href="{% url 'nosotros' %}" class="{% if request.path == '/nosotros/' %}active{% endif %}" style="text-decoration: none;">Nosotros</a></li>
+                                        {% if empresa and empresa.servicios_habilitado %}
                                         <li><a href="{% url 'servicios_por_tipo' %}" class="{% if request.path == '/servicios/' %}active{% endif %}" style="text-decoration: none;">Servicios</a></li>
+                                        {% endif %}
                                         {% if empresa and empresa.productos_habilitado %}
                                         <li><a href="{% url 'productos' %}" class="{% if '/productos/' in request.path %}active{% endif %}" style="text-decoration: none;">Productos</a></li>
                                         {% endif %}
@@ -255,7 +257,7 @@
                                 
                                 <!-- Carrito de compras (solo si productos está habilitado) -->
                                 {% if empresa and empresa.productos_habilitado %}
-                                <div class="carrito_icon" style="margin-right: 20px;">
+                                <div class="carrito_icon" style="margin-left: 25px; margin-right: 20px;">
                                     <a href="{% url 'ver_carrito' %}" class="login-link position-relative">
                                         <i class="fa fa-shopping-cart"></i>
                                         {% if total_items_carrito > 0 %}
@@ -267,9 +269,11 @@
                                 </div>
                                 {% endif %}
                                 
+                                {% if empresa and empresa.servicios_habilitado %}
                                 <div class="book_btn d-none d-lg-block">
                                     <a href="{% url 'servicios_por_tipo' %}" class="btn-reserva radius" >Reserva Ya!</a>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-12">

@@ -43,5 +43,6 @@ urlpatterns = [
     # Gestión de Módulos
     path('modulos/', views.gestion_modulos, name='dev_gestion_modulos'),
     path('modulos/productos/toggle/', views.toggle_modulo_productos, name='dev_toggle_productos'),
+    path('modulos/servicios/toggle/', views.toggle_modulo_servicios, name='dev_toggle_servicios'),
     path('modulos/resenas/toggle/', views.toggle_modulo_resenas, name='dev_toggle_resenas'),
 ]

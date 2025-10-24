@@ -140,6 +140,10 @@ class Empresa(models.Model):
         default=False, 
         help_text="Habilitar tienda/catálogo de productos para esta empresa"
     )
+    servicios_habilitado = models.BooleanField(
+        default=True,
+        help_text="Habilitar visualización y gestión de servicios"
+    )
     resenas_habilitado = models.BooleanField(
         default=True,
         help_text="Habilitar sistema de reseñas para productos y servicios"

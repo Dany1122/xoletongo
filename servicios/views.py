@@ -12,6 +12,12 @@ from devpanel.models import Pagina, Seccion
 
 # Create your views here.
 def detalle_servicio(request, servicio_id):
+    # Verificar si el módulo de servicios está habilitado
+    empresa = Empresa.objects.filter(activa=True).first()
+    if not empresa or not empresa.servicios_habilitado:
+        messages.info(request, 'Los servicios no están disponibles en este momento.')
+        return redirect('home')
+    
     servicio = (
         Servicio.objects
         .select_related('servicio', 'empresa')
@@ -20,9 +26,6 @@ def detalle_servicio(request, servicio_id):
         )
         .get(pk=servicio_id)
     )
-    
-    # Obtener empresa activa
-    empresa = Empresa.objects.filter(activa=True).first()
     
     # Verificar si el módulo de reseñas está habilitado
     resenas_habilitado = empresa and empresa.resenas_habilitado
@@ -77,6 +80,11 @@ def servicios_por_tipo(request):
     """
     # Obtener empresa activa
     empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si el módulo de servicios está habilitado
+    if not empresa or not empresa.servicios_habilitado:
+        messages.info(request, 'Los servicios no están disponibles en este momento.')
+        return redirect('home')
     
     # Obtener servicios y tipos (OBLIGATORIO para la funcionalidad)
     servicios_qs = (
