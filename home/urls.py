@@ -34,6 +34,7 @@ urlpatterns = [
 
     # Contacto
     path('contacto/', views.contacto, name='contacto'),
+    path('contacto/procesar/', views.procesar_contacto, name='procesar_contacto'),
 
     # E-commerce / Tienda
     path('productos/', views.productos, name='productos'),

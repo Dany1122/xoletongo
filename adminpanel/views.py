@@ -148,7 +148,17 @@ def agregar_usuario(request):
                 usuario.empresa = empresa_activa
             usuario.save()
             registrar_novedad(request.user, f"Agregó un usuario: {usuario.username}")
-            return redirect('/adminpanel/usuarios/?creado=1')
+            
+            # Mensaje diferente si el rol tiene atributos personalizados
+            if usuario.rol and usuario.rol.atributos_schema:
+                messages.success(
+                    request, 
+                    f'Usuario "{usuario.username}" creado exitosamente. '
+                    f'No olvides completar los atributos personalizados del rol "{usuario.rol.nombre}".'
+                )
+                return redirect('admin_editar_usuario', id=usuario.id)
+            else:
+                return redirect('/adminpanel/usuarios/?creado=1')
     else:
         form = CustomUserForm(empresa=empresa_activa)
     return render(request, 'agregar_usuario.html', {'form': form})

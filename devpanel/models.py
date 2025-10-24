@@ -163,7 +163,7 @@ class Rol(models.Model):
         ordering = ['empresa', 'nombre']
     
     def __str__(self):
-        return f"{self.empresa.nombre} - {self.nombre}"
+        return self.nombre
     
     def total_usuarios(self):
         """Retorna el número de usuarios que tienen este rol asignado"""

@@ -104,6 +104,80 @@ def contacto(request):
     return render(request, 'contacto.html', context)
 
 
+def procesar_contacto(request):
+    """Procesa el formulario de contacto dinámico"""
+    if request.method == 'POST':
+        from home.models import ContactMessage
+        
+        empresa = Empresa.objects.filter(activa=True).first()
+        
+        if not empresa:
+            messages.error(request, 'Error al procesar el formulario.')
+            return redirect('contacto')
+        
+        # Capturar todos los campos del formulario
+        datos = {}
+        for key, value in request.POST.items():
+            if key != 'csrfmiddlewaretoken':
+                datos[key] = value
+        
+        # Crear el mensaje de contacto
+        mensaje = ContactMessage.objects.create(
+            empresa=empresa,
+            datos=datos,
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
+        # Enviar email de notificación usando SMTP de la empresa
+        try:
+            from django.core.mail import EmailMessage, get_connection
+            
+            # Verificar que la empresa tenga configuración SMTP completa
+            if (empresa.correo_contacto and empresa.smtp_host and 
+                empresa.smtp_user and empresa.smtp_password):
+                
+                # Crear conexión SMTP personalizada con la configuración de la empresa
+                connection = get_connection(
+                    backend='django.core.mail.backends.smtp.EmailBackend',
+                    host=empresa.smtp_host,
+                    port=empresa.smtp_port,
+                    username=empresa.smtp_user,
+                    password=empresa.smtp_password,
+                    use_tls=empresa.smtp_use_tls,
+                    use_ssl=empresa.smtp_use_ssl,
+                    fail_silently=True,
+                )
+                
+                # Construir cuerpo del email
+                email_body = f"Nuevo mensaje de contacto recibido en {empresa.nombre}:\n\n"
+                email_body += "="*50 + "\n\n"
+                for key, value in datos.items():
+                    email_body += f"{key.upper()}: {value}\n"
+                email_body += "\n" + "="*50 + "\n"
+                email_body += f"IP: {request.META.get('REMOTE_ADDR', 'Desconocida')}\n"
+                email_body += f"Fecha: {mensaje.fecha_envio.strftime('%d/%m/%Y %H:%M:%S')}\n"
+                
+                # Crear y enviar el email
+                email = EmailMessage(
+                    subject=f'Nuevo mensaje de contacto - {empresa.nombre}',
+                    body=email_body,
+                    from_email=empresa.smtp_user,
+                    to=[empresa.correo_contacto],
+                    connection=connection,
+                )
+                email.send(fail_silently=True)
+                
+        except Exception as e:
+            # Si falla el email, no importa, el mensaje se guardó en la base de datos
+            pass
+        
+        messages.success(request, '¡Gracias por contactarnos! Tu mensaje ha sido enviado exitosamente.')
+        return redirect('contacto')
+    
+    return redirect('contacto')
+
+
 # ==================== VISTAS DE E-COMMERCE ====================
 
 def productos(request):

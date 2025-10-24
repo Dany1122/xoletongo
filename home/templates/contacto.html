@@ -7,6 +7,72 @@
 
 {% block content %}
 
+<!-- Estilos para asegurar que los modales funcionen correctamente -->
+<style>
+    /* Forzar z-index del backdrop */
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    
+    /* Forzar z-index del modal */
+    #successModal, #errorModal {
+        z-index: 1055 !important;
+    }
+    
+    /* Asegurar que el contenido del modal sea visible */
+    #successModal .modal-dialog,
+    #errorModal .modal-dialog {
+        z-index: 1056 !important;
+    }
+    
+    /* Hacer el modal clickeable */
+    #successModal .modal-content,
+    #errorModal .modal-content {
+        pointer-events: all !important;
+        z-index: 1057 !important;
+    }
+</style>
+
+<!-- Modal de Éxito -->
+<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="true" data-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="z-index: 1060;">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative; z-index: 1061;">
+            <div class="modal-body text-center p-5" style="background-color: #ffffff;">
+                <div class="mb-4">
+                    <i class="fa fa-check-circle" style="font-size: 80px; color: #28a745;"></i>
+                </div>
+                <h3 class="mb-3" style="color: #2d6a4f; font-weight: 600;">¡Mensaje Enviado!</h3>
+                <p class="text-muted mb-4">
+                    Gracias por contactarnos. Hemos recibido tu mensaje y te responderemos pronto.
+                </p>
+                <button type="button" class="btn btn-success px-5" onclick="$('#successModal').modal('hide');" style="background-color: #2d6a4f; border: none; border-radius: 25px;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Error -->
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="true" data-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="z-index: 1060;">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative; z-index: 1061;">
+            <div class="modal-body text-center p-5" style="background-color: #ffffff;">
+                <div class="mb-4">
+                    <i class="fa fa-exclamation-triangle" style="font-size: 80px; color: #dc3545;"></i>
+                </div>
+                <h3 class="mb-3" style="color: #dc3545; font-weight: 600;">Error al Enviar</h3>
+                <p class="text-muted mb-4">
+                    Hubo un problema al enviar tu mensaje. Por favor, intenta nuevamente.
+                </p>
+                <button type="button" class="btn btn-danger px-5" onclick="$('#errorModal').modal('hide');" style="border-radius: 25px;">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Secciones dinámicas desde la BD -->
 {% for seccion in secciones %}
     {% if seccion.tipo == 'hero' %}
@@ -33,4 +99,57 @@
 </div>
 {% endfor %}
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Mostrar modal si hay mensajes de Django
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                // Mostrar el modal de éxito
+                $('#successModal').modal({
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true,
+                    show: true
+                });
+                // Limpiar formulario después de éxito
+                setTimeout(function() {
+                    $('#contactForm')[0].reset();
+                }, 500);
+            {% elif message.tags == 'error' %}
+                // Mostrar el modal de error
+                $('#errorModal').modal({
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true,
+                    show: true
+                });
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    // Asegurar que los botones de cerrar funcionen
+    $('.modal button[onclick*="modal"]').click(function(e) {
+        e.preventDefault();
+        var modalId = $(this).closest('.modal').attr('id');
+        $('#' + modalId).modal('hide');
+    });
+    
+    // Cerrar modal con el botón o haciendo clic fuera
+    $('#successModal, #errorModal').on('hidden.bs.modal', function () {
+        // Remover todos los backdrops que puedan quedar
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        // Scroll suave hacia el formulario
+        if ($('#contactForm').length) {
+            $('html, body').animate({
+                scrollTop: $('#contactForm').offset().top - 100
+            }, 500);
+        }
+    });
+});
+</script>
 {% endblock %}

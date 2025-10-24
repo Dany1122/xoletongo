@@ -163,6 +163,80 @@ class CustomUserEditForm(forms.ModelForm):
         if self.empresa:
             from devpanel.models import Rol
             self.fields['rol'].queryset = Rol.objects.filter(empresa=self.empresa, activo=True)
+        
+        # Generar campos dinámicos para atributos personalizados del rol
+        if self.instance and self.instance.pk and self.instance.rol:
+            rol = self.instance.rol
+            if rol.atributos_schema:
+                for atributo in rol.atributos_schema:
+                    field_name = f"attr_{atributo['nombre']}"
+                    field_label = atributo['nombre']
+                    field_required = atributo.get('requerido', False)
+                    
+                    # Obtener valor actual
+                    valor_actual = self.instance.atributos_personalizados.get(atributo['nombre'], '')
+                    
+                    # Crear campo según el tipo
+                    if atributo['tipo'] == 'texto':
+                        self.fields[field_name] = forms.CharField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.TextInput(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'numero':
+                        self.fields[field_name] = forms.IntegerField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.NumberInput(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'lista':
+                        opciones = [(opt, opt) for opt in atributo.get('opciones', [])]
+                        self.fields[field_name] = forms.ChoiceField(
+                            label=field_label,
+                            required=field_required,
+                            choices=[('', '---')] + opciones,
+                            initial=valor_actual,
+                            widget=forms.Select(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'booleano':
+                        self.fields[field_name] = forms.BooleanField(
+                            label=field_label,
+                            required=False,
+                            initial=valor_actual if valor_actual != '' else False,
+                            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+                        )
+                    elif atributo['tipo'] == 'fecha':
+                        self.fields[field_name] = forms.DateField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+                        )
+    
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        
+        # Guardar atributos personalizados
+        if usuario.rol and usuario.rol.atributos_schema:
+            atributos = {}
+            for atributo in usuario.rol.atributos_schema:
+                field_name = f"attr_{atributo['nombre']}"
+                if field_name in self.cleaned_data:
+                    valor = self.cleaned_data[field_name]
+                    # Convertir valores booleanos a string para consistencia
+                    if isinstance(valor, bool):
+                        atributos[atributo['nombre']] = valor
+                    else:
+                        atributos[atributo['nombre']] = str(valor) if valor else ''
+            
+            usuario.atributos_personalizados = atributos
+        
+        if commit:
+            usuario.save()
+        
+        return usuario
     
     class Meta:
         model = CustomUser
