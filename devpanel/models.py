@@ -14,6 +14,7 @@ class Pagina(models.Model):
         ('nosotros', 'Nosotros'),
         ('galeria', 'Galería'),
         ('contacto', 'Contacto'),
+        ('footer', 'Footer'),
     ]
     
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='paginas')

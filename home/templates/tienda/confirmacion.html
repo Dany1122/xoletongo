@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Pedido Confirmado - {{ empresa.nombre }}{% endblock %}
+{% block titulo %}Pedido Confirmado - {{ empresa_activa.nombre }}{% endblock %}
 
 {% block content %}
 
@@ -148,8 +148,8 @@
                 <div class="alert alert-light text-center mt-4" role="alert">
                     <p class="mb-0">
                         <strong>¿Tienes alguna pregunta?</strong><br>
-                        Contáctanos: <i class="fa fa-phone"></i> {{ empresa.telefono|default:"(Teléfono de contacto)" }} | 
-                        <i class="fa fa-envelope"></i> {{ empresa.correo_contacto|default:"(Email de contacto)" }}
+                        Contáctanos: <i class="fa fa-phone"></i> {{ empresa_activa.telefono|default:"(Teléfono de contacto)" }} | 
+                        <i class="fa fa-envelope"></i> {{ empresa_activa.correo_contacto|default:"(Email de contacto)" }}
                     </p>
                 </div>
             </div>

@@ -15,15 +15,7 @@
                                 {% if campo.tipo == 'textarea' %}
                                     <div class="col-12">
                                         <div class="form-group">
-                                            <textarea 
-                                                class="form-control w-100" 
-                                                name="{{ campo.nombre }}" 
-                                                id="{{ campo.nombre }}" 
-                                                cols="30" 
-                                                rows="{{ campo.filas|default:9 }}" 
-                                                placeholder="{{ campo.placeholder }}"
-                                                {% if campo.requerido %}required{% endif %}>
-                                            </textarea>
+                                            <textarea class="form-control w-100" name="{{ campo.nombre }}" id="{{ campo.nombre }}" cols="30" rows="{{ campo.filas|default:9 }}" placeholder="{{ campo.placeholder }}" {% if campo.requerido %}required{% endif %}></textarea>
                                         </div>
                                     </div>
                                 {% elif campo.tipo == 'email' %}
