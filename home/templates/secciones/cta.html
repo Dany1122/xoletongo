@@ -1,0 +1,62 @@
+{% load static %}
+{% load seccion_filters %}
+
+{% if seccion.configuracion.tipo == 'whatsapp' %}
+<!-- forQuery_start -->
+<div class="forQuery">
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-10 offset-xl-1 col-md-12">
+                <div class="Query_border">
+                    <div class="row align-items-center justify-content-center">
+                        <div class="col-xl-6 col-md-6">
+                            <div class="Query_text">
+                                <p>{{ seccion.configuracion.pregunta }}</p>
+                            </div>
+                        </div>
+                        <div class="col-xl-6 col-md-6">
+                            <div class="phone_num">
+                                <a href="{{ seccion.configuracion.url_whatsapp }}" target="_blank" class="whatsapp-btn">
+                                    <i class="fa fa-whatsapp"></i>
+                                    {{ seccion.configuracion.numero_whatsapp }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- forQuery_end -->
+
+{% else %}
+<!-- features_room_start -->
+<div class="features_room {% if seccion.configuracion.fondo_oscuro %}reservaciones_overlay_dark{% endif %}">
+    <div class="container">
+        <div class="section_title text-center mb-100 {% if seccion.configuracion.fondo_oscuro %}text-white{% endif %}">
+            <span>{{ seccion.configuracion.subtitulo }}</span>
+            <h3>{{ seccion.configuracion.titulo }}</h3>
+        </div>
+        <div class="rooms_here">
+            {% for item in seccion.configuracion.items %}
+            <!-- {{ item.titulo }} -->
+            <div class="single_rooms">
+                <div class="room_thumb">
+                    <img src="{% static item.imagen %}" alt="{{ item.titulo }}">
+                    <div class="room_heading d-flex justify-content-between align-items-center">
+                        <div class="room_heading_inner">
+                            <span>{{ item.subtitulo }}</span>
+                            <h3>{{ item.titulo }}</h3>
+                        </div>
+                        <a href="{{ item.boton_url|resolve_url }}" class="line-button">{{ item.boton_texto }}</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- features_room_end -->
+{% endif %}
+

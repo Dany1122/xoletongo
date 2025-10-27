@@ -1,0 +1,160 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}Dashboard | Admin{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-4 text-gray-800">Bienvenido al Panel de Administración</h1>
+
+<div class="row">
+
+    <!-- Total de usuarios -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Usuarios Registrados</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_usuarios }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total de reservaciones -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Reservaciones</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_reservaciones }}</div>
+            </div>
+        </div>
+    </div>
+        <!-- Servicio más solicitado -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                    Servicio más solicitado
+                </div>
+                <div class="h6 mb-0 font-weight-bold text-gray-800">
+                    {{ servicio_mas_solicitado }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reservaciones pendientes -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                    Reservaciones Pendientes
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ reservaciones_pendientes }}</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NUEVOS BLOQUES ADICIONALES -->
+<div class="row">
+
+    <!-- Servicios Publicados -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                    Servicios Publicados
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_servicios }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas Totales -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                    Ventas Totales
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_ventas }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes Activos -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                    Clientes Activos
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ clientes_activos }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Último Ingreso -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-dark shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-dark text-uppercase mb-1">
+                    Último Ingreso
+                </div>
+                <div class="h6 mb-0 font-weight-bold text-gray-800">
+                    {{ ultimo_ingreso|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <h2 class="h3 mt-2 mb-3 text-gray-700">Novedades</h2>
+    <div class="d-flex flex-column gap-3">
+            {% for novedad in novedades %}
+                <div class="
+            card shadow-sm 
+            {% if 'Agregó' in novedad.accion %}
+                border-left-success
+            {% elif 'Editó' in novedad.accion %}
+                border-left-warning
+            {% elif 'Eliminó' in novedad.accion %}
+                border-left-danger
+            {% else %}
+                border-left-primary
+            {% endif %}
+        ">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="mr-3">
+                        <i class="
+                            fas 
+                            {% if 'Agregó' in novedad.accion %}
+                                fa-plus-circle text-success
+                            {% elif 'Editó' in novedad.accion %}
+                                fa-edit text-warning
+                            {% elif 'Eliminó' in novedad.accion %}
+                                fa-trash text-danger
+                            {% else %}
+                                fa-bell text-primary
+                            {% endif %}
+                            fa-lg
+                        "></i>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-800 font-weight-bold">
+                            {{ novedad.accion }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            {{ novedad.fecha|date:"d/m/Y H:i" }} – 
+                            <span class="text-dark font-weight-bold">{{ novedad.usuario.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="ml-3">No hay novedades recientes.</p>
+        {% endfor %}
+    </div>
+
+{% endblock %}

@@ -1,20 +1,49 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
-from servicios.models import ImagenServicio
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Avg, Count
+from servicios.models import ImagenServicio, Resena
+from servicios.forms import ResenaForm
+from empresas.models import Empresa
+from devpanel.models import Pagina, Seccion
+from adminpanel.models import Producto, CategoriaProducto, Pedido, ItemPedido
+from decimal import Decimal
+import json
+
+def get_pagina_secciones(slug_pagina):
+    """
+    Helper function para obtener las secciones de una página
+    """
+    empresa = Empresa.objects.filter(activa=True).first()
+    secciones = []
+    
+    if empresa:
+        try:
+            pagina = Pagina.objects.get(empresa=empresa, slug=slug_pagina)
+            secciones = Seccion.objects.filter(pagina=pagina, activa=True).order_by('orden')
+        except Pagina.DoesNotExist:
+            pass
+    
+    return {
+        'secciones': secciones,
+        'empresa': empresa,
+    }
 
 # Create your views here.
 class HomeView(View):
     def get(self, request):
         return render(request, 'index.html')
-    
-from django.shortcuts import render
 
 # Home
 def index(request):
-    return render(request, 'home/index.html')
+    context = get_pagina_secciones('home')
+    return render(request, 'index.html', context)
 
 def nosotros(request):
-    return render(request, 'nosotros.html')
+    context = get_pagina_secciones('nosotros')
+    return render(request, 'nosotros.html', context)
 
 # Servicios
 def avistamiento(request):
@@ -63,16 +92,438 @@ def luciernagas_visita(request):
 
 # Galería
 def galeria(request):
-    return render(request, 'galeria.html')
+    context = get_pagina_secciones('galeria')
+    # Mantener funcionalidad de imágenes
+    imagenes = ImagenServicio.objects.all()
+    context['imagenes'] = imagenes
+    return render(request, 'galeria.html', context)
 
 # Contacto
 def contacto(request):
-    return render(request, 'contacto.html')
+    context = get_pagina_secciones('contacto')
+    return render(request, 'contacto.html', context)
 
 
+def procesar_contacto(request):
+    """Procesa el formulario de contacto dinámico"""
+    if request.method == 'POST':
+        from home.models import ContactMessage
+        
+        empresa = Empresa.objects.filter(activa=True).first()
+        
+        if not empresa:
+            messages.error(request, 'Error al procesar el formulario.')
+            return redirect('contacto')
+        
+        # Capturar todos los campos del formulario
+        datos = {}
+        for key, value in request.POST.items():
+            if key != 'csrfmiddlewaretoken':
+                datos[key] = value
+        
+        # Crear el mensaje de contacto
+        mensaje = ContactMessage.objects.create(
+            empresa=empresa,
+            datos=datos,
+            ip_address=request.META.get('REMOTE_ADDR'),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+        
+        # Enviar email de notificación usando SMTP de la empresa
+        try:
+            from django.core.mail import EmailMessage, get_connection
+            
+            # Verificar que la empresa tenga configuración SMTP completa
+            if (empresa.correo_contacto and empresa.smtp_host and 
+                empresa.smtp_user and empresa.smtp_password):
+                
+                # Crear conexión SMTP personalizada con la configuración de la empresa
+                connection = get_connection(
+                    backend='django.core.mail.backends.smtp.EmailBackend',
+                    host=empresa.smtp_host,
+                    port=empresa.smtp_port,
+                    username=empresa.smtp_user,
+                    password=empresa.smtp_password,
+                    use_tls=empresa.smtp_use_tls,
+                    use_ssl=empresa.smtp_use_ssl,
+                    fail_silently=True,
+                )
+                
+                # Construir cuerpo del email
+                email_body = f"Nuevo mensaje de contacto recibido en {empresa.nombre}:\n\n"
+                email_body += "="*50 + "\n\n"
+                for key, value in datos.items():
+                    email_body += f"{key.upper()}: {value}\n"
+                email_body += "\n" + "="*50 + "\n"
+                email_body += f"IP: {request.META.get('REMOTE_ADDR', 'Desconocida')}\n"
+                email_body += f"Fecha: {mensaje.fecha_envio.strftime('%d/%m/%Y %H:%M:%S')}\n"
+                
+                # Crear y enviar el email
+                email = EmailMessage(
+                    subject=f'Nuevo mensaje de contacto - {empresa.nombre}',
+                    body=email_body,
+                    from_email=empresa.smtp_user,
+                    to=[empresa.correo_contacto],
+                    connection=connection,
+                )
+                email.send(fail_silently=True)
+                
+        except Exception as e:
+            # Si falla el email, no importa, el mensaje se guardó en la base de datos
+            pass
+        
+        messages.success(request, '¡Gracias por contactarnos! Tu mensaje ha sido enviado exitosamente.')
+        return redirect('contacto')
+    
+    return redirect('contacto')
 
-def galeria(request):
-    imagenes = ImagenServicio.objects.all()  # Obtener todas las imágenes almacenadas
-    return render(request, 'galeria.html', {'imagenes': imagenes})
+
+# ==================== VISTAS DE E-COMMERCE ====================
+
+def productos(request):
+    """Vista del catálogo de productos con secciones personalizables"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.info(request, 'El catálogo de productos no está disponible en este momento.')
+        return redirect('home')
+    
+    # Obtener productos activos de la empresa
+    productos_list = Producto.objects.filter(empresa=empresa, activo=True).select_related('categoria').order_by('-creado_en')
+    
+    # Filtro por categoría
+    categoria_id = request.GET.get('categoria')
+    if categoria_id:
+        productos_list = productos_list.filter(categoria_id=categoria_id)
+    
+    # Búsqueda
+    q = request.GET.get('q', '').strip()
+    if q:
+        productos_list = productos_list.filter(nombre__icontains=q)
+    
+    # Paginación
+    paginator = Paginator(productos_list, 12)  # 12 productos por página
+    page_number = request.GET.get('page')
+    productos_pagina = paginator.get_page(page_number)
+    
+    # Obtener categorías para el filtro
+    categorias = CategoriaProducto.objects.filter(empresa=empresa)
+    
+    # Obtener carrito para mostrar contador
+    carrito = request.session.get('carrito', {})
+    total_items = sum(item['cantidad'] for item in carrito.values())
+    
+    # Obtener secciones dinámicas (igual que otras páginas)
+    context_secciones = get_pagina_secciones('productos')
+    
+    # Combinar contextos
+    context = {
+        'empresa': empresa,
+        'productos': productos_pagina,
+        'categorias': categorias,
+        'categoria_seleccionada': categoria_id,
+        'q': q,
+        'total_items_carrito': total_items,
+    }
+    context.update(context_secciones)
+    
+    return render(request, 'tienda/productos.html', context)
+
+
+def producto_detalle(request, producto_id):
+    """Vista del detalle de un producto"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.info(request, 'El catálogo de productos no está disponible en este momento.')
+        return redirect('home')
+    
+    producto = get_object_or_404(Producto, id=producto_id, empresa=empresa, activo=True)
+    
+    # Productos relacionados (misma categoría)
+    productos_relacionados = Producto.objects.filter(
+        empresa=empresa,
+        categoria=producto.categoria,
+        activo=True
+    ).exclude(id=producto.id)[:4]
+    
+    # Obtener carrito para mostrar contador
+    carrito = request.session.get('carrito', {})
+    total_items = sum(item['cantidad'] for item in carrito.values())
+    
+    # Verificar si el módulo de reseñas está habilitado
+    resenas_habilitado = empresa.resenas_habilitado
+    
+    # Inicializar variables de reseñas
+    resenas = []
+    estadisticas = {'promedio': None, 'total': 0}
+    usuario_resena = None
+    form = None
+    content_type = None
+    
+    # Solo cargar reseñas si el módulo está habilitado
+    if resenas_habilitado:
+        # Obtener ContentType de Producto
+        content_type = ContentType.objects.get_for_model(Producto)
+        
+        # Obtener reseñas aprobadas
+        resenas = Resena.objects.filter(
+            content_type=content_type,
+            object_id=producto_id,
+            aprobada=True
+        ).select_related('usuario').order_by('-fecha_creacion')
+        
+        # Calcular promedio de calificaciones
+        estadisticas = resenas.aggregate(
+            promedio=Avg('calificacion'),
+            total=Count('id')
+        )
+        
+        # Verificar si el usuario ya dejó una reseña
+        if request.user.is_authenticated:
+            usuario_resena = resenas.filter(usuario=request.user).first()
+        
+        # Crear formulario para nueva reseña
+        form = ResenaForm()
+    
+    context = {
+        'empresa': empresa,
+        'producto': producto,
+        'productos_relacionados': productos_relacionados,
+        'total_items_carrito': total_items,
+        'resenas': resenas,
+        'estadisticas_resenas': estadisticas,
+        'usuario_resena': usuario_resena,
+        'form_resena': form,
+        'content_type': content_type,
+        'resenas_habilitado': resenas_habilitado,
+    }
+    return render(request, 'tienda/producto_detalle.html', context)
+
+
+def agregar_al_carrito(request, producto_id):
+    """Agregar producto al carrito (AJAX)"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.error(request, 'El catálogo de productos no está disponible.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        producto = get_object_or_404(Producto, id=producto_id, activo=True)
+        cantidad = int(request.POST.get('cantidad', 1))
+        
+        # Obtener o crear carrito en sesión
+        carrito = request.session.get('carrito', {})
+        
+        # Agregar o actualizar producto en carrito
+        producto_key = str(producto.id)
+        if producto_key in carrito:
+            carrito[producto_key]['cantidad'] += cantidad
+        else:
+            carrito[producto_key] = {
+                'nombre': producto.nombre,
+                'precio': str(producto.precio),
+                'cantidad': cantidad,
+                'imagen': producto.imagen.url if producto.imagen else None,
+            }
+        
+        # Guardar carrito en sesión
+        request.session['carrito'] = carrito
+        request.session.modified = True
+        
+        messages.success(request, f'"{producto.nombre}" agregado al carrito')
+        
+        # Redirigir a la página anterior o al catálogo
+        return redirect(request.META.get('HTTP_REFERER', 'productos'))
+    
+    return redirect('productos')
+
+
+def ver_carrito(request):
+    """Vista del carrito de compras"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.info(request, 'El catálogo de productos no está disponible.')
+        return redirect('home')
+    
+    carrito = request.session.get('carrito', {})
+    
+    # Calcular totales
+    total = Decimal('0.00')
+    items_carrito = []
+    
+    for producto_id, item in carrito.items():
+        subtotal = Decimal(item['precio']) * item['cantidad']
+        total += subtotal
+        items_carrito.append({
+            'id': producto_id,
+            'nombre': item['nombre'],
+            'precio': Decimal(item['precio']),
+            'cantidad': item['cantidad'],
+            'subtotal': subtotal,
+            'imagen': item.get('imagen'),
+        })
+    
+    context = {
+        'empresa': empresa,
+        'items_carrito': items_carrito,
+        'total': total,
+        'total_items': sum(item['cantidad'] for item in carrito.values()),
+    }
+    return render(request, 'tienda/carrito.html', context)
+
+
+def actualizar_carrito(request, producto_id):
+    """Actualizar cantidad de un producto en el carrito"""
+    if request.method == 'POST':
+        carrito = request.session.get('carrito', {})
+        producto_key = str(producto_id)
+        
+        if producto_key in carrito:
+            accion = request.POST.get('accion')
+            if accion == 'incrementar':
+                carrito[producto_key]['cantidad'] += 1
+            elif accion == 'decrementar':
+                if carrito[producto_key]['cantidad'] > 1:
+                    carrito[producto_key]['cantidad'] -= 1
+                else:
+                    del carrito[producto_key]
+            elif accion == 'eliminar':
+                del carrito[producto_key]
+            
+            request.session['carrito'] = carrito
+            request.session.modified = True
+            messages.success(request, 'Carrito actualizado')
+        
+        return redirect('ver_carrito')
+    
+    return redirect('ver_carrito')
+
+
+def checkout(request):
+    """Vista de checkout"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.info(request, 'El catálogo de productos no está disponible.')
+        return redirect('home')
+    
+    carrito = request.session.get('carrito', {})
+    
+    if not carrito:
+        messages.warning(request, 'Tu carrito está vacío')
+        return redirect('productos')
+    
+    # Calcular totales
+    total = Decimal('0.00')
+    items_carrito = []
+    
+    for producto_id, item in carrito.items():
+        subtotal = Decimal(item['precio']) * item['cantidad']
+        total += subtotal
+        items_carrito.append({
+            'id': producto_id,
+            'nombre': item['nombre'],
+            'precio': Decimal(item['precio']),
+            'cantidad': item['cantidad'],
+            'subtotal': subtotal,
+        })
+    
+    context = {
+        'empresa': empresa,
+        'items_carrito': items_carrito,
+        'total': total,
+    }
+    return render(request, 'tienda/checkout.html', context)
+
+
+def procesar_pedido(request):
+    """Procesar el pedido y guardarlo en la base de datos"""
+    if request.method == 'POST':
+        empresa = Empresa.objects.filter(activa=True).first()
+        
+        # Verificar si la empresa tiene productos habilitados
+        if not empresa or not empresa.productos_habilitado:
+            messages.error(request, 'El catálogo de productos no está disponible.')
+            return redirect('home')
+        
+        carrito = request.session.get('carrito', {})
+        
+        if not carrito:
+            messages.error(request, 'Tu carrito está vacío')
+            return redirect('productos')
+        
+        # Obtener datos del formulario
+        nombre_cliente = request.POST.get('nombre_cliente')
+        email_cliente = request.POST.get('email_cliente')
+        telefono_cliente = request.POST.get('telefono_cliente')
+        direccion_entrega = request.POST.get('direccion_entrega')
+        notas = request.POST.get('notas', '')
+        metodo_pago = request.POST.get('metodo_pago', 'efectivo')
+        
+        # Calcular total
+        total = Decimal('0.00')
+        for item in carrito.values():
+            total += Decimal(item['precio']) * item['cantidad']
+        
+        # Crear pedido
+        pedido = Pedido.objects.create(
+            empresa=empresa,
+            usuario=request.user if request.user.is_authenticated else None,
+            nombre_cliente=nombre_cliente,
+            email_cliente=email_cliente,
+            telefono_cliente=telefono_cliente,
+            direccion_entrega=direccion_entrega,
+            notas=notas,
+            total=total,
+            metodo_pago=metodo_pago,
+        )
+        
+        # Crear items del pedido
+        for producto_id, item in carrito.items():
+            producto = Producto.objects.get(id=producto_id)
+            ItemPedido.objects.create(
+                pedido=pedido,
+                producto=producto,
+                nombre_producto=item['nombre'],
+                precio_unitario=Decimal(item['precio']),
+                cantidad=item['cantidad'],
+            )
+        
+        # Limpiar carrito
+        request.session['carrito'] = {}
+        request.session.modified = True
+        
+        messages.success(request, f'¡Pedido #{pedido.numero_pedido} realizado exitosamente!')
+        
+        # Redirigir a página de confirmación
+        return redirect('confirmacion_pedido', pedido_id=pedido.id)
+    
+    return redirect('checkout')
+
+
+def confirmacion_pedido(request, pedido_id):
+    """Vista de confirmación del pedido"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Verificar si la empresa tiene productos habilitados
+    if not empresa or not empresa.productos_habilitado:
+        messages.info(request, 'El catálogo de productos no está disponible.')
+        return redirect('home')
+    
+    pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+    
+    context = {
+        'empresa': empresa,
+        'pedido': pedido,
+    }
+    return render(request, 'tienda/confirmacion.html', context)
 
 

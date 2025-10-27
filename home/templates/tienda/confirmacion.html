@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Pedido Confirmado - {{ empresa_activa.nombre }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="bradcam_area breadcam_bg_tienda" style="background-image: url('{% static "img/banner/banner.png" %}');">
+    <div class="overlay" style="background-color: rgba(0, 0, 0, 0.4);"></div>
+    <i class="fa fa-check-circle fa-3x mb-3"></i>
+    <h3>¡Pedido Confirmado!</h3>
+</div>
+
+<!-- Confirmación -->
+<section class="confirmacion_area" style="padding: 80px 0;">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Mensaje de éxito -->
+                <div class="card shadow-lg border-success mb-4">
+                    <div class="card-body text-center py-5">
+                        <i class="fa fa-check-circle text-success fa-4x mb-3"></i>
+                        <h3 class="text-success mb-3">¡Gracias por tu compra!</h3>
+                        <p class="lead mb-4">Tu pedido ha sido registrado correctamente.</p>
+                        <div class="alert alert-info" role="alert">
+                            <strong>Número de pedido:</strong> <span class="h4 text-primary">#{{ pedido.numero_pedido }}</span>
+                        </div>
+                        <p class="text-muted">
+                            Te hemos enviado un correo electrónico de confirmación a <strong>{{ pedido.email_cliente }}</strong> con los detalles de tu pedido.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Detalles del pedido -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-list-alt"></i> Detalles del Pedido</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Fecha:</strong><br>
+                                {{ pedido.fecha_pedido|date:"d/m/Y H:i" }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Estado:</strong><br>
+                                <span class="badge badge-warning p-2">{{ pedido.get_estado_display }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <strong>Método de pago:</strong><br>
+                                {{ pedido.get_metodo_pago_display }}
+                            </div>
+                            <div class="col-6">
+                                <strong>Total:</strong><br>
+                                <h4 class="text-success mb-0">${{ pedido.total }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de entrega -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-map-marker"></i> Información de Entrega</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>Nombre:</strong> {{ pedido.nombre_cliente }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ pedido.email_cliente }}</p>
+                        <p class="mb-1"><strong>Teléfono:</strong> {{ pedido.telefono_cliente }}</p>
+                        <p class="mb-1"><strong>Dirección:</strong></p>
+                        <p class="text-muted">{{ pedido.direccion_entrega }}</p>
+                        {% if pedido.notas %}
+                        <p class="mb-1"><strong>Notas:</strong></p>
+                        <p class="text-muted">{{ pedido.notas }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Productos -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-shopping-bag"></i> Productos</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Precio</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in pedido.items.all %}
+                                    <tr>
+                                        <td>{{ item.nombre_producto }}</td>
+                                        <td class="text-center">${{ item.precio_unitario }}</td>
+                                        <td class="text-center">{{ item.cantidad }}</td>
+                                        <td class="text-right"><strong>${{ item.subtotal }}</strong></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="thead-light">
+                                    <tr>
+                                        <td colspan="3" class="text-right"><strong>Total:</strong></td>
+                                        <td class="text-right"><h5 class="text-success mb-0">${{ pedido.total }}</h5></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Próximos pasos -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0" style="color: white !important;"><i class="fa fa-info-circle"></i> Próximos Pasos</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol class="mb-0">
+                            <li class="mb-2">Recibirás un correo de confirmación con los detalles de tu pedido.</li>
+                            <li class="mb-2">Nuestro equipo revisará tu pedido y te contactará para coordinar la entrega.</li>
+                            {% if pedido.metodo_pago == 'transferencia' %}
+                            <li class="mb-2">Te enviaremos los datos bancarios para realizar la transferencia.</li>
+                            {% endif %}
+                            <li class="mb-2">Una vez confirmado el pago, procederemos con el envío de tu pedido.</li>
+                            <li>Recibirás notificaciones sobre el estado de tu pedido por email.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="text-center">
+                    <a href="{% url 'productos' %}" class="btn btn-primary btn-lg mr-2">
+                        <i class="fa fa-shopping-bag"></i> Seguir Comprando
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fa fa-home"></i> Volver al Inicio
+                    </a>
+                </div>
+
+                <!-- Información de contacto -->
+                <div class="alert alert-light text-center mt-4" role="alert">
+                    <p class="mb-0">
+                        <strong>¿Tienes alguna pregunta?</strong><br>
+                        Contáctanos: <i class="fa fa-phone"></i> {{ empresa_activa.telefono|default:"(Teléfono de contacto)" }} | 
+                        <i class="fa fa-envelope"></i> {{ empresa_activa.correo_contacto|default:"(Email de contacto)" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .btn-primary {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-acento, #FF9800);
+        border-color: var(--color-acento, #FF9800);
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    @media print {
+        .btn, .alert-light {
+            display: none;
+        }
+    }
+
+    .bradcam_area {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0 60px;
+        text-align: center;
+        color: white;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .bradcam_bg_tienda {
+        background-image: url('{% static "img/banner/banner.png" %}');
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .bradcam_area h3,
+    .bradcam_area p,
+    .bradcam_area i {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+</style>
+
+{% endblock %}
+

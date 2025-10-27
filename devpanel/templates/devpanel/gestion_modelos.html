@@ -1,0 +1,347 @@
+{% extends 'base_dev.html' %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1 text-gray-800">Gestionar Modelos</h1>
+        <p class="mb-0 text-muted">Atributos personalizados para la empresa: <strong>{{ empresa_activa.nombre }}</strong></p>
+    </div>
+    <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalNuevoAtributo">
+        <i class="fas fa-plus"></i> Nuevo Atributo
+    </a>
+</div>
+
+<!-- Pestañas de navegación -->
+<ul class="nav nav-tabs mb-3" id="modelosTabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="productos-tab" data-toggle="tab" href="#productos" role="tab" aria-controls="productos" aria-selected="true">
+            <i class="fas fa-box"></i> Productos
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="servicios-tab" data-toggle="tab" href="#servicios" role="tab" aria-controls="servicios" aria-selected="false">
+            <i class="fas fa-concierge-bell"></i> Servicios
+        </a>
+    </li>
+</ul>
+
+<!-- Contenido de las pestañas -->
+<div class="tab-content" id="modelosTabsContent">
+    
+    <!-- Pestaña de Productos -->
+    <div class="tab-pane fade show active" id="productos" role="tabpanel" aria-labelledby="productos-tab">
+        
+        <!-- Atributos Base de Producto -->
+        <div class="card shadow mb-4">
+            <a href="#collapseCardAtributosBaseProducto" class="d-block card-header py-3" data-toggle="collapse"
+               role="button" aria-expanded="false" aria-controls="collapseCardAtributosBaseProducto">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-th-list"></i> Atributos Base del Modelo "Producto" (Haz clic para expandir/contraer)
+                </h6>
+            </a>
+            
+            <div class="collapse" id="collapseCardAtributosBaseProducto">
+                <div class="card-body">
+                    <p>Los siguientes atributos son fijos y estarán presentes en <strong>todos</strong> los productos de <strong>todas</strong> las empresas. Los atributos personalizados que definas a continuación se añadirán a esta estructura base.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>nombre</strong>: Texto para el nombre del producto.</li>
+                        <li class="list-group-item"><strong>descripcion</strong>: Texto largo para la descripción.</li>
+                        <li class="list-group-item"><strong>precio</strong>: Campo numérico para el costo.</li>
+                        <li class="list-group-item"><strong>sku</strong>: Código de inventario único.</li>
+                        <li class="list-group-item"><strong>stock</strong>: Cantidad de unidades disponibles.</li>
+                        <li class="list-group-item"><strong>imagen</strong>: Archivo de imagen principal.</li>
+                        <li class="list-group-item"><strong>activo</strong>: Booleano (Sí/No) para visibilidad.</li>
+                        <li class="list-group-item"><strong>perecedero</strong>: Booleano (Sí/No) si tiene caducidad.</li>
+                        <li class="list-group-item"><strong>fecha_caducidad</strong>: Campo de fecha.</li>
+                        <li class="list-group-item"><strong>categoria</strong>: Relación con una categoría.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Atributos Personalizados de Productos -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-cogs"></i> Atributos Personalizados de Productos
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nombre del Atributo</th>
+                                <th>Tipo de Dato</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for atributo in atributos_producto %}
+                            <tr>
+                                <td><strong>{{ atributo.name }}</strong></td>
+                                <td>{{ atributo.get_attribute_type_display }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalEditarAtributo{{ atributo.id }}">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalEliminarAtributo{{ atributo.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Aún no se han definido atributos personalizados para productos.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestaña de Servicios -->
+    <div class="tab-pane fade" id="servicios" role="tabpanel" aria-labelledby="servicios-tab">
+        
+        <!-- Atributos Base de Servicio -->
+        <div class="card shadow mb-4">
+            <a href="#collapseCardAtributosBaseServicio" class="d-block card-header py-3" data-toggle="collapse"
+               role="button" aria-expanded="false" aria-controls="collapseCardAtributosBaseServicio">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-th-list"></i> Atributos Base del Modelo "Servicio" (Haz clic para expandir/contraer)
+                </h6>
+            </a>
+            
+            <div class="collapse" id="collapseCardAtributosBaseServicio">
+                <div class="card-body">
+                    <p>Los siguientes atributos son fijos y estarán presentes en <strong>todos</strong> los servicios de <strong>todas</strong> las empresas. Los atributos personalizados que definas a continuación se añadirán a esta estructura base.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>titulo</strong>: Texto para el título del servicio.</li>
+                        <li class="list-group-item"><strong>descripcion</strong>: Texto largo para la descripción detallada.</li>
+                        <li class="list-group-item"><strong>servicio</strong>: Relación con el tipo de servicio.</li>
+                        <li class="list-group-item"><strong>costo_por_persona</strong>: Campo numérico para el precio por adulto.</li>
+                        <li class="list-group-item"><strong>costo_niño</strong>: Campo numérico para el precio por niño.</li>
+                        <li class="list-group-item"><strong>costo_con_descuento</strong>: Campo numérico para precio con descuento.</li>
+                        <li class="list-group-item"><strong>imagen_principal</strong>: Archivo de imagen principal.</li>
+                        <li class="list-group-item"><strong>duracion</strong>: Texto para especificar duración.</li>
+                        <li class="list-group-item"><strong>restricciones</strong>: Texto para condiciones y restricciones.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Atributos Personalizados de Servicios -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-cogs"></i> Atributos Personalizados de Servicios
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Nombre del Atributo</th>
+                                <th>Tipo de Dato</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for atributo in atributos_servicio %}
+                            <tr>
+                                <td><strong>{{ atributo.name }}</strong></td>
+                                <td>{{ atributo.get_attribute_type_display }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalEditarAtributo{{ atributo.id }}">
+                                        <i class="fas fa-edit"></i> Editar
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalEliminarAtributo{{ atributo.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Aún no se han definido atributos personalizados para servicios.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Modal: Nuevo Atributo -->
+<div class="modal fade" id="modalNuevoAtributo" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_crear_atributo' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Crear Nuevo Atributo Personalizado</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {{ form.as_p }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Atributo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modales de Edición para Productos -->
+{% for atributo in atributos_producto %}
+<div class="modal fade" id="modalEditarAtributo{{ atributo.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_editar_atributo' atributo.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Atributo: {{ atributo.name }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="name{{ atributo.id }}">Nombre del Atributo</label>
+            <input type="text" class="form-control" id="name{{ atributo.id }}" name="name" value="{{ atributo.name }}" required>
+          </div>
+          <div class="form-group">
+            <label for="attribute_type{{ atributo.id }}">Tipo de Dato</label>
+            <select class="form-control" id="attribute_type{{ atributo.id }}" name="attribute_type" required>
+              <option value="text" {% if atributo.attribute_type == 'text' %}selected{% endif %}>Texto Corto</option>
+              <option value="longtext" {% if atributo.attribute_type == 'longtext' %}selected{% endif %}>Texto Largo</option>
+              <option value="number" {% if atributo.attribute_type == 'number' %}selected{% endif %}>Número</option>
+              <option value="decimal" {% if atributo.attribute_type == 'decimal' %}selected{% endif %}>Decimal</option>
+              <option value="boolean" {% if atributo.attribute_type == 'boolean' %}selected{% endif %}>Sí/No (Checkbox)</option>
+              <option value="date" {% if atributo.attribute_type == 'date' %}selected{% endif %}>Fecha</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="target_model{{ atributo.id }}">Modelo de Destino</label>
+            <select class="form-control" id="target_model{{ atributo.id }}" name="target_model" required>
+              <option value="Producto" {% if atributo.target_model == 'Producto' %}selected{% endif %}>Producto</option>
+              <option value="Servicio" {% if atributo.target_model == 'Servicio' %}selected{% endif %}>Servicio</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEliminarAtributo{{ atributo.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_eliminar_atributo' atributo.id %}">
+        {% csrf_token %}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Confirmar Eliminación</h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar el atributo <strong>{{ atributo.name }}</strong>?</p>
+          <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer y se eliminarán todos los datos asociados a este atributo en los productos existentes.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar Atributo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Modales de Edición para Servicios -->
+{% for atributo in atributos_servicio %}
+<div class="modal fade" id="modalEditarAtributo{{ atributo.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_editar_atributo' atributo.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Editar Atributo: {{ atributo.name }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="name{{ atributo.id }}">Nombre del Atributo</label>
+            <input type="text" class="form-control" id="name{{ atributo.id }}" name="name" value="{{ atributo.name }}" required>
+          </div>
+          <div class="form-group">
+            <label for="attribute_type{{ atributo.id }}">Tipo de Dato</label>
+            <select class="form-control" id="attribute_type{{ atributo.id }}" name="attribute_type" required>
+              <option value="text" {% if atributo.attribute_type == 'text' %}selected{% endif %}>Texto Corto</option>
+              <option value="longtext" {% if atributo.attribute_type == 'longtext' %}selected{% endif %}>Texto Largo</option>
+              <option value="number" {% if atributo.attribute_type == 'number' %}selected{% endif %}>Número</option>
+              <option value="decimal" {% if atributo.attribute_type == 'decimal' %}selected{% endif %}>Decimal</option>
+              <option value="boolean" {% if atributo.attribute_type == 'boolean' %}selected{% endif %}>Sí/No (Checkbox)</option>
+              <option value="date" {% if atributo.attribute_type == 'date' %}selected{% endif %}>Fecha</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="target_model{{ atributo.id }}">Modelo de Destino</label>
+            <select class="form-control" id="target_model{{ atributo.id }}" name="target_model" required>
+              <option value="Producto" {% if atributo.target_model == 'Producto' %}selected{% endif %}>Producto</option>
+              <option value="Servicio" {% if atributo.target_model == 'Servicio' %}selected{% endif %}>Servicio</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalEliminarAtributo{{ atributo.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'dev_eliminar_atributo' atributo.id %}">
+        {% csrf_token %}
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Confirmar Eliminación</h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>¿Estás seguro de que deseas eliminar el atributo <strong>{{ atributo.name }}</strong>?</p>
+          <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> Esta acción no se puede deshacer y se eliminarán todos los datos asociados a este atributo en los servicios existentes.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Eliminar Atributo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

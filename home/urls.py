@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
-    path('', HomeView.as_view(), name='home'),
+    path('', views.index, name='home'),  # Usando la función index con secciones dinámicas
    # Acerca de Nosotros
     path('nosotros/', views.nosotros, name='nosotros'),
 
@@ -34,7 +34,16 @@ urlpatterns = [
 
     # Contacto
     path('contacto/', views.contacto, name='contacto'),
+    path('contacto/procesar/', views.procesar_contacto, name='procesar_contacto'),
 
-
+    # E-commerce / Tienda
+    path('productos/', views.productos, name='productos'),
+    path('producto/<int:producto_id>/', views.producto_detalle, name='producto_detalle'),
+    path('carrito/', views.ver_carrito, name='ver_carrito'),
+    path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
+    path('carrito/actualizar/<int:producto_id>/', views.actualizar_carrito, name='actualizar_carrito'),
+    path('checkout/', views.checkout, name='checkout'),
+    path('procesar-pedido/', views.procesar_pedido, name='procesar_pedido'),
+    path('confirmacion/<int:pedido_id>/', views.confirmacion_pedido, name='confirmacion_pedido'),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

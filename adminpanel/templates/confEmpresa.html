@@ -1,0 +1,207 @@
+{% extends 'base_admin.html' %}
+{% load static %}
+
+{% block content %}
+
+</div>
+
+<h1 class="h3 mb-4 text-gray-800">Configuración de la empresa</h1>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+          <i class="fas fa-building mr-1"></i> Datos generales
+        </h6>
+        {% if not is_admin %}
+          <span class="badge badge-secondary">Solo lectura</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <form id="empresaForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="form-group col-md-8">
+              <label>Nombre de la empresa</label>
+              {{ form.nombre }}
+            </div>
+            <div class="form-group col-md-4">
+              <label>Activa</label><br>
+              {{ form.activa }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Nombre del titular</label>
+              {{ form.nombre_titular }}
+            </div>
+            <div class="form-group col-md-6">
+              <label>Correo de contacto</label>
+              {{ form.correo_contacto }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Teléfono</label>
+              {{ form.telefono }}
+            </div>
+            <div class="form-group col-md-6">
+              <label>Ubicación</label>
+              {{ form.ubicacion }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Sitio web</label>
+              {{ form.sitio_web }}
+            </div>
+            <div class="form-group col-md-6">
+              <label>Logotipo</label>
+              {{ form.logotipo }}
+              {% if empresa and empresa.logotipo %}
+                <div class="mt-2">
+                  <img src="{{ empresa.logotipo.url }}" class="img-fluid rounded" style="max-height: 80px;" alt="Logotipo">
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <hr>
+
+          <h6 class="text-primary mb-3"><i class="fas fa-university mr-1"></i> Datos bancarios</h6>
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label>Cuenta bancaria</label>
+              {{ form.cuenta_bancaria }}
+            </div>
+            <div class="form-group col-md-4">
+              <label>CLABE</label>
+              {{ form.clabe }}
+            </div>
+            <div class="form-group col-md-4">
+              <label>Número de tarjeta</label>
+              {{ form.numero_terjeta }}
+            </div>
+          </div>
+
+          <hr>
+
+          <h6 class="text-primary mb-3"><i class="fas fa-envelope mr-1"></i> Configuración SMTP</h6>
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Servidor SMTP</label>
+              {{ form.smtp_host }}
+            </div>
+            <div class="form-group col-md-3">
+              <label>Puerto</label>
+              {{ form.smtp_port }}
+            </div>
+            <div class="form-group col-md-3">
+              <label>Usuario</label>
+              {{ form.smtp_user }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-md-6">
+              <label>Contraseña</label>
+              {{ form.smtp_password }}
+            </div>
+            <div class="form-group col-md-3">
+              <div class="form-check mt-4">
+                {{ form.smtp_use_tls }} <label class="form-check-label ml-1">Usar TLS</label>
+              </div>
+            </div>
+            <div class="form-group col-md-3">
+              <div class="form-check mt-4">
+                {{ form.smtp_use_ssl }} <label class="form-check-label ml-1">Usar SSL</label>
+              </div>
+            </div>
+          </div>
+
+          {% if is_admin %}
+          <div class="text-right">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="fas fa-undo"></i> Restablecer
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Guardar cambios
+            </button>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-info-circle mr-1"></i> Ayuda</h6>
+      </div>
+      <div class="card-body small text-muted">
+        <p>Solo los usuarios con rol <strong>Administrador</strong> pueden editar esta configuración.</p>
+        <p>Si ves los campos en gris, tienes acceso de solo lectura.</p>
+        <p>Para SMTP no actives <strong>TLS</strong> y <strong>SSL</strong> al mismo tiempo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modales de feedback (mismo estilo que tus pantallas) -->
+<div class="modal fade" id="createdModal" tabindex="-1" role="dialog" aria-labelledby="createdModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-success">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="createdModalLabel">Empresa creada</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-check-circle fa-3x text-success mb-3"></i><br>
+        La empresa se guardó correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editedModal" tabindex="-1" role="dialog" aria-labelledby="editedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content border-primary">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editedModalLabel">Cambios guardados</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <i class="fas fa-save fa-3x text-primary mb-3"></i><br>
+        Los cambios se guardaron correctamente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getQueryParam(param) {
+    let urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+  window.onload = function () {
+    if (getQueryParam('creado') === '1') { $('#createdModal').modal('show'); }
+    if (getQueryParam('editado') === '1') { $('#editedModal').modal('show'); }
+  };
+</script>
+
+{% endblock %}

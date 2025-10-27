@@ -317,6 +317,10 @@ def pago_cancelado(request):
 
 
 def enviar_correo_confirmacion(reservacion, servicio):
+    """
+    Envía correo de confirmación de reservación.
+    Si falla (por ejemplo, sin servidor SMTP en desarrollo), lo registra pero no interrumpe el flujo.
+    """
     asunto = 'Confirmación de reservación'
 
     mensaje_html = f"""
@@ -342,14 +346,23 @@ def enviar_correo_confirmacion(reservacion, servicio):
     </html>
     """
 
-    send_mail(
-        subject=asunto,
-        message='',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[reservacion.email_cliente],
-        fail_silently=False,
-        html_message=mensaje_html
-    )
+    try:
+        send_mail(
+            subject=asunto,
+            message='',
+            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@xoletongo.com'),
+            recipient_list=[reservacion.email_cliente],
+            fail_silently=False,
+            html_message=mensaje_html
+        )
+        print(f"✅ Correo de confirmación enviado a: {reservacion.email_cliente}")
+    except Exception as e:
+        # En desarrollo, si no hay servidor SMTP configurado, solo imprime el error
+        print(f"⚠️ No se pudo enviar el correo de confirmación: {e}")
+        print(f"📧 Destinatario: {reservacion.email_cliente}")
+        print(f"📝 Asunto: {asunto}")
+        if settings.DEBUG:
+            print("💡 En desarrollo: configura un servidor SMTP o usa EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'")
 
 
 @csrf_exempt

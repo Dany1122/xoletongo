@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Finalizar Compra - {{ empresa_activa.nombre }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="bradcam_area breadcam_bg_tienda" style="background-image: url('{% static "img/banner/banner.png" %}');">
+    <div class="overlay" style="background-color: rgba(0, 0, 0, 0.4);"></div>
+    <h3>Finalizar Compra</h3>
+</div>
+
+<!-- Checkout -->
+<section class="checkout_area" style="padding: 80px 0;">
+    <div class="container">
+        <form method="POST" action="{% url 'procesar_pedido' %}" id="checkoutForm">
+            {% csrf_token %}
+            <div class="row">
+                <!-- Formulario de datos del cliente -->
+                <div class="col-lg-7 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0" style="color: white !important;"><i class="fa fa-user"></i> Información de Contacto</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="nombre_cliente">Nombre completo *</label>
+                                <input type="text" class="form-control" id="nombre_cliente" name="nombre_cliente" required 
+                                       placeholder="Ej: Juan Pérez"
+                                       value="{% if user.is_authenticated %}{{ user.get_full_name }}{% endif %}">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="email_cliente">Email *</label>
+                                    <input type="email" class="form-control" id="email_cliente" name="email_cliente" required
+                                           placeholder="correo@ejemplo.com"
+                                           value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="telefono_cliente">Teléfono *</label>
+                                    <input type="tel" class="form-control" id="telefono_cliente" name="telefono_cliente" required
+                                           placeholder="Ej: 2211234567"
+                                           value="{% if user.is_authenticated %}{{ user.telefono }}{% endif %}">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="direccion_entrega">Dirección de entrega *</label>
+                                <textarea class="form-control" id="direccion_entrega" name="direccion_entrega" rows="3" required
+                                          placeholder="Calle, Número, Colonia, Ciudad, Estado, C.P."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="notas">Notas adicionales (opcional)</label>
+                                <textarea class="form-control" id="notas" name="notas" rows="2"
+                                          placeholder="Instrucciones especiales, referencias, etc."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Método de pago -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0" style="color: white !important;"><i class="fa fa-credit-card"></i> Método de Pago</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <div class="custom-control custom-radio mb-2">
+                                    <input type="radio" id="pago_efectivo" name="metodo_pago" value="efectivo" class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="pago_efectivo">
+                                        <strong>Efectivo</strong> - Pago al recibir el pedido
+                                    </label>
+                                </div>
+                                <div class="custom-control custom-radio mb-2">
+                                    <input type="radio" id="pago_transferencia" name="metodo_pago" value="transferencia" class="custom-control-input">
+                                    <label class="custom-control-label" for="pago_transferencia">
+                                        <strong>Transferencia Bancaria</strong> - Te enviaremos los datos bancarios
+                                    </label>
+                                </div>
+                                <div class="custom-control custom-radio mb-2">
+                                    <input type="radio" id="pago_tarjeta" name="metodo_pago" value="tarjeta" class="custom-control-input">
+                                    <label class="custom-control-label" for="pago_tarjeta">
+                                        <strong>Tarjeta</strong> - Pago con tarjeta en tienda física
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info mb-0" role="alert">
+                                <i class="fa fa-info-circle"></i> Tu pedido será confirmado una vez que verifiquemos el método de pago seleccionado.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen del pedido -->
+                <div class="col-lg-5">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0" style="color: white !important;"><i class="fa fa-list"></i> Resumen del Pedido</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Items -->
+                            <div class="pedido-items mb-3" style="max-height: 300px; overflow-y: auto;">
+                                {% for item in items_carrito %}
+                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <strong>{{ item.nombre }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ item.cantidad }} x ${{ item.precio }}</small>
+                                    </div>
+                                    <div>
+                                        <strong class="text-primary">${{ item.subtotal }}</strong>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Total -->
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>${{ total }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Envío:</span>
+                                <span class="text-success">A coordinar</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <strong>Total:</strong>
+                                <h4 class="text-success mb-0">${{ total }}</h4>
+                            </div>
+
+                            <!-- Botón de confirmar -->
+                            <button type="submit" class="btn btn-success btn-lg btn-block">
+                                <i class="fa fa-check-circle"></i> Confirmar Pedido
+                            </button>
+                            <a href="{% url 'ver_carrito' %}" class="btn btn-outline-secondary btn-block mt-2">
+                                <i class="fa fa-arrow-left"></i> Volver al Carrito
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Información de seguridad -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fa fa-shield"></i> Compra Segura</h6>
+                            <ul class="list-unstyled small text-muted mb-0">
+                                <li class="mb-2">
+                                    <i class="fa fa-lock text-success"></i> Tus datos están protegidos
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa fa-envelope text-success"></i> Recibirás confirmación por email
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fa fa-phone text-success"></i> Soporte vía teléfono
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    .btn-primary {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-acento, #FF9800);
+        border-color: var(--color-acento, #FF9800);
+    }
+
+    .btn-success {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .btn-success:hover {
+        background-color: var(--color-acento, #FF9800);
+        border-color: var(--color-acento, #FF9800);
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .form-control:focus {
+        border-color: var(--color-acento, #FF9800);
+        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+    }
+
+    .custom-control-input:checked ~ .custom-control-label::before {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .pedido-items::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .pedido-items::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 3px;
+    }
+
+    .bradcam_area {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0 60px;
+        text-align: center;
+        color: white;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .bradcam_bg_tienda {
+        background-image: url('{% static "img/banner/banner.png" %}');
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .bradcam_area h3,
+    .bradcam_area p,
+    .bradcam_area i {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+</style>
+
+<script>
+    // Validación del formulario
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        const required = this.querySelectorAll('[required]');
+        let valid = true;
+        
+        required.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                valid = false;
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!valid) {
+            e.preventDefault();
+            alert('Por favor, completa todos los campos obligatorios (*)');
+        }
+    });
+</script>
+
+{% endblock %}
+

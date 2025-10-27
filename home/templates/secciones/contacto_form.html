@@ -1,0 +1,142 @@
+{% load static %}
+<!-- ================ contact section start ================= -->
+<section class="contact-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="contact-title">{{ seccion.configuracion.titulo|default:"Contáctanos" }}</h2>
+            </div>
+            <div class="col-lg-8">
+                <form class="form-contact contact_form" action="{% url 'procesar_contacto' %}" method="post" id="contactForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        {% if seccion.configuracion.campos %}
+                            {% for campo in seccion.configuracion.campos %}
+                                {% if campo.tipo == 'textarea' %}
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <textarea class="form-control w-100" name="{{ campo.nombre }}" id="{{ campo.nombre }}" cols="30" rows="{{ campo.filas|default:9 }}" placeholder="{{ campo.placeholder }}" {% if campo.requerido %}required{% endif %}></textarea>
+                                        </div>
+                                    </div>
+                                {% elif campo.tipo == 'email' %}
+                                    <div class="col-sm-{{ campo.columnas|default:6 }}">
+                                        <div class="form-group">
+                                            <input 
+                                                class="form-control" 
+                                                name="{{ campo.nombre }}" 
+                                                id="{{ campo.nombre }}" 
+                                                type="email" 
+                                                placeholder="{{ campo.placeholder }}"
+                                                {% if campo.requerido %}required{% endif %}>
+                                        </div>
+                                    </div>
+                                {% elif campo.tipo == 'tel' %}
+                                    <div class="col-sm-{{ campo.columnas|default:6 }}">
+                                        <div class="form-group">
+                                            <input 
+                                                class="form-control" 
+                                                name="{{ campo.nombre }}" 
+                                                id="{{ campo.nombre }}" 
+                                                type="tel" 
+                                                placeholder="{{ campo.placeholder }}"
+                                                {% if campo.requerido %}required{% endif %}>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="col-sm-{{ campo.columnas|default:12 }}">
+                                        <div class="form-group">
+                                            <input 
+                                                class="form-control" 
+                                                name="{{ campo.nombre }}" 
+                                                id="{{ campo.nombre }}" 
+                                                type="text" 
+                                                placeholder="{{ campo.placeholder }}"
+                                                {% if campo.requerido %}required{% endif %}>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <!-- Campos por defecto si no hay configuración -->
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <textarea class="form-control w-100" name="mensaje" id="mensaje" cols="30" rows="9" placeholder="Mensaje" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <input class="form-control" name="nombre" id="nombre" type="text" placeholder="Ingresa tu nombre" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <input class="form-control" name="email" id="email" type="email" placeholder="Email" required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <input class="form-control" name="asunto" id="asunto" type="text" placeholder="Asunto" required>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group mt-3">
+                        <button type="submit" class="button button-contactForm boxed-btn" id="btn-contacto-submit">
+                            {{ seccion.configuracion.texto_boton|default:"Enviar" }}
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Estilos personalizados del botón -->
+                {% if seccion.configuracion.boton_bg_color or seccion.configuracion.boton_text_color or seccion.configuracion.boton_hover_color %}
+                <style>
+                    #btn-contacto-submit {
+                        {% if seccion.configuracion.boton_bg_color %}
+                        background-color: {{ seccion.configuracion.boton_bg_color }} !important;
+                        {% if seccion.configuracion.boton_bg_color == '#ffffff' %}
+                        border: 2px solid #000000 !important;
+                        {% else %}
+                        border: 2px solid {{ seccion.configuracion.boton_bg_color }} !important;
+                        {% endif %}
+                        {% endif %}
+                        {% if seccion.configuracion.boton_text_color %}
+                        color: {{ seccion.configuracion.boton_text_color }} !important;
+                        {% endif %}
+                        transition: all 0.3s ease;
+                        font-weight: 600;
+                    }
+                    
+                    #btn-contacto-submit:hover {
+                        {% if seccion.configuracion.boton_hover_color %}
+                        background-color: {{ seccion.configuracion.boton_hover_color }} !important;
+                        border-color: {{ seccion.configuracion.boton_hover_color }} !important;
+                        color: #ffffff !important;
+                        {% elif seccion.configuracion.boton_bg_color %}
+                        filter: brightness(1.1);
+                        {% endif %}
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                    }
+                </style>
+                {% endif %}
+            </div>
+            <div class="col-lg-3 offset-lg-1">
+                {% if seccion.configuracion.info_contacto %}
+                    {% for info in seccion.configuracion.info_contacto %}
+                    <div class="media contact-info">
+                        <span class="contact-info__icon"><i class="{{ info.icono }}"></i></span>
+                        <div class="media-body">
+                            <h3>{{ info.titulo }}</h3>
+                            {% if info.subtitulo %}
+                            <p>{{ info.subtitulo }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ================ contact section end ================= -->
+

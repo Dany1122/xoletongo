@@ -1,0 +1,14 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<div class="card shadow">
+  <div class="card-header bg-danger text-white">Eliminar tipo de servicio</div>
+  <div class="card-body">
+    <p>¿Eliminar <strong>{{ tipo.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+    <form method="POST">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Sí, eliminar</button>
+      <a href="{% url 'admin_TipoServicios' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

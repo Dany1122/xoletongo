@@ -2,10 +2,30 @@
 {% load static %}
 
 {% block titulo %}
-    Servicios - Xoleongo
+    Servicios - Xoletongo
 {% endblock %}
 
 {% block content %}
+
+<!-- Secciones dinámicas desde la BD -->
+{% for seccion in secciones %}
+    {% if seccion.tipo == 'hero' %}
+        {% include 'secciones/hero.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'servicios_accordion' %}
+        {% include 'secciones/servicios_accordion.html' with seccion=seccion tipos_servicio=tipos_servicio %}
+    {% elif seccion.tipo == 'texto' %}
+        {% include 'secciones/texto.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'features' %}
+        {% include 'secciones/features.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'cta' %}
+        {% include 'secciones/cta.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'carousel' %}
+        {% include 'secciones/carousel.html' with seccion=seccion %}
+    {% elif seccion.tipo == 'testimonios' %}
+        {% include 'secciones/testimonios.html' with seccion=seccion %}
+    {% endif %}
+{% empty %}
+<!-- Fallback: Si no hay secciones, mostrar contenido por defecto -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -52,4 +72,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+{% endfor %}
+
 {% endblock %}

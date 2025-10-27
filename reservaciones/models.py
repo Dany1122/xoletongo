@@ -23,7 +23,7 @@ class Reservacion(models.Model):
     pago_realizado = models.BooleanField(default=False)
     total_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     comprobante_pago = models.FileField(upload_to='comprobantes/', null=True, blank=True)
-    empresa = models.ForeignKey('empresas.Empresa', on_delete=models.CASCADE, null=True, blank=True)
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
     estado = models.CharField(
         max_length=15,
         choices=ESTADOS,
@@ -34,12 +34,15 @@ class Reservacion(models.Model):
     
     class Meta:
         verbose_name_plural='Reservaciones'
-        def __str__(self):
-            return f"Reserva de {self.nombre_cliente}"
 
 class Reservacion_servicio(models.Model):
     id_reservacion = models.ForeignKey(Reservacion, on_delete=models.CASCADE, related_name='reservacion')
     servicio = models.ForeignKey(Servicio, on_delete=models.CASCADE, related_name='tipoServicio')
+
+    @property
+    def empresa(self):
+        """Obtiene la empresa a través de la reservación (evita FK redundante)"""
+        return self.id_reservacion.empresa
 
     def __str__(self):
         return f"Reserva de {self.id_reservacion} - {self.servicio}"

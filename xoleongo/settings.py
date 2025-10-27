@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+    
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,12 +37,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'home',
     'reservaciones',
     'servicios',
     'usuarios',
     'widget_tweaks',
     'empresas',
+    'adminpanel',
+    'devpanel',
 ]
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 
@@ -55,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'adminpanel.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'xoleongo.urls'
@@ -69,6 +73,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'adminpanel.context_processors.empresa_context',
+                'devpanel.context_processors.empresa_activa_processor',
+                'home.context_processors.carrito_context',
+                'home.context_processors.footer_context',
             ],
         },
     },
@@ -149,3 +157,5 @@ PAYPAL_SECRET = 'EM8FvqwAaJ1JxM-fth-uA602qdxQrRqCoTxv-tpQJTrWleADyZ-vQ4ozRvYtN8I
 PAYPAL_MODE = 'sandbox'
 
 EMAIL_BACKEND = 'empresas.backends.EmpresaSMTPBackend'
+
+LOGIN_URL = '/usuarios/login/'

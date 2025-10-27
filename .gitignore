@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
 
 # Django migration files (optional)
 *.sqlite3
@@ -9,6 +12,7 @@ __pycache__/
 # Environment variables
 .env
 *.env
+.env.local
 
 # VSCode
 .vscode/
@@ -16,19 +20,35 @@ __pycache__/
 # MacOS
 .DS_Store
 
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
 # Python virtual environments
 env/
 venv/
 ENV/
 .venv/
+mienv/
 
 # Django specific
 db.sqlite3
+db.sqlite3-journal
 /staticfiles/
 /media/
+local_settings.py
+*.pot
 
 # Logs
 *.log
+pip-log.txt
 
 # Node modules (if using JS tools)
 node_modules/
@@ -36,17 +56,37 @@ node_modules/
 # Coverage reports
 htmlcov/
 .coverage
+.coverage.*
 .cache
 nosetests.xml
 coverage.xml
+*.cover
 
 # Pytest
 .pytest_cache/
 
 # MyPy
 .mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Pycharm
 .idea/
 
-*.pyc
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
