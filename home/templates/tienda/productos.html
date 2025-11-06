@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block titulo %}Productos - {{ empresa_activa.nombre }}{% endblock %}
+
+{% block content %}
+
+<!-- Secciones dinámicas ANTES del catálogo (orden < 50) -->
+{% if secciones %}
+    {% for seccion in secciones %}
+        {% if seccion.orden < 50 %}
+            {% if seccion.tipo == 'hero' %}
+                {% include 'secciones/hero.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'texto' %}
+                {% include 'secciones/texto.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'carousel' %}
+                {% include 'secciones/carousel.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'features' %}
+                {% include 'secciones/features.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'galeria' %}
+                {% include 'secciones/galeria_imagenes.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'cta' %}
+                {% include 'secciones/cta.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'testimonios' %}
+                {% include 'secciones/testimonios.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'contacto_form' %}
+                {% include 'secciones/contacto_form.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'mapa' %}
+                {% include 'secciones/mapa.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'instagram' %}
+                {% include 'secciones/instagram.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'servicios_accordion' %}
+                {% include 'secciones/servicios_accordion.html' with seccion=seccion %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <!-- Breadcrumb por defecto si no hay secciones -->
+    <div class="bradcam_area breadcam_bg_tienda">
+        <div class="overlay"></div>
+        <h3>Nuestros Productos</h3>
+    </div>
+{% endif %}
+
+<!-- Catálogo de Productos -->
+<section class="productos_area" style="padding: 80px 0;">
+    <div class="container">
+        
+        <!-- Barra de búsqueda y filtros -->
+        <div class="row mb-4">
+            <div class="col-lg-8 col-md-6">
+                <form method="GET" action="{% url 'productos' %}" class="search-form">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control" placeholder="Buscar productos..." value="{{ q }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-md-6 text-right">
+                <p class="text-muted">Mostrando {{ productos.start_index }} - {{ productos.end_index }} de {{ productos.paginator.count }} productos</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Sidebar de filtros -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="filter-sidebar bg-light p-4 rounded">
+                    <h5 class="mb-3">Categorías</h5>
+                    <div class="list-group">
+                        <a href="{% url 'productos' %}" class="list-group-item list-group-item-action {% if not categoria_seleccionada %}active{% endif %}">
+                            Todas las categorías
+                        </a>
+                        {% for categoria in categorias %}
+                        <a href="{% url 'productos' %}?categoria={{ categoria.id }}" 
+                           class="list-group-item list-group-item-action {% if categoria_seleccionada == categoria.id|stringformat:'s' %}active{% endif %}">
+                            {{ categoria.nombre }}
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Carrito resumen -->
+                    <div class="mt-4 p-3 bg-white rounded border">
+                        <h6 class="mb-2">🛒 Carrito</h6>
+                        <p class="mb-2">Items: <strong>{{ total_items_carrito }}</strong></p>
+                        <a href="{% url 'ver_carrito' %}" class="btn btn-sm btn-outline-primary btn-block">
+                            Ver Carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de productos -->
+            <div class="col-lg-9 col-md-8">
+                {% if productos %}
+                <div class="row">
+                    {% for producto in productos %}
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100 producto-card shadow-sm">
+                            <a href="{% url 'producto_detalle' producto.id %}">
+                                {% if producto.imagen %}
+                                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}" style="height: 250px; object-fit: cover;">
+                                {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 250px;">
+                                    <i class="fa fa-image fa-3x text-white"></i>
+                                </div>
+                                {% endif %}
+                            </a>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">
+                                    <a href="{% url 'producto_detalle' producto.id %}" class="text-dark">{{ producto.nombre }}</a>
+                                </h5>
+                                {% if producto.categoria %}
+                                <p class="text-muted small mb-2">{{ producto.categoria.nombre }}</p>
+                                {% endif %}
+                                <p class="card-text text-muted small">{{ producto.descripcion|truncatewords:15 }}</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h4 class="text-primary mb-0">${{ producto.precio }}</h4>
+                                        {% if producto.stock > 0 %}
+                                        <span class="badge badge-success">Disponible</span>
+                                        {% else %}
+                                        <span class="badge badge-danger">Agotado</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if producto.stock > 0 %}
+                                    <form method="POST" action="{% url 'agregar_al_carrito' producto.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="cantidad" value="1">
+                                        <button type="submit" class="btn btn-primary btn-block">
+                                            <i class="fa fa-cart-plus"></i> Agregar al Carrito
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-secondary btn-block" disabled>
+                                        Agotado
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if productos.has_other_pages %}
+                <nav aria-label="Paginación de productos" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if productos.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ productos.previous_page_number }}{% if categoria_seleccionada %}&categoria={{ categoria_seleccionada }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                                Anterior
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Anterior</span>
+                        </li>
+                        {% endif %}
+
+                        {% for num in productos.paginator.page_range %}
+                        {% if productos.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > productos.number|add:'-3' and num < productos.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if categoria_seleccionada %}&categoria={{ categoria_seleccionada }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if productos.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ productos.next_page_number }}{% if categoria_seleccionada %}&categoria={{ categoria_seleccionada }}{% endif %}{% if q %}&q={{ q }}{% endif %}">
+                                Siguiente
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="fa fa-info-circle fa-3x mb-3"></i>
+                        <h4>No se encontraron productos</h4>
+                        <p>{% if q %}No hay productos que coincidan con "{{ q }}".{% else %}No hay productos disponibles en este momento.{% endif %}</p>
+                        {% if q or categoria_seleccionada %}
+                        <a href="{% url 'productos' %}" class="btn btn-primary">Ver todos los productos</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Secciones dinámicas DESPUÉS del catálogo (orden >= 50) -->
+{% if secciones %}
+    {% for seccion in secciones %}
+        {% if seccion.orden >= 50 %}
+            {% if seccion.tipo == 'hero' %}
+                {% include 'secciones/hero.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'texto' %}
+                {% include 'secciones/texto.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'carousel' %}
+                {% include 'secciones/carousel.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'features' %}
+                {% include 'secciones/features.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'galeria' %}
+                {% include 'secciones/galeria_imagenes.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'cta' %}
+                {% include 'secciones/cta.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'testimonios' %}
+                {% include 'secciones/testimonios.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'contacto_form' %}
+                {% include 'secciones/contacto_form.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'mapa' %}
+                {% include 'secciones/mapa.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'instagram' %}
+                {% include 'secciones/instagram.html' with seccion=seccion %}
+            {% elif seccion.tipo == 'servicios_accordion' %}
+                {% include 'secciones/servicios_accordion.html' with seccion=seccion %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<style>
+    .bradcam_area {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        padding: 120px 0 60px;
+        text-align: center;
+        color: white;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .bradcam_bg_tienda {
+        background-image: url('{% static "img/banner/banner.png" %}');
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 1;
+    }
+
+    .bradcam_area h3,
+    .bradcam_area p,
+    .bradcam_area i {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+
+    .producto-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .producto-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    }
+
+    .producto-card .card-title a {
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .producto-card .card-title a:hover {
+        color: var(--color-acento, #FF9800) !important;
+    }
+
+    .filter-sidebar {
+        position: sticky;
+        top: 100px;
+    }
+
+    .list-group-item.active {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .search-form .form-control:focus {
+        border-color: var(--color-acento, #FF9800);
+        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+    }
+
+    .btn-primary {
+        background-color: var(--color-primario, #4CAF50);
+        border-color: var(--color-primario, #4CAF50);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--color-acento, #FF9800);
+        border-color: var(--color-acento, #FF9800);
+    }
+</style>
+
+{% endblock %}
+

@@ -54,12 +54,15 @@
     {% if form.custom_fields %}
         <hr class="my-4">
         <h5 class="mb-3">Atributos Personalizados</h5>
-        {% for field_name in form.custom_fields %}
-            <div class="mb-3">
-                <label for="{{ form|get_field:field_name.auto_id }}" class="form-label">{{ form|get_field:field_name.label }}</label>
-                {{ form|get_field:field_name }}
-            </div>
-        {% endfor %}
+            {% for field_name in form.custom_fields %}
+                {% with field=form|get_field:field_name %}
+                    <div class="mb-3">
+                        <label for="{{ field.auto_id }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endwith %}
+            {% endfor %}
+
     {% endif %}
 
     <div class="form-check mb-3">

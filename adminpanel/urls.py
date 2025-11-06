@@ -45,5 +45,10 @@ urlpatterns = [
 
     path('configuracion/', views.configuracion_empresa, name='configuracion_empresa'),
 
+    # Pedidos
+    path('pedidos/', views.admin_pedidos, name='admin_pedidos'),
+    path('pedidos/<int:pedido_id>/', views.admin_pedido_detalle, name='admin_pedido_detalle'),
+    path('pedidos/<int:pedido_id>/cambiar-estado/', views.admin_cambiar_estado_pedido, name='admin_cambiar_estado_pedido'),
+    path('pedidos/<int:pedido_id>/eliminar/', views.admin_eliminar_pedido, name='admin_eliminar_pedido'),
     
 ]

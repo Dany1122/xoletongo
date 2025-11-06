@@ -27,6 +27,181 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/themify-icons@1.0.1/css/themify-icons.css">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 
+    <!-- Estilos base para navbar transparente (siempre activos) -->
+    <style>
+        /* Navbar transparente y fija */
+        .main-header-area {
+            background-color: transparent;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+        }
+        
+        /* Navbar sólida al hacer scroll */
+        .main-header-area.scrolled {
+            background-color: #000000 !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        /* Links blancos con sombra para legibilidad */
+        .main-header-area .main-menu ul li a {
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .main-header-area .main-menu ul li a:hover {
+            color: #8dd34d !important;
+        }
+        
+        /* Login link */
+        .login-link {
+            color: white !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .login-link:hover {
+            color: #8dd34d !important;
+        }
+        
+        /* Botón RESERVA YA! */
+        .btn-reserva {
+            background-color: #8dd34d !important;
+            color: white !important;
+            padding: 12px 30px !important;
+            border-radius: 5px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: inline-block;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-reserva:hover {
+            background-color: #8BC34A !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            text-decoration: none;
+        }
+        
+        .btn-reserva:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .btn-reserva i {
+            margin-right: 8px;
+        }
+        
+        /* Ajustar posición del área de reserva en navbar */
+        .book_room {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 30px; /* Mueve el botón hacia la izquierda */
+        }
+        
+        .book_btn {
+            margin-left: 15px;
+        }
+    </style>
+
+    <!-- Estilos dinámicos del tema (sobrescriben los base si están definidos) -->
+    {% if tema %}
+    <style>
+        :root {
+            --color-primario: {{ tema.color_primario }};
+            --color-secundario: {{ tema.color_secundario }};
+            --color-acento: {{ tema.color_acento }};
+            --color-texto: {{ tema.color_texto }};
+            --color-fondo: {{ tema.color_fondo }};
+            --fuente-principal: {{ tema.fuente_principal }}, sans-serif;
+            --fuente-secundaria: {{ tema.fuente_secundaria }}, sans-serif;
+        }
+        
+        /* Aplicar colores del tema */
+        body {
+            font-family: var(--fuente-principal);
+            color: var(--color-texto);
+            background-color: var(--color-fondo);
+        }
+        
+        .btn-reserva, .book_now {
+            background-color: var(--color-acento) !important;
+            border-color: var(--color-acento) !important;
+        }
+        
+        .btn-reserva:hover, .book_now:hover {
+            background-color: var(--color-primario) !important;
+            border-color: var(--color-primario) !important;
+        }
+        
+        a {
+            color: var(--color-primario);
+        }
+        
+        a:hover {
+            color: var(--color-acento);
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--fuente-secundaria);
+            color: var(--color-primario);
+        }
+        
+        /* Sobrescribir navbar con colores del tema según estilo */
+        {% if tema.navbar_estilo == 'transparente_scroll' %}
+        .main-header-area.scrolled {
+            background-color: #000000 !important;
+        }
+        {% elif tema.navbar_estilo == 'negro' %}
+        .main-header-area {
+            background-color: #000000 !important;
+        }
+        {% else %}
+        /* color_primario o default */
+        .main-header-area {
+            background-color: var(--color-primario) !important;
+        }
+        .main-header-area.scrolled {
+            background-color: var(--color-primario) !important;
+        }
+        {% endif %}
+        
+        .main-header-area .main-menu ul li a:hover {
+            color: var(--color-acento) !important;
+        }
+        
+        .login-link:hover {
+            color: var(--color-acento) !important;
+        }
+        
+        /* Botón RESERVA YA! con colores del tema */
+        .btn-reserva {
+            background-color: var(--color-acento) !important;
+            color: white !important;
+        }
+        
+        .btn-reserva:hover {
+            background-color: var(--color-primario) !important;
+            color: white !important;
+        }
+        
+        .btn-reserva:active {
+            background-color: var(--color-secundario) !important;
+        }
+    </style>
+    {% endif %}
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <!-- Header -->
@@ -41,7 +216,12 @@
                                     <ul id="navigation">
                                         <li><a href="{% url 'home' %}" class="{% if request.path == '/' %}active{% endif %}" style="text-decoration: none;">Inicio</a></li>
                                         <li><a href="{% url 'nosotros' %}" class="{% if request.path == '/nosotros/' %}active{% endif %}" style="text-decoration: none;">Nosotros</a></li>
+                                        {% if empresa_activa and empresa_activa.servicios_habilitado %}
                                         <li><a href="{% url 'servicios_por_tipo' %}" class="{% if request.path == '/servicios/' %}active{% endif %}" style="text-decoration: none;">Servicios</a></li>
+                                        {% endif %}
+                                        {% if empresa_activa and empresa_activa.productos_habilitado %}
+                                        <li><a href="{% url 'productos' %}" class="{% if '/productos/' in request.path %}active{% endif %}" style="text-decoration: none;">Productos</a></li>
+                                        {% endif %}
                                         <li><a href="{% url 'galeria' %}" class="{% if request.path == '/galeria/' %}active{% endif %}" style="text-decoration: none;">Galería</a></li>
                                         <li><a href="{% url 'contacto' %}" class="{% if request.path == '/contacto/' %}active{% endif %}" style="text-decoration: none;">Contacto</a></li>
                                     </ul>
@@ -51,7 +231,13 @@
                         <div class="col-xl-2 col-lg-2 text-center">
                             <div class="logo">
                                 <a href="{% url 'home' %}">
-                                    <img src="{% static 'img/logo.png' %}" style="width: 200px; height: auto;" alt="">
+                                    {% if tema and tema.logo_header %}
+                                        <img src="{{ tema.logo_header.url }}" style="width: 200px; height: auto;" alt="{{ empresa_activa.nombre }}">
+                                    {% elif empresa_activa and empresa_activa.logotipo %}
+                                        <img src="{{ empresa_activa.logotipo.url }}" style="width: 200px; height: auto;" alt="{{ empresa_activa.nombre }}">
+                                    {% else %}
+                                        <img src="{% static 'img/logo.png' %}" style="width: 200px; height: auto;" alt="">
+                                    {% endif %}
                                 </a>
                             </div>
                         </div>
@@ -69,9 +255,25 @@
                                     {% endif %}
                                 </div>
                                 
+                                <!-- Carrito de compras (solo si productos está habilitado) -->
+                                {% if empresa_activa and empresa_activa.productos_habilitado %}
+                                <div class="carrito_icon" style="margin-left: 25px; margin-right: 20px;">
+                                    <a href="{% url 'ver_carrito' %}" class="login-link position-relative">
+                                        <i class="fa fa-shopping-cart"></i>
+                                        {% if total_items_carrito > 0 %}
+                                        <span class="badge badge-pill badge-danger position-absolute" style="top: -8px; right: -10px; font-size: 10px;">
+                                            {{ total_items_carrito }}
+                                        </span>
+                                        {% endif %}
+                                    </a>
+                                </div>
+                                {% endif %}
+                                
+                                {% if empresa_activa and empresa_activa.servicios_habilitado %}
                                 <div class="book_btn d-none d-lg-block">
                                     <a href="{% url 'servicios_por_tipo' %}" class="btn-reserva radius" >Reserva Ya!</a>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-12">
@@ -88,63 +290,64 @@
     {% block content %}
     {% endblock %}
 
-<!-- Footer -->
+<!-- Footer Dinámico -->
 <footer class="footer">
-    <div class="footer_top">
+    <div class="footer_top" style="padding-top: 30px;">
         <div class="container">
-           <!-- Mapa + Galería -->
-<div class="row mt-4">
-    <!-- Columna Izquierda: Mapa -->
-    <div class="col-lg-6">
-        <div class="footer_widget">
-            <h4 class="footer_title text-white">Ubicación</h4>
-            <p class="footer_text text-white">
-                Carretera Miguel Lira Y Ortega <br> Santa Cruz Moxolahua Km 1.5
-            </p>
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3874.3455951249916!2d-98.54644622473863!3d19.46889383952075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1d147b7c8f5f9%3A0x8bdf72377f84c714!2sxoletongo%20centro%20de%20avistamiento!5e1!3m2!1ses-419!2smx!4v1744858078568!5m2!1ses-419!2smx"
-            width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"></iframe>
-
+            <div class="row">
+                {% for seccion in footer_secciones %}
+                    {% if seccion.tipo == 'mapa' %}
+                    <!-- Sección de Mapa -->
+                    <div class="col-lg-6">
+                        <div class="footer_widget">
+                            <h4 class="footer_title text-white">{{ seccion.configuracion.titulo }}</h4>
+                            <p class="footer_text" style="color: white !important;">
+                                {{ seccion.configuracion.direccion|linebreaks }}
+                            </p>
+                            <iframe src="{{ seccion.configuracion.iframe_url }}"
+                                width="{{ seccion.configuracion.ancho|default:'100%' }}" 
+                                height="{{ seccion.configuracion.alto|default:'450' }}" 
+                                style="border:0;" 
+                                allowfullscreen="" 
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        </div>
+                    </div>
+                    
+                    {% elif seccion.tipo == 'galeria' %}
+                    <!-- Sección de Galería -->
+                    <div class="col-lg-6 d-flex flex-column align-items-center justify-content-center">
+                        <h3 class="footer_title" style="color: white;">{{ seccion.configuracion.titulo }}</h3>
+                        <div class="gallery-grid" style="display: grid; grid-template-columns: repeat({{ seccion.configuracion.columnas|default:2 }}, 1fr); gap: 10px;">
+                            {% for imagen in seccion.configuracion.imagenes %}
+                            <a href="{% static imagen.url %}" class="popup-image">
+                                <img src="{% static imagen.url %}" alt="{{ imagen.alt }}" 
+                                    style="width: 100%; object-fit: cover; transition: transform 0.3s;" 
+                                    onmouseover="this.style.transform='scale(1.05)'" 
+                                    onmouseout="this.style.transform='scale(1)'">
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     </div>
 
-    <!-- Columna Derecha: Lema + Galería -->
-    <div class="col-lg-6 d-flex flex-column align-items-center justify-content-center">
-        <!-- Lema -->
-        <h4 style="color: #fff; font-weight: 600;" class="mb-3">"Xoletongo Turismo Natural"</h4>
-
-        <!-- Galería en 2x2 -->
-        <h3 class="footer_title"style="color: white;">Galería</h3>
-    <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-    <a href="{% static 'img/gallery/1.jpg' %}" class="popup-image">
-        <img src="{% static 'img/gallery/1.jpg' %}" alt="Imagen 1" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-    </a>
-    <a href="{% static 'img/gallery/2.jpg' %}" class="popup-image">
-        <img src="{% static 'img/gallery/2.jpg' %}" alt="Imagen 2" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-    </a>
-    <a href="{% static 'img/gallery/3.jpg' %}" class="popup-image">
-        <img src="{% static 'img/gallery/3.jpg' %}" alt="Imagen 3" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-    </a>
-    <a href="{% static 'img/gallery/4.jpg' %}" class="popup-image">
-        <img src="{% static 'img/gallery/4.jpg' %}" alt="Imagen 4" style="width: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-    </a>
-</div>
-
-    </div>
-</div>
-
-        </div>
-    </div>
-
-    <!-- Pie inferior -->
+    <!-- Pie inferior (Copyright) -->
     <div class="copy-right_text">
         <div class="container">
             <div class="footer_border"></div>
             <div class="row">
                 <div class="col-12 text-center">
-                    <p class="copy_right">
-                        &copy; <script>document.write(new Date().getFullYear());</script> Xoletongo - Todos los derechos reservados.
-                    </p>
+                    {% for seccion in footer_secciones %}
+                        {% if seccion.tipo == 'texto' and seccion.titulo == 'Copyright' %}
+                        <p class="copy_right" style="color: {{ seccion.configuracion.texto_color|default:'#ffffff' }};">
+                            &copy; <script>document.write(new Date().getFullYear());</script> {{ seccion.configuracion.contenido|safe }}
+                        </p>
+                        {% endif %}
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -238,6 +441,32 @@
             icons: { rightIcon: '<span class="fa fa-caret-down"></span>' }
         });
     </script>
+
+    <!-- Script para navbar transparente con scroll -->
+    <script>
+        $(document).ready(function() {
+            const header = $('.main-header-area');
+            
+            // Función para actualizar la navbar según el scroll
+            function updateNavbar() {
+                if ($(window).scrollTop() > 50) {
+                    header.addClass('scrolled');
+                } else {
+                    header.removeClass('scrolled');
+                }
+            }
+            
+            // Ejecutar al cargar la página
+            updateNavbar();
+            
+            // Ejecutar al hacer scroll
+            $(window).scroll(function() {
+                updateNavbar();
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

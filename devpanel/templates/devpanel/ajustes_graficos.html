@@ -1,0 +1,293 @@
+{% extends 'base_dev.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-palette mr-2"></i>
+        Ajustes Gráficos
+    </h1>
+    <small class="text-muted">Empresa: {{ empresa_activa.nombre }}</small>
+</div>
+
+<p class="mb-4 text-muted">
+    Personaliza la apariencia visual de tu sitio web. Los cambios se aplicarán inmediatamente.
+</p>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Información del Tema -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-primary text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-info-circle mr-2"></i>Información del Tema
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-8">
+                    <label for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="text-danger small">{{ form.nombre.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group col-md-4">
+                    <label>&nbsp;</label>
+                    <div class="form-check mt-2">
+                        {{ form.activo }}
+                        <label class="form-check-label" for="{{ form.activo.id_for_label }}">
+                            {{ form.activo.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paleta de Colores -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3" style="background: linear-gradient(90deg, #4CAF50, #2196F3, #FF9800); color: white;">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-palette mr-2"></i>Paleta de Colores
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                <i class="fas fa-info-circle"></i> Selecciona los colores que definen tu marca. Usa el selector para elegir colores personalizados.
+            </p>
+            
+            <div class="row">
+                <!-- Color Primario -->
+                <div class="col-md-4 mb-3">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <label for="{{ form.color_primario.id_for_label }}" class="font-weight-bold">
+                                <i class="fas fa-square" style="color: {{ tema.color_primario }};"></i>
+                                {{ form.color_primario.label }}
+                            </label>
+                            {{ form.color_primario }}
+                            <small class="form-text text-muted">{{ form.color_primario.help_text }}</small>
+                            {% if form.color_primario.errors %}
+                                <div class="text-danger small mt-1">{{ form.color_primario.errors }}</div>
+                            {% endif %}
+                            <div class="mt-2 p-3 rounded" style="background-color: {{ tema.color_primario }}; color: white;">
+                                Vista previa
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Secundario -->
+                <div class="col-md-4 mb-3">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <label for="{{ form.color_secundario.id_for_label }}" class="font-weight-bold">
+                                <i class="fas fa-square" style="color: {{ tema.color_secundario }};"></i>
+                                {{ form.color_secundario.label }}
+                            </label>
+                            {{ form.color_secundario }}
+                            <small class="form-text text-muted">Elementos auxiliares</small>
+                            {% if form.color_secundario.errors %}
+                                <div class="text-danger small mt-1">{{ form.color_secundario.errors }}</div>
+                            {% endif %}
+                            <div class="mt-2 p-3 rounded" style="background-color: {{ tema.color_secundario }}; color: white;">
+                                Vista previa
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Acento -->
+                <div class="col-md-4 mb-3">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <label for="{{ form.color_acento.id_for_label }}" class="font-weight-bold">
+                                <i class="fas fa-square" style="color: {{ tema.color_acento }};"></i>
+                                {{ form.color_acento.label }}
+                            </label>
+                            {{ form.color_acento }}
+                            <small class="form-text text-muted">{{ form.color_acento.help_text }}</small>
+                            {% if form.color_acento.errors %}
+                                <div class="text-danger small mt-1">{{ form.color_acento.errors }}</div>
+                            {% endif %}
+                            <div class="mt-2 p-3 rounded" style="background-color: {{ tema.color_acento }}; color: white;">
+                                <i class="fas fa-check mr-1"></i> Botón CTA
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Texto -->
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <label for="{{ form.color_texto.id_for_label }}" class="font-weight-bold">
+                                <i class="fas fa-square" style="color: {{ tema.color_texto }};"></i>
+                                {{ form.color_texto.label }}
+                            </label>
+                            {{ form.color_texto }}
+                            <small class="form-text text-muted">Color del texto general</small>
+                            {% if form.color_texto.errors %}
+                                <div class="text-danger small mt-1">{{ form.color_texto.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Color Fondo -->
+                <div class="col-md-6 mb-3">
+                    <div class="card border">
+                        <div class="card-body text-center">
+                            <label for="{{ form.color_fondo.id_for_label }}" class="font-weight-bold">
+                                <i class="fas fa-square" style="color: {{ tema.color_fondo }}; border: 1px solid #ccc;"></i>
+                                {{ form.color_fondo.label }}
+                            </label>
+                            {{ form.color_fondo }}
+                            <small class="form-text text-muted">Color de fondo del sitio</small>
+                            {% if form.color_fondo.errors %}
+                                <div class="text-danger small mt-1">{{ form.color_fondo.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tipografía -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-info text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-font mr-2"></i>Tipografía
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.fuente_principal.id_for_label }}">{{ form.fuente_principal.label }}</label>
+                        {{ form.fuente_principal }}
+                        <small class="form-text text-muted">Para textos generales</small>
+                        {% if form.fuente_principal.errors %}
+                            <div class="text-danger small">{{ form.fuente_principal.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.fuente_secundaria.id_for_label }}">{{ form.fuente_secundaria.label }}</label>
+                        {{ form.fuente_secundaria }}
+                        <small class="form-text text-muted">Para títulos y encabezados</small>
+                        {% if form.fuente_secundaria.errors %}
+                            <div class="text-danger small">{{ form.fuente_secundaria.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Imágenes y Logos -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-success text-white">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-image mr-2"></i>Imágenes y Logos
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- Logo Header -->
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.logo_header.id_for_label }}">{{ form.logo_header.label }}</label>
+                    {% if tema.logo_header %}
+                        <div class="mb-2 text-center">
+                            <img src="{{ tema.logo_header.url }}" alt="Logo actual" style="max-width: 100%; height: auto; max-height: 100px; border: 1px solid #ddd; padding: 10px; background: white;">
+                        </div>
+                    {% endif %}
+                    {{ form.logo_header }}
+                    <small class="form-text text-muted">{{ form.logo_header.help_text }}</small>
+                    {% if form.logo_header.errors %}
+                        <div class="text-danger small">{{ form.logo_header.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Favicon -->
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.favicon.id_for_label }}">{{ form.favicon.label }}</label>
+                    {% if tema.favicon %}
+                        <div class="mb-2 text-center">
+                            <img src="{{ tema.favicon.url }}" alt="Favicon actual" style="width: 32px; height: 32px; border: 1px solid #ddd; padding: 5px; background: white;">
+                            <p class="small text-muted mt-1">Favicon actual</p>
+                        </div>
+                    {% endif %}
+                    {{ form.favicon }}
+                    <small class="form-text text-muted">{{ form.favicon.help_text }}</small>
+                    {% if form.favicon.errors %}
+                        <div class="text-danger small">{{ form.favicon.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Imagen Hero -->
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.imagen_hero.id_for_label }}">{{ form.imagen_hero.label }}</label>
+                    {% if tema.imagen_hero %}
+                        <div class="mb-2 text-center">
+                            <img src="{{ tema.imagen_hero.url }}" alt="Hero actual" style="max-width: 100%; height: auto; max-height: 100px; border: 1px solid #ddd;">
+                        </div>
+                    {% endif %}
+                    {{ form.imagen_hero }}
+                    <small class="form-text text-muted">Banner principal de la página</small>
+                    {% if form.imagen_hero.errors %}
+                        <div class="text-danger small">{{ form.imagen_hero.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estilo de Navbar -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-warning text-dark">
+            <h6 class="m-0 font-weight-bold">
+                <i class="fas fa-bars mr-2"></i>Estilo de Barra de Navegación
+            </h6>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                <i class="fas fa-info-circle"></i> Elige cómo se comporta la barra de navegación en tu sitio.
+            </p>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    {{ form.navbar_estilo }}
+                    {% if form.navbar_estilo.errors %}
+                        <div class="text-danger small">{{ form.navbar_estilo.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <strong>📌 Nota:</strong> El estilo "Transparente con scroll" hace que la navbar sea transparente al inicio y cambie a un color sólido al hacer scroll. Los otros estilos mantienen el color fijo desde el principio.
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="card shadow mb-4">
+        <div class="card-body text-center">
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="fas fa-save mr-2"></i>Guardar Ajustes Gráficos
+            </button>
+            <a href="{% url 'dev_gestion_empresas' %}" class="btn btn-secondary btn-lg ml-2">
+                <i class="fas fa-times mr-2"></i>Cancelar
+            </a>
+        </div>
+    </div>
+
+</form>
+
+{% endblock %}
+

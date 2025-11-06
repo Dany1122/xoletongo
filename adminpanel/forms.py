@@ -14,6 +14,16 @@ class CustomUserForm(forms.ModelForm):
         label='Confirmar contraseña',
         widget=forms.PasswordInput,
     )
+    
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar roles por empresa activa
+        if self.empresa:
+            from devpanel.models import Rol
+            self.fields['rol'].queryset = Rol.objects.filter(empresa=self.empresa, activo=True)
+        
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'rol', 'is_active', 'telefono']
@@ -47,27 +57,190 @@ class ServicioForm(forms.ModelForm):
                   'duracion', 
                   'restricciones'
         ]
+        widgets = {
+            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
+            'servicio': forms.Select(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'costo_por_persona': forms.NumberInput(attrs={'class': 'form-control'}),
+            'costo_niño': forms.NumberInput(attrs={'class': 'form-control'}),
+            'costo_con_descuento': forms.NumberInput(attrs={'class': 'form-control'}),
+            'imagen_principal': forms.FileInput(attrs={'class': 'form-control-file'}),
+            'duracion': forms.NumberInput(attrs={'class': 'form-control'}),
+            'restricciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # Extraemos la 'empresa' que pasaremos desde la vista
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
+        self.custom_fields = []  # Guardaremos los nombres de los campos personalizados aquí
+
+        if self.empresa:
+            # Buscamos todos los atributos definidos para el modelo 'Servicio' de esta empresa
+            custom_attributes = CustomAttribute.objects.filter(
+                empresa=self.empresa, 
+                target_model='Servicio'
+            )
+
+            # Creamos un campo de formulario para cada atributo definido
+            for attr in custom_attributes:
+                field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+                self.custom_fields.append(field_name)
+                
+                # Asignamos el valor inicial si estamos editando un servicio
+                initial_value = None
+                if self.instance and self.instance.pk and self.instance.atributos_personalizados:
+                    initial_value = self.instance.atributos_personalizados.get(attr.name)
+
+                # Creamos el tipo de campo correcto
+                if attr.attribute_type == 'TEXT':
+                    self.fields[field_name] = forms.CharField(
+                        label=attr.name, 
+                        required=False, 
+                        initial=initial_value, 
+                        widget=forms.TextInput(attrs={'class': 'form-control'})
+                    )
+                elif attr.attribute_type == 'NUMBER':
+                    self.fields[field_name] = forms.IntegerField(
+                        label=attr.name, 
+                        required=False, 
+                        initial=initial_value, 
+                        widget=forms.NumberInput(attrs={'class': 'form-control'})
+                    )
+                elif attr.attribute_type == 'TEXTAREA':
+                    self.fields[field_name] = forms.CharField(
+                        label=attr.name, 
+                        required=False, 
+                        initial=initial_value, 
+                        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+                    )
+                elif attr.attribute_type == 'DATE':
+                    self.fields[field_name] = forms.DateField(
+                        label=attr.name, 
+                        required=False, 
+                        initial=initial_value, 
+                        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+                    )
+                elif attr.attribute_type == 'BOOLEAN':
+                    self.fields[field_name] = forms.BooleanField(
+                        label=attr.name, 
+                        required=False, 
+                        initial=initial_value, 
+                        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+                    )
+
+    def save(self, commit=True):
+        # Crear la instancia del servicio en memoria SIN guardarla en la BD todavía
+        instance = super().save(commit=False)
+        
+        if self.empresa:
+            instance.empresa = self.empresa
+
+        # Recopilar los atributos personalizados
+        custom_data = {}
+        for attr in CustomAttribute.objects.filter(empresa=instance.empresa, target_model='Servicio'):
+            field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+            # Obtener el valor del formulario
+            custom_data[attr.name] = self.cleaned_data.get(field_name)
+        
+        # Asignar los datos personalizados al JSONField
+        instance.atributos_personalizados = custom_data
+        
+        # Guardar si commit es True
+        if commit:
+            instance.save()
+            
+        return instance
 
     
-    
 class CustomUserEditForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filtrar roles por empresa activa
+        if self.empresa:
+            from devpanel.models import Rol
+            self.fields['rol'].queryset = Rol.objects.filter(empresa=self.empresa, activo=True)
+        
+        # Generar campos dinámicos para atributos personalizados del rol
+        if self.instance and self.instance.pk and self.instance.rol:
+            rol = self.instance.rol
+            if rol.atributos_schema:
+                for atributo in rol.atributos_schema:
+                    field_name = f"attr_{atributo['nombre']}"
+                    field_label = atributo['nombre']
+                    field_required = atributo.get('requerido', False)
+                    
+                    # Obtener valor actual
+                    valor_actual = self.instance.atributos_personalizados.get(atributo['nombre'], '')
+                    
+                    # Crear campo según el tipo
+                    if atributo['tipo'] == 'texto':
+                        self.fields[field_name] = forms.CharField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.TextInput(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'numero':
+                        self.fields[field_name] = forms.IntegerField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.NumberInput(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'lista':
+                        opciones = [(opt, opt) for opt in atributo.get('opciones', [])]
+                        self.fields[field_name] = forms.ChoiceField(
+                            label=field_label,
+                            required=field_required,
+                            choices=[('', '---')] + opciones,
+                            initial=valor_actual,
+                            widget=forms.Select(attrs={'class': 'form-control'})
+                        )
+                    elif atributo['tipo'] == 'booleano':
+                        self.fields[field_name] = forms.BooleanField(
+                            label=field_label,
+                            required=False,
+                            initial=valor_actual if valor_actual != '' else False,
+                            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+                        )
+                    elif atributo['tipo'] == 'fecha':
+                        self.fields[field_name] = forms.DateField(
+                            label=field_label,
+                            required=field_required,
+                            initial=valor_actual,
+                            widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+                        )
+    
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        
+        # Guardar atributos personalizados
+        if usuario.rol and usuario.rol.atributos_schema:
+            atributos = {}
+            for atributo in usuario.rol.atributos_schema:
+                field_name = f"attr_{atributo['nombre']}"
+                if field_name in self.cleaned_data:
+                    valor = self.cleaned_data[field_name]
+                    # Convertir valores booleanos a string para consistencia
+                    if isinstance(valor, bool):
+                        atributos[atributo['nombre']] = valor
+                    else:
+                        atributos[atributo['nombre']] = str(valor) if valor else ''
+            
+            usuario.atributos_personalizados = atributos
+        
+        if commit:
+            usuario.save()
+        
+        return usuario
+    
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'telefono', 'rol', 'is_active']
-
-class ServicioForm(forms.ModelForm):
-    class Meta:
-        model = Servicio
-        fields = ['titulo', 
-                  'servicio', 
-                  'descripcion', 
-                  'costo_por_persona',
-                  'costo_niño', 
-                  'costo_con_descuento', 
-                  'imagen_principal',
-                  'duracion', 
-                  'restricciones'
-        ]
 
 
 class EmpresaForm(forms.ModelForm):
@@ -129,15 +302,15 @@ class ProductoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         # 1. Extraemos la 'empresa' que pasaremos desde la vista
-        empresa = kwargs.pop('empresa', None)
+        self.empresa = kwargs.pop('empresa', None)
         super().__init__(*args, **kwargs)
 
         self.custom_fields = [] # Guardaremos los nombres de los campos personalizados aquí
 
-        if empresa:
+        if self.empresa:
             # 2. Buscamos todos los atributos definidos para el modelo 'Producto' de esta empresa
             custom_attributes = CustomAttribute.objects.filter(
-                empresa=empresa, 
+                empresa=self.empresa, 
                 target_model='Producto'
             )
 
@@ -161,19 +334,31 @@ class ProductoForm(forms.ModelForm):
                 # Puedes añadir más tipos aquí (DATE, BOOLEAN, etc.)
 
     def save(self, commit=True):
-        # 4. Sobreescribimos el método save para manejar los datos personalizados
+        # 1. Create the product instance in memory WITHOUT saving it to the DB yet.
+        # The view will have already assigned the empresa to this instance.
         instance = super().save(commit=False)
         
+        if self.empresa:
+            instance.empresa = self.empresa
+
+
+        # 2. Now that we have the instance and its company, gather the custom attributes.
         custom_data = {}
         for attr in CustomAttribute.objects.filter(empresa=instance.empresa, target_model='Producto'):
             field_name = f'custom_{attr.name.lower().replace(" ", "_")}'
+            # Get the value from the form's cleaned data
             custom_data[attr.name] = self.cleaned_data.get(field_name)
         
+        # 3. Assign the collected custom data to the JSONField.
         instance.atributos_personalizados = custom_data
         
+        # 4. If commit is True, save the completed instance to the database.
         if commit:
             instance.save()
+            # self.save_m2m() # Use this if you have many-to-many fields
+            
         return instance
+
 class CategoriaProductoForm(forms.ModelForm):
     class Meta:
         model = CategoriaProducto
@@ -194,10 +379,25 @@ class TipoServicioForm(forms.ModelForm):
             "tipo": forms.Select(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        self.empresa = kwargs.pop('empresa', None)
+        super().__init__(*args, **kwargs)
+
     def clean_nombre(self):
         nombre = self.cleaned_data["nombre"].strip()
-        if TipoServicio.objects.filter(nombre__iexact=nombre).exists():
-            raise forms.ValidationError("Ya existe un tipo de servicio con ese nombre.")
+        # Verificar duplicados solo en la misma empresa
+        queryset = TipoServicio.objects.filter(nombre__iexact=nombre)
+        
+        # Si estamos editando, excluir el registro actual
+        if self.instance and self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        
+        # Filtrar por empresa si está disponible
+        if self.empresa:
+            queryset = queryset.filter(empresa=self.empresa)
+        
+        if queryset.exists():
+            raise forms.ValidationError("Ya existe un tipo de servicio con ese nombre en esta empresa.")
         return nombre
     
     

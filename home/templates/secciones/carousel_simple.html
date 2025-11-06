@@ -1,0 +1,11 @@
+{% load static %}
+<!-- about_info_area_start (Carousel simple de imágenes) -->
+<div class="about_info_area">
+    <div class="about_active owl-carousel">
+        {% for item in seccion.configuracion.slides %}
+        <div class="single_slider {% if item.bg_class %}{{ item.bg_class }}{% else %}about_bg_1{% endif %}"></div>
+        {% endfor %}
+    </div>
+</div>
+<!-- about_info_area_end -->
+

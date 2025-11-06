@@ -1,6 +1,7 @@
 {% extends "base_admin.html" %}
 {% load widget_tweaks %}
 {% load static %}
+{% load form_tags %}
 
 {% block title %}Agregar Servicio/Producto{% endblock %}
 
@@ -129,6 +130,39 @@
                         </div>
                     </div>
 
+                    <!-- 🔸 ATRIBUTOS PERSONALIZADOS -->
+                    {% if form.custom_fields %}
+                    <hr class="my-4">
+                    <h6 class="m-0 font-weight-bold text-primary mb-3">
+                        <i class="fas fa-cogs mr-1"></i> Atributos Personalizados
+                    </h6>
+                    <div class="form-row">
+                        {% for field_name in form.custom_fields %}
+                            {% with field=form|get_field:field_name %}
+                            <div class="form-group col-md-6">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {% if field.field.widget.input_type == 'checkbox' %}
+                                    <div class="form-check">
+                                        {{ field|add_class:"form-check-input" }}
+                                        <label class="form-check-label" for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors }}</div>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <!-- 🔸 GALERÍA (formset) -->
                     <hr class="my-4">
                     <h6 class="m-0 font-weight-bold text-primary mb-3">
@@ -195,17 +229,19 @@
                         </div>
                     </template>
 
-                    <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="add-image-row">
+                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="add-image-row">
                         <i class="fas fa-plus mr-1"></i> Añadir imagen
                     </button>
 
-                    <!-- Botones -->
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-user-plus mr-1"></i> Guardar servicio
-                    </button>
-                    <a href="{% url 'admin_servicios' %}" class="btn btn-secondary ml-2">
-                        Cancelar
-                    </a>
+                    <!-- Botones de acción -->
+                    <div class="mt-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-user-plus mr-1"></i> Guardar servicio
+                        </button>
+                        <a href="{% url 'admin_servicios' %}" class="btn btn-secondary ml-2">
+                            Cancelar
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>

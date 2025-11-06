@@ -75,6 +75,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'adminpanel.context_processors.empresa_context',
                 'devpanel.context_processors.empresa_activa_processor',
+                'home.context_processors.carrito_context',
+                'home.context_processors.footer_context',
             ],
         },
     },

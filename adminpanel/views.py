@@ -14,7 +14,7 @@ from itertools import chain
 from django.db.models import Sum,Count
 from datetime import datetime
 from adminpanel.utils import registrar_novedad
-from adminpanel.models import Novedad, Producto, CategoriaProducto
+from adminpanel.models import Novedad, Producto, CategoriaProducto, Pedido, ItemPedido
 from django.urls import reverse
 from django.http import HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from decimal import Decimal
@@ -119,14 +119,16 @@ def lista_usuarios(request):
 
 def editar_usuario(request, id):
     usuario = get_object_or_404(CustomUser, id=id)
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
     if request.method == 'POST':
-        form = CustomUserEditForm(request.POST, instance=usuario)
+        form = CustomUserEditForm(request.POST, instance=usuario, empresa=empresa_activa)
         if form.is_valid():
             form.save()
             registrar_novedad(request.user, f"Editó el usuario: {usuario.username}")
             return redirect('/adminpanel/usuarios/?editado=1')
     else:
-        form = CustomUserEditForm(instance=usuario)
+        form = CustomUserEditForm(instance=usuario, empresa=empresa_activa)
     return render(request, 'editar_usuario.html', {'form': form})
 
 def eliminar_usuario(request, id):
@@ -136,14 +138,29 @@ def eliminar_usuario(request, id):
     return redirect('/adminpanel/usuarios/?eliminado=1')
 
 def agregar_usuario(request):
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
     if request.method == 'POST':
-        form = CustomUserForm(request.POST)
+        form = CustomUserForm(request.POST, empresa=empresa_activa)
         if form.is_valid():
-            usuario=form.save()
+            usuario = form.save(commit=False)
+            if empresa_activa:
+                usuario.empresa = empresa_activa
+            usuario.save()
             registrar_novedad(request.user, f"Agregó un usuario: {usuario.username}")
-            return redirect('/adminpanel/usuarios/?creado=1')
+            
+            # Mensaje diferente si el rol tiene atributos personalizados
+            if usuario.rol and usuario.rol.atributos_schema:
+                messages.success(
+                    request, 
+                    f'Usuario "{usuario.username}" creado exitosamente. '
+                    f'No olvides completar los atributos personalizados del rol "{usuario.rol.nombre}".'
+                )
+                return redirect('admin_editar_usuario', id=usuario.id)
+            else:
+                return redirect('/adminpanel/usuarios/?creado=1')
     else:
-        form = CustomUserForm()
+        form = CustomUserForm(empresa=empresa_activa)
     return render(request, 'agregar_usuario.html', {'form': form})
 
 def kanban_ventas(request):
@@ -302,12 +319,12 @@ def agregar_servicio(request):
     empresa_activa = Empresa.objects.filter(activa=True).first()
     if not empresa_activa:
         messages.error(request, "No hay una empresa activa configurada.")
-        form = ServicioForm(request.POST or None, request.FILES or None)
+        form = ServicioForm(request.POST or None, request.FILES or None, empresa=None)
         formset = ImagenFormSet(request.POST or None, request.FILES or None)
         return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
 
     if request.method == 'POST':
-        form = ServicioForm(request.POST, request.FILES)
+        form = ServicioForm(request.POST, request.FILES, empresa=empresa_activa)
         formset = ImagenFormSet(request.POST, request.FILES)  # sin instance hasta guardar el servicio
 
         if form.is_valid():
@@ -330,7 +347,7 @@ def agregar_servicio(request):
             # si el formset NO es válido, seguimos a render con errores
         # si el form NO es válido, caemos a render con errores
     else:
-        form = ServicioForm()
+        form = ServicioForm(empresa=empresa_activa)
         formset = ImagenFormSet()
 
     return render(request, 'agregar_servicio.html', {'form': form, 'formset': formset})
@@ -339,7 +356,7 @@ def editar_servicio(request, id):
     servicio = get_object_or_404(Servicio, id=id)
 
     if request.method == 'POST':
-        form = ServicioForm(request.POST, request.FILES, instance=servicio)
+        form = ServicioForm(request.POST, request.FILES, instance=servicio, empresa=servicio.empresa)
         formset = ImagenFormSet(request.POST, request.FILES, instance=servicio)
 
         if form.is_valid() and formset.is_valid():
@@ -350,7 +367,7 @@ def editar_servicio(request, id):
                 registrar_novedad(request.user, f"Editó el servicio: {servicio.titulo}")
             return redirect('/adminpanel/servicios/?editado=1')
     else:
-        form = ServicioForm(instance=servicio)
+        form = ServicioForm(instance=servicio, empresa=servicio.empresa)
         formset = ImagenFormSet(instance=servicio)
 
     return render(request, 'editar_servicio.html', {'form': form, 'formset': formset, 'servicio': servicio})
@@ -835,8 +852,17 @@ def _rebuild_list_url(request):
 # Página de gestión (lista, crear rápido, links a editar/eliminar)
 @login_required
 def admin_tipos_servicio(request):
-    tipos = TipoServicio.objects.annotate(num_servicios=Count("subservicios"))
-    form = TipoServicioForm()
+    # Obtener empresa activa y filtrar tipos de servicio
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    
+    if empresa_activa:
+        tipos = TipoServicio.objects.filter(empresa=empresa_activa).annotate(num_servicios=Count("subservicios"))
+        form = TipoServicioForm(empresa=empresa_activa)
+    else:
+        tipos = TipoServicio.objects.none()
+        form = TipoServicioForm()
+        messages.warning(request, "No hay una empresa activa configurada.")
+    
     return render(request, "admin_tipos_servicio.html", {
         "tipos": tipos,
         "form": form,
@@ -848,11 +874,19 @@ def crear_tipo_servicio(request):
     if request.method != "POST":
         return redirect("admin_TipoServicios")
 
-    form = TipoServicioForm(request.POST)
+    # Obtener la empresa activa
+    empresa_activa = Empresa.objects.filter(activa=True).first()
+    if not empresa_activa:
+        messages.error(request, "No hay una empresa activa configurada.")
+        return redirect("admin_TipoServicios")
+
+    form = TipoServicioForm(request.POST, empresa=empresa_activa)
     next_url = request.POST.get("next") or reverse("admin_TipoServicios")
 
     if form.is_valid():
-        form.save()
+        tipo_servicio = form.save(commit=False)
+        tipo_servicio.empresa = empresa_activa  # Asignar empresa activa
+        tipo_servicio.save()
         messages.success(request, "Tipo de servicio creado correctamente.")
         return redirect(next_url)
 
@@ -866,13 +900,13 @@ def crear_tipo_servicio(request):
 def editar_tipo_servicio(request, pk):
     tipo = get_object_or_404(TipoServicio, pk=pk)
     if request.method == "POST":
-        form = TipoServicioForm(request.POST, instance=tipo)
+        form = TipoServicioForm(request.POST, instance=tipo, empresa=tipo.empresa)
         if form.is_valid():
             form.save()
             messages.success(request, "Tipo de servicio actualizado.")
             return redirect("admin_TipoServicios")
     else:
-        form = TipoServicioForm(instance=tipo)
+        form = TipoServicioForm(instance=tipo, empresa=tipo.empresa)
 
     return render(request, "editar_tipo_servicio.html", {"form": form, "tipo": tipo})
 
@@ -885,3 +919,115 @@ def eliminar_tipo_servicio(request, pk):
         return redirect("admin_TipoServicios")
     # Confirmación simple (puedes usar modal también)
     return render(request, "confirmar_eliminar_tipo.html", {"tipo": tipo})
+
+
+# ==================== GESTIÓN DE PEDIDOS ====================
+
+@login_required
+def admin_pedidos(request):
+    """Lista de todos los pedidos"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    
+    # Obtener pedidos de la empresa activa
+    pedidos = Pedido.objects.filter(empresa=empresa).select_related('usuario').prefetch_related('items').order_by('-fecha_pedido')
+    
+    # Filtro por estado
+    estado = request.GET.get('estado')
+    if estado:
+        pedidos = pedidos.filter(estado=estado)
+    
+    # Búsqueda
+    q = request.GET.get('q', '').strip()
+    if q:
+        pedidos = pedidos.filter(
+            Q(numero_pedido__icontains=q) | 
+            Q(nombre_cliente__icontains=q) | 
+            Q(email_cliente__icontains=q) | 
+            Q(telefono_cliente__icontains=q)
+        )
+    
+    # Paginación
+    paginator = Paginator(pedidos, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Estadísticas
+    stats = {
+        'total': pedidos.count(),
+        'pendientes': pedidos.filter(estado='pendiente').count(),
+        'confirmados': pedidos.filter(estado='confirmado').count(),
+        'en_proceso': pedidos.filter(estado='en_proceso').count(),
+        'entregados': pedidos.filter(estado='entregado').count(),
+        'cancelados': pedidos.filter(estado='cancelado').count(),
+    }
+    
+    context = {
+        'page_obj': page_obj,
+        'query_actual': q,
+        'estado_actual': estado,
+        'estados': Pedido.ESTADO_CHOICES,
+        'stats': stats,
+    }
+    return render(request, 'admin_pedidos.html', context)
+
+
+@login_required
+def admin_pedido_detalle(request, pedido_id):
+    """Detalle de un pedido específico"""
+    empresa = Empresa.objects.filter(activa=True).first()
+    pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+    
+    context = {
+        'pedido': pedido,
+        'estados': Pedido.ESTADO_CHOICES,
+    }
+    return render(request, 'admin_pedido_detalle.html', context)
+
+
+@login_required
+def admin_cambiar_estado_pedido(request, pedido_id):
+    """Cambiar el estado de un pedido"""
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Método no permitido')
+    
+    empresa = Empresa.objects.filter(activa=True).first()
+    pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+    
+    nuevo_estado = request.POST.get('estado')
+    if nuevo_estado in dict(Pedido.ESTADO_CHOICES):
+        pedido.estado = nuevo_estado
+        pedido.save()
+        
+        # Registrar novedad
+        registrar_novedad(
+            request.user,
+            f"Cambió el estado del pedido #{pedido.numero_pedido} a {pedido.get_estado_display()}"
+        )
+        
+        messages.success(request, f'Estado del pedido actualizado a {pedido.get_estado_display()}')
+    else:
+        messages.error(request, 'Estado inválido')
+    
+    return redirect('admin_pedido_detalle', pedido_id=pedido.id)
+
+
+@login_required
+def admin_eliminar_pedido(request, pedido_id):
+    """Eliminar un pedido (cancelar)"""
+    if request.method == 'POST':
+        empresa = Empresa.objects.filter(activa=True).first()
+        pedido = get_object_or_404(Pedido, id=pedido_id, empresa=empresa)
+        
+        numero_pedido = pedido.numero_pedido
+        pedido.delete()
+        
+        # Registrar novedad
+        registrar_novedad(
+            request.user,
+            f"Eliminó el pedido #{numero_pedido}"
+        )
+        
+        messages.success(request, f'Pedido #{numero_pedido} eliminado exitosamente')
+        return redirect('admin_pedidos')
+    
+    return HttpResponseBadRequest('Método no permitido')

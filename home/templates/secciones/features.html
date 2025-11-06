@@ -1,0 +1,29 @@
+{% load static %}
+{% load seccion_filters %}
+<!-- offers_area_start -->
+<div class="offers_area">
+    <div class="container">
+        <div class="section_title text-center mb-100">
+            </br>
+            <span style="color: #689F38; font-size: large;">{{ seccion.configuracion.subtitulo }}</span>
+            <h3>{{ seccion.configuracion.titulo }}</h3>
+        </div>
+        <div class="row">
+            {% for item in seccion.configuracion.items %}
+            <div class="col-xl-4 col-md-6{% if forloop.last and seccion.configuracion.items|length|divisibleby:3 %} mx-auto{% endif %}">
+                <a href="{{ item.url|resolve_url }}">
+                    <div class="single_offers text-center">
+                        <div class="about_thumb">
+                            <img src="{% static item.imagen %}" alt="{{ item.titulo }}">
+                        </div>
+                        <h3>{{ item.titulo }}</h3>
+                        <p>{{ item.descripcion }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<!-- offers_area_end -->
+

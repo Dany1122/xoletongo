@@ -48,7 +48,7 @@ def login_view(request):
                     return redirect(next_url)
 
                 # Redirección por rol
-                role = (getattr(user, 'rol', '') or '').strip()
+                role = user.get_rol_nombre()
                 if role == 'Cliente':
                     return redirect('home')
                 if role in ('Administrador', 'Empleado', 'Encargado'):

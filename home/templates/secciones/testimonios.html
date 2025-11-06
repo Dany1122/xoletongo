@@ -1,0 +1,35 @@
+{% load static %}
+<!-- reconocimientos_area_start -->
+<section class="reconocimientos-section">
+    <div class="container text-center">
+        <h2 class="section-title">{{ seccion.configuracion.titulo }}</h2>
+        <p class="section-subtitle">{{ seccion.configuracion.subtitulo }}</p>
+
+        <div class="row mt-5">
+            {% for item in seccion.configuracion.items %}
+            <!-- Card {{ forloop.counter }} -->
+            <div class="col-md-3 mb-4">
+                <div class="recon-card">
+                    <img src="{% static item.imagen %}" alt="{{ item.titulo }}" class="recon-img">
+                    <h4 class="recon-title">{{ item.titulo }}</h4>
+                    <p class="recon-text">{{ item.descripcion }}</p>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if seccion.configuracion.video %}
+            <!-- Video Card -->
+            <div class="col-md-3 mb-4">
+                <div class="recon-card">
+                    <video controls class="recon-video">
+                        <source src="{% static seccion.configuracion.video %}" type="video/mp4">
+                        Tu navegador no soporta el video.
+                    </video>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+<!-- reconocimientos_area_end -->
+
